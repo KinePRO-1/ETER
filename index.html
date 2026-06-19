@@ -819,6 +819,123 @@ body.modal-open{overflow:hidden}
 @media(max-width:980px){.routine-editor-layout{grid-template-columns:1fr}.routine-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.history-filters{grid-template-columns:repeat(2,1fr)}.history-metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:780px){html{font-size:16px}.sync-status{padding:5px 8px}.sync-status span:last-child{display:none}.patient-profile-head{align-items:flex-start;padding:16px}.patient-profile-avatar{width:50px;height:50px;border-radius:14px}.profile-shell{padding:14px}.clinical-grid,.kpi-grid{grid-template-columns:1fr}.routine-tabs{width:100%}.routine-toolbar{align-items:stretch}.routine-toolbar .toolbar{width:100%}.session-start{grid-template-columns:1fr}.exercise-library-controls{grid-template-columns:1fr}.exercise-draft-grid,.execution-grid{grid-template-columns:repeat(2,1fr)}.history-filters,.history-metrics{grid-template-columns:1fr 1fr}.table-wrap.responsive{border:0;overflow:visible}.table-wrap.responsive .table,.table-wrap.responsive tbody{display:block}.table-wrap.responsive thead{display:none}.table-wrap.responsive tr{display:block;border:1px solid var(--border);border-radius:11px;margin-bottom:10px;background:var(--surface);padding:7px}.table-wrap.responsive td{display:grid;grid-template-columns:116px 1fr;border:0;padding:7px 8px}.mobile-card-label{display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700}.session-card{padding-bottom:58px;position:relative}.session-mobile-actions{display:flex;position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:rgba(255,255,255,.96);border-top:1px solid var(--border);gap:6px}.session-mobile-actions .btn{flex:1;min-width:0}.modal.modal-xl,.modal.modal-wide{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}.modal-footer{flex-wrap:wrap;padding:12px}.modal-footer .unsaved{flex:1 0 100%}.modal-footer .unsaved~.btn{flex:1 1 calc(50% - 6px);padding-left:8px;padding-right:8px}.modal-footer .unsaved~.btn:last-child{flex-basis:100%}.header-actions{gap:6px}}
 @media(max-width:480px){.metrics{grid-template-columns:1fr}.history-filters,.history-metrics{grid-template-columns:1fr}.exercise-draft-grid,.execution-grid{grid-template-columns:1fr 1fr}.routine-card-head,.session-head{flex-direction:column}.routine-card-actions{align-self:flex-end}.patient-profile-head{flex-wrap:wrap}.patient-profile-main{min-width:calc(100% - 70px)}}
+
+/* ─── HISTORIAL MÓVIL PROFESIONAL ───────────────── */
+.history-table .table{min-width:980px}
+.history-table .table th,.history-table .table td{padding-left:13px;padding-right:13px}
+.history-table .table tbody tr{transition:background var(--transition),box-shadow var(--transition)}
+.history-table .table tbody tr:hover{background:#f8fbff}
+.history-table .history-date{display:inline-block;white-space:nowrap;font-size:12.5px;color:var(--text-2)}
+.history-table .history-patient-name{display:block;min-width:0;font-size:13.5px;font-weight:700;color:var(--text);overflow-wrap:anywhere}
+.history-table .history-routine-name{display:flex;align-items:center;gap:7px;min-width:0;color:var(--text-2);font-size:13px}
+.history-table .history-routine-name>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-table .history-routine-icon,.history-table .history-metric-icon,.history-table .history-action-icon,.history-table .history-detail-icon,.history-table .history-detail-chevron{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.history-table svg{width:18px;height:18px;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.history-table .history-metric-icon,.history-table .history-progress-track{display:none}
+.history-table .history-status-cell{text-align:center;white-space:nowrap}
+.history-table .history-actions-cell{min-width:230px}
+.history-table .history-direct-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.history-table .history-action-btn{min-height:38px;padding:0 12px;border-radius:9px;gap:7px;font-size:12.5px;font-weight:700}
+.history-table .history-action-btn:focus-visible,.history-table .history-detail>summary:focus-visible{outline:3px solid rgba(27,95,204,.24);outline-offset:2px}
+.history-table .history-profile-btn{background:var(--surface);color:var(--blue);border-color:var(--blue-100)}
+.history-table .history-profile-btn:hover{background:var(--blue-50);border-color:var(--blue)}
+.history-table .history-profile-btn:active{transform:translateY(1px)}
+.history-table .history-routine-btn{background:var(--text);color:#fff;border-color:var(--text);box-shadow:0 4px 10px rgba(26,33,48,.14)}
+.history-table .history-routine-btn:hover{background:#28344a;border-color:#28344a}
+.history-table .history-routine-btn:active{transform:translateY(1px)}
+.history-table .history-detail{margin-top:8px}
+.history-table .history-detail>summary{display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 12px;list-style:none;cursor:pointer;color:var(--blue);background:var(--blue-50);border:1px solid var(--blue-100);border-radius:9px;font-size:12.5px;font-weight:700;transition:background var(--transition),border-color var(--transition),color var(--transition),transform var(--transition)}
+.history-table .history-detail>summary::-webkit-details-marker{display:none}
+.history-table .history-detail>summary::marker{content:""}
+.history-table .history-detail>summary:hover{background:#dfeaff;border-color:var(--blue);color:#164fae}
+.history-table .history-detail>summary:active{transform:translateY(1px)}
+.history-table .history-detail-chevron{margin-left:auto;transition:transform .2s ease}
+.history-table .history-detail[open] .history-detail-chevron{transform:rotate(180deg)}
+.history-table .history-detail:not([open]) .history-detail-close{display:none}
+.history-table .history-detail[open] .history-detail-open{display:none}
+.history-table .history-exercise-list{display:grid;gap:8px;margin-top:10px;animation:historyReveal .18s ease both}
+@keyframes historyReveal{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.history-table .history-exercise-row,.history-table .history-exercise-card{border:1px solid var(--border);border-radius:11px;padding:11px;background:var(--surface-2);font-size:12px}
+.history-table .history-exercise-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.history-table .history-exercise-head strong{min-width:0;color:var(--text);font-size:12.5px;overflow-wrap:anywhere}
+.history-table .history-exercise-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:9px}
+.history-table .history-exercise-metrics>div{min-width:0;padding:7px;border:1px solid var(--border);border-radius:8px;background:var(--surface);text-align:center}
+.history-table .history-exercise-metrics small{display:block;color:var(--muted);font-size:9px;font-weight:700;letter-spacing:.35px;text-transform:uppercase}
+.history-table .history-exercise-metrics strong{display:block;margin-top:2px;color:var(--text);font-size:12px;overflow-wrap:anywhere}
+.history-table .history-exercise-notes{margin-top:9px;padding:9px 10px;border-radius:8px;background:var(--surface);color:var(--text-2);font-size:11.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.history-table .history-exercises-empty{padding:15px;border:1px dashed var(--border-strong);border-radius:10px;background:var(--surface-2);color:var(--muted);font-size:12px;text-align:center}
+
+@media(max-width:780px){
+  .history-table{border:0!important;overflow:visible!important;background:transparent}
+  .history-table .table,.history-table tbody{display:block!important;width:100%;min-width:0}
+  .history-table thead{display:none!important}
+  .history-table .history-session-card{position:relative;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;width:100%;min-width:0;margin:0 0 14px;padding:16px 15px 15px 19px;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:0 8px 24px rgba(31,65,112,.08)}
+  .history-table .history-session-card:hover{background:var(--surface);box-shadow:0 10px 26px rgba(31,65,112,.11)}
+  .history-table .history-session-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--blue)}
+  .history-table .history-session-card.is-finalizada::before{background:var(--green)}
+  .history-table .history-session-card.is-incompleta::before{background:var(--amber)}
+  .history-table .history-session-card.is-abandonada::before{background:var(--red)}
+  .history-table .history-session-card.is-unknown::before{background:var(--muted)}
+  .history-table .history-session-card>td{display:block!important;min-width:0;padding:0!important;border:0!important}
+  .history-table .mobile-card-label{display:block;margin-bottom:4px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.65px;line-height:1.2;text-transform:uppercase}
+  .history-table .history-date-cell{grid-column:1/5;align-self:center;padding-right:8px!important}
+  .history-table .history-date{white-space:normal;color:var(--text-2);font-size:12.5px;font-weight:600;line-height:1.35}
+  .history-table .history-status-cell{grid-column:5/7;justify-self:end;align-self:start;text-align:right}
+  .history-table .history-status-cell .mobile-card-label{display:none}
+  .history-table .history-status-cell .badge{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .history-table .history-patient-cell{grid-column:1/-1;margin-top:14px}
+  .history-table .history-patient-cell .mobile-card-label{display:none}
+  .history-table .history-patient-name{font-size:20px;font-weight:800;line-height:1.18;letter-spacing:-.3px;overflow-wrap:anywhere}
+  .history-table .history-routine-cell{grid-column:1/-1;margin-top:6px;padding-bottom:14px!important;border-bottom:1px solid var(--border)!important}
+  .history-table .history-routine-cell .mobile-card-label{display:none}
+  .history-table .history-routine-name{font-size:13.5px;line-height:1.35}
+  .history-table .history-routine-name>span:last-child{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+  .history-table .history-routine-icon{color:var(--blue)}
+  .history-table .history-duration-cell,.history-table .history-progress-cell,.history-table .history-volume-cell{margin-top:14px;padding:0 8px!important;text-align:center}
+  .history-table .history-duration-cell{grid-column:1/3;padding-left:0!important}
+  .history-table .history-progress-cell{grid-column:3/5;border-left:1px solid var(--border)!important;border-right:1px solid var(--border)!important}
+  .history-table .history-volume-cell{grid-column:5/7;padding-right:0!important}
+  .history-table .history-metric-icon{display:inline-flex;margin-bottom:4px;color:var(--muted)}
+  .history-table .history-metric-icon svg{width:17px;height:17px}
+  .history-table .history-metric-value{display:block;color:var(--text);font-size:16px;font-weight:800;line-height:1.15}
+  .history-table .history-progress-cell.is-complete .history-metric-value,.history-table .history-progress-cell.is-complete .history-metric-icon{color:var(--green)}
+  .history-table .history-progress-cell.is-progress .history-metric-value,.history-table .history-progress-cell.is-progress .history-metric-icon{color:var(--blue)}
+  .history-table .history-progress-cell.is-zero .history-metric-value,.history-table .history-progress-cell.is-zero .history-metric-icon{color:var(--muted)}
+  .history-table .history-progress-track{display:block;width:100%;height:4px;margin-top:6px;overflow:hidden;border-radius:999px;background:var(--border)}
+  .history-table .history-progress-track>span{display:block;width:var(--history-progress);height:100%;border-radius:inherit;background:var(--blue);transition:width .2s ease}
+  .history-table .history-progress-cell.is-complete .history-progress-track>span{background:var(--green)}
+  .history-table .history-progress-cell.is-zero .history-progress-track>span{background:var(--muted)}
+  .history-table .history-actions-cell{grid-column:1/-1;min-width:0;margin-top:15px;padding-top:13px!important;border-top:1px solid var(--border)!important}
+  .history-table .history-actions-cell>.mobile-card-label{display:none}
+  .history-table .history-direct-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .history-table .history-direct-actions:empty{display:none}
+  .history-table .history-action-btn{width:100%;min-width:0;min-height:44px;padding:0 10px;border-radius:10px;font-size:13px}
+  .history-table .history-action-icon svg{width:18px;height:18px}
+  .history-table .history-detail{margin-top:8px}
+  .history-table .history-detail>summary{width:100%;min-height:48px;padding:0 15px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue-mid));border-color:var(--blue);border-radius:11px;font-size:14px;box-shadow:0 5px 14px rgba(27,95,204,.22)}
+  .history-table .history-detail>summary:hover{color:#fff;background:linear-gradient(135deg,#164fae,var(--blue));border-color:#164fae}
+  .history-table .history-detail>summary:active{transform:translateY(1px);box-shadow:0 3px 9px rgba(27,95,204,.2)}
+  .history-table .history-detail-chevron{margin-left:auto}
+  .history-table .history-exercise-list{gap:9px;margin-top:10px}
+  .history-table .history-exercise-card{padding:12px;border-radius:12px;background:#fbfdff}
+  .history-table .history-exercise-head strong{font-size:13.5px}
+  .history-table .history-exercise-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .history-table .history-exercise-metrics>div{padding:7px 4px}
+  .history-table .history-empty-row{display:block!important;border:0!important;background:transparent!important;padding:0!important;box-shadow:none!important}
+  .history-table .history-empty-row>td{display:block!important;padding:0!important}
+}
+
+@media(max-width:420px){
+  .history-table .history-session-card{padding:14px 12px 13px 16px;border-radius:16px}
+  .history-table .history-patient-name{font-size:18px}
+  .history-table .history-date{font-size:12px}
+  .history-table .history-duration-cell,.history-table .history-progress-cell,.history-table .history-volume-cell{padding-left:5px!important;padding-right:5px!important}
+  .history-table .history-metric-value{font-size:15px}
+  .history-table .history-direct-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .history-table .history-action-btn{padding-inline:7px;font-size:12.5px}
+  .history-table .history-exercise-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}.print-sheet{font-family:var(--font);color:#111;padding:14mm;width:210mm;min-height:297mm;background:#fff}.print-sheet h1{color:#1B5FCC;font-size:26px;margin-bottom:4px}.print-sheet h2{font-size:18px;margin:18px 0 8px}.print-sheet .print-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}.print-sheet .print-meta div{border-bottom:1px solid #ccd5e0;padding:6px 0;font-size:12px}.print-sheet table{width:100%;border-collapse:collapse;font-size:11px}.print-sheet th,.print-sheet td{border:1px solid #ccd5e0;padding:7px;text-align:left}.print-sheet th{background:#eef4ff;color:#1B5FCC}.print-sheet .print-note{margin-top:14px;border:1px solid #ccd5e0;padding:10px;border-radius:6px}}
 
 
@@ -929,6 +1046,775 @@ body.modal-open{overflow:hidden}
   #view-inicio .home-metrics .metric-note{font-size:9.5px}
 }
 
+
+/* ─── AGENDA PROFESIONAL DEL INICIO ───────────────── */
+#view-inicio .home-agenda{
+  border:1px solid #d9e3f0;
+  border-radius:20px;
+  padding:22px;
+  background:var(--surface);
+  box-shadow:0 12px 30px rgba(31,65,112,.08);
+  overflow:hidden;
+}
+#view-inicio .home-agenda:hover{box-shadow:0 14px 34px rgba(31,65,112,.1)}
+#view-inicio .home-agenda .agenda-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+#view-inicio .home-agenda .agenda-heading{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+#view-inicio .agenda-header-icon{
+  width:46px;
+  height:46px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  color:var(--blue);
+  background:var(--blue-50);
+  border:1px solid var(--blue-100);
+}
+#view-inicio .agenda-header-icon svg,
+#view-inicio .agenda-btn-icon svg,
+#view-inicio .agenda-clock-icon svg,
+#view-inicio .agenda-money-icon svg,
+#view-inicio .agenda-action-icon svg{
+  width:100%;
+  height:100%;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#view-inicio .agenda-header-icon svg{width:23px;height:23px}
+#view-inicio .agenda-heading-copy{min-width:0}
+#view-inicio .agenda-heading-copy .card-title{
+  font-size:17px;
+  line-height:1.25;
+  letter-spacing:-.25px;
+}
+#view-inicio .agenda-heading-copy .card-sub{
+  margin-top:3px;
+  font-size:12.5px;
+  line-height:1.35;
+}
+#view-inicio .agenda-view-btn{
+  min-height:42px;
+  padding:0 16px;
+  border-radius:10px;
+  gap:8px;
+  border-color:var(--blue);
+  background:var(--blue);
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 5px 14px rgba(27,95,204,.22);
+}
+#view-inicio .agenda-view-btn:hover{
+  border-color:var(--blue-mid);
+  background:var(--blue-mid);
+  color:#fff;
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(27,95,204,.28);
+}
+#view-inicio .agenda-view-btn:active{transform:translateY(0);box-shadow:0 3px 9px rgba(27,95,204,.22)}
+#view-inicio .agenda-view-btn:focus-visible,
+#view-inicio .agenda-action-btn:focus-visible{
+  outline:3px solid rgba(45,116,231,.28);
+  outline-offset:2px;
+}
+#view-inicio .agenda-btn-icon{width:18px;height:18px;display:grid;place-items:center;flex:0 0 auto}
+#view-inicio .agenda-turn-list{display:grid;gap:13px}
+#view-inicio .agenda-turn-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:142px minmax(0,1fr) auto;
+  align-items:stretch;
+  min-height:150px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--surface);
+  box-shadow:var(--shadow-sm);
+  transition:border-color var(--transition),box-shadow var(--transition),transform var(--transition);
+}
+#view-inicio .agenda-turn-card::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:5px;
+  background:linear-gradient(180deg,var(--blue),var(--blue-mid));
+}
+#view-inicio .agenda-turn-card:hover{
+  border-color:#c7d6eb;
+  box-shadow:0 9px 22px rgba(31,65,112,.09);
+  transform:translateY(-1px);
+}
+#view-inicio .agenda-time-panel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  padding:20px 18px 20px 22px;
+  color:var(--blue);
+  background:linear-gradient(145deg,var(--blue-50),#f7faff);
+  border-right:1px solid #dce7f5;
+}
+#view-inicio .agenda-clock-icon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  padding:7px;
+  border-radius:10px;
+  background:#fff;
+  border:1px solid var(--blue-100);
+  box-shadow:0 4px 10px rgba(27,95,204,.08);
+}
+#view-inicio .agenda-time{
+  font-size:25px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.65px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+#view-inicio .agenda-turn-main{
+  min-width:0;
+  padding:19px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#view-inicio .agenda-patient-name{
+  color:var(--text);
+  font-size:17px;
+  line-height:1.25;
+  font-weight:800;
+  letter-spacing:-.25px;
+  overflow-wrap:anywhere;
+}
+#view-inicio .agenda-turn-reason{
+  margin-top:4px;
+  color:var(--text-2);
+  font-size:13px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+#view-inicio .agenda-clinical-badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:11px;
+}
+#view-inicio .agenda-finance{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+  min-width:0;
+}
+#view-inicio .agenda-money-icon{
+  width:25px;
+  height:25px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  padding:5px;
+  border-radius:8px;
+  color:var(--green);
+  background:var(--green-50);
+  border:1px solid var(--green-100);
+}
+#view-inicio .agenda-finance .turn-price{
+  font-size:12.5px;
+  font-weight:800;
+  color:var(--text);
+  overflow-wrap:anywhere;
+}
+#view-inicio .agenda-turn-actions{
+  min-width:164px;
+  padding:17px;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:center;
+  gap:11px;
+  background:var(--surface-2);
+  border-left:1px solid var(--border);
+}
+#view-inicio .agenda-turn-status{
+  display:flex;
+  justify-content:flex-end;
+  min-height:24px;
+}
+#view-inicio .agenda-action-group{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:7px;
+}
+#view-inicio .agenda-action-btn{
+  min-height:42px;
+  width:100%;
+  padding:0 15px;
+  border-radius:10px;
+  gap:8px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  transition:background var(--transition),border-color var(--transition),box-shadow var(--transition),transform var(--transition),color var(--transition);
+}
+#view-inicio .agenda-action-btn:hover{transform:translateY(-1px)}
+#view-inicio .agenda-action-btn:active{transform:translateY(0)}
+#view-inicio .agenda-action-icon{width:18px;height:18px;display:grid;place-items:center;flex:0 0 auto}
+#view-inicio .agenda-profile-btn{
+  color:var(--text);
+  background:#fff;
+  border-color:var(--border-strong);
+  box-shadow:0 2px 7px rgba(31,65,112,.06);
+}
+#view-inicio .agenda-profile-btn:hover,
+#view-inicio .agenda-create-profile-btn:hover{
+  color:var(--blue);
+  background:var(--blue-50);
+  border-color:var(--blue-100);
+}
+#view-inicio .agenda-create-profile-btn{
+  color:var(--blue);
+  background:#fff;
+  border-color:var(--blue-100);
+}
+#view-inicio .agenda-pay-btn{
+  color:#fff;
+  background:var(--green);
+  border-color:var(--green);
+  box-shadow:0 5px 14px rgba(10,102,80,.2);
+}
+#view-inicio .agenda-pay-btn:hover{
+  color:#fff;
+  background:#0d7a60;
+  border-color:#0d7a60;
+  box-shadow:0 7px 17px rgba(10,102,80,.25);
+}
+#view-inicio .agenda-edit-btn{
+  color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--blue-mid));
+  border-color:var(--blue);
+  box-shadow:0 5px 14px rgba(27,95,204,.24);
+}
+#view-inicio .agenda-edit-btn:hover{
+  color:#fff;
+  background:linear-gradient(135deg,#174fa8,var(--blue));
+  border-color:#174fa8;
+  box-shadow:0 7px 18px rgba(27,95,204,.3);
+}
+#view-inicio .home-agenda .agenda-empty{
+  min-height:120px;
+  display:grid;
+  place-items:center;
+  padding:24px;
+}
+@media(max-width:980px){
+  #view-inicio .agenda-turn-card{grid-template-columns:118px minmax(0,1fr)}
+  #view-inicio .agenda-turn-actions{
+    grid-column:1/-1;
+    min-width:0;
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    border-left:0;
+    border-top:1px solid var(--border);
+    padding:12px 14px;
+  }
+  #view-inicio .agenda-action-group{grid-template-columns:repeat(3,minmax(0,1fr));flex:1;max-width:520px}
+  #view-inicio .agenda-turn-status{justify-content:flex-start;flex:0 0 auto}
+}
+@media(max-width:780px){
+  #view-inicio .home-agenda{
+    order:1;
+    margin-bottom:14px;
+    padding:15px;
+    border-radius:17px;
+  }
+  #view-inicio .home-agenda .agenda-card-head{align-items:flex-start;gap:10px;margin-bottom:14px}
+  #view-inicio .agenda-heading{gap:9px}
+  #view-inicio .agenda-header-icon{width:39px;height:39px;border-radius:11px}
+  #view-inicio .agenda-header-icon svg{width:20px;height:20px}
+  #view-inicio .agenda-heading-copy .card-title{font-size:15px}
+  #view-inicio .agenda-heading-copy .card-sub{font-size:10.5px}
+  #view-inicio .agenda-view-btn{min-height:40px;padding:0 12px;font-size:12px;flex:0 0 auto}
+  #view-inicio .agenda-btn-icon{width:16px;height:16px}
+  #view-inicio .agenda-turn-list{gap:10px}
+  #view-inicio .agenda-turn-card{
+    grid-template-columns:82px minmax(0,1fr);
+    min-height:0;
+    border-radius:14px;
+  }
+  #view-inicio .agenda-turn-card:hover{transform:none}
+  #view-inicio .agenda-time-panel{padding:14px 9px 14px 13px;gap:7px}
+  #view-inicio .agenda-clock-icon{width:29px;height:29px;padding:6px;border-radius:9px}
+  #view-inicio .agenda-time{font-size:18px;letter-spacing:-.35px}
+  #view-inicio .agenda-turn-main{padding:13px 12px}
+  #view-inicio .agenda-patient-name{font-size:14px}
+  #view-inicio .agenda-turn-reason{font-size:11.5px;margin-top:2px}
+  #view-inicio .agenda-clinical-badges{gap:4px;margin-top:8px}
+  #view-inicio .agenda-clinical-badges .badge,
+  #view-inicio .agenda-finance .badge{height:20px;padding:0 7px;font-size:9.5px}
+  #view-inicio .agenda-finance{gap:4px;margin-top:7px}
+  #view-inicio .agenda-money-icon{width:22px;height:22px;padding:4px;border-radius:7px}
+  #view-inicio .agenda-finance .turn-price{font-size:10.5px}
+  #view-inicio .agenda-turn-actions{
+    grid-column:1/-1;
+    display:block;
+    padding:10px;
+    border-left:0;
+    border-top:1px solid var(--border);
+  }
+  #view-inicio .agenda-turn-status{justify-content:flex-start;margin-bottom:8px}
+  #view-inicio .agenda-action-group{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-width:none}
+  #view-inicio .agenda-action-btn{min-height:42px;padding:0 8px;font-size:11.5px;gap:5px}
+  #view-inicio .agenda-action-icon{width:16px;height:16px}
+}
+@media(max-width:480px){
+  #view-inicio .home-agenda{padding:12px}
+  #view-inicio .home-agenda .agenda-card-head{flex-wrap:wrap}
+  #view-inicio .agenda-heading{width:100%}
+  #view-inicio .agenda-view-btn{width:100%;justify-content:center}
+  #view-inicio .agenda-action-group{grid-template-columns:1fr 1fr}
+  #view-inicio .agenda-action-group .agenda-edit-btn:last-child:nth-child(odd){grid-column:1/-1}
+  #view-inicio .agenda-action-group .agenda-edit-btn:nth-child(3){grid-column:1/-1}
+}
+
+
+
+/* ─── LISTADO PROFESIONAL DE RUTINAS ────────────── */
+#view-rutinas .routine-toolbar{
+  display:grid;
+  grid-template-columns:minmax(240px,1fr) auto auto;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+#view-rutinas .routine-search-group{
+  position:relative;
+  min-width:0;
+}
+#view-rutinas .routine-search-icon{
+  position:absolute;
+  left:13px;
+  top:50%;
+  width:19px;
+  height:19px;
+  color:var(--muted);
+  transform:translateY(-50%);
+  pointer-events:none;
+  z-index:1;
+}
+#view-rutinas .routine-search-icon svg,
+#view-rutinas .routine-count-icon svg,
+#view-rutinas .routine-button-icon svg,
+#view-rutinas .routine-card svg{
+  width:100%;
+  height:100%;
+  display:block;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#view-rutinas #routineSearch{
+  width:100%;
+  max-width:none;
+  height:44px;
+  padding-left:42px;
+  background:var(--surface);
+}
+#view-rutinas .routine-count{
+  min-height:40px;
+  padding:0 13px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--surface);
+  color:var(--text-2);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12.5px;
+  font-weight:700;
+  white-space:nowrap;
+}
+#view-rutinas .routine-count-icon{
+  width:18px;
+  height:18px;
+  color:var(--blue);
+  flex:0 0 auto;
+}
+#view-rutinas .routine-create-btn{
+  min-height:44px;
+  padding:0 17px;
+  border-radius:11px;
+  gap:8px;
+  font-weight:800;
+}
+#view-rutinas .routine-button-icon{
+  width:18px;
+  height:18px;
+  flex:0 0 auto;
+}
+#view-rutinas .routine-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  align-items:start;
+}
+#view-rutinas .routine-card{
+  position:relative;
+  min-width:0;
+  padding:20px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:var(--surface);
+  box-shadow:0 8px 22px rgba(31,65,112,.07);
+  overflow:visible;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+#view-rutinas .routine-card:hover{
+  border-color:#c7d5e8;
+  box-shadow:0 12px 28px rgba(31,65,112,.1);
+  transform:translateY(-1px);
+}
+#view-rutinas .routine-card:has(.routine-context[open]){
+  z-index:120;
+}
+#view-rutinas .routine-card-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
+  gap:14px;
+}
+#view-rutinas .routine-card-identity{
+  min-width:0;
+}
+#view-rutinas .routine-card-name{
+  margin:0;
+  color:var(--text);
+  font-size:21px;
+  font-weight:800;
+  line-height:1.2;
+  letter-spacing:-.35px;
+  overflow-wrap:anywhere;
+}
+#view-rutinas .routine-card-patient{
+  margin:5px 0 0;
+  color:var(--text-2);
+  font-size:14px;
+  font-weight:500;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+#view-rutinas .routine-card-objective{
+  margin:15px 0 0;
+  color:var(--text-2);
+  font-size:14px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+#view-rutinas .routine-card-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+#view-rutinas .routine-start-btn{
+  min-width:96px;
+  min-height:46px;
+  padding:0 18px;
+  border:1px solid var(--blue);
+  border-radius:11px;
+  color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--blue-mid));
+  box-shadow:0 6px 16px rgba(27,95,204,.24);
+  font-size:14px;
+  font-weight:800;
+}
+#view-rutinas .routine-start-btn:hover{
+  color:#fff;
+  background:linear-gradient(135deg,#164fae,var(--blue));
+  border-color:#164fae;
+  box-shadow:0 8px 19px rgba(27,95,204,.3);
+}
+#view-rutinas .routine-start-btn:active{
+  transform:translateY(1px);
+  box-shadow:0 3px 9px rgba(27,95,204,.22);
+}
+#view-rutinas .routine-start-btn:focus-visible,
+#view-rutinas .routine-more-btn:focus-visible,
+#view-rutinas .routine-create-btn:focus-visible,
+#view-rutinas .routine-context-menu button:focus-visible{
+  outline:3px solid rgba(27,95,204,.25);
+  outline-offset:3px;
+}
+#view-rutinas .routine-start-btn:disabled{
+  color:#8492a6;
+  background:#edf1f6;
+  border-color:#d9e0e9;
+  box-shadow:none;
+  opacity:1;
+  cursor:not-allowed;
+}
+#view-rutinas .routine-context{
+  position:relative;
+  z-index:10;
+}
+#view-rutinas .routine-context[open]{
+  z-index:130;
+}
+#view-rutinas .routine-more-btn{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  list-style:none;
+  cursor:pointer;
+  border:1px solid var(--border-strong);
+  border-radius:11px;
+  color:var(--text);
+  background:var(--surface);
+  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+#view-rutinas .routine-more-btn::-webkit-details-marker{
+  display:none;
+}
+#view-rutinas .routine-more-btn::marker{
+  content:"";
+}
+#view-rutinas .routine-more-btn svg{
+  width:22px;
+  height:22px;
+}
+#view-rutinas .routine-more-btn:hover{
+  background:var(--blue-50);
+  border-color:var(--blue-100);
+  color:var(--blue);
+}
+#view-rutinas .routine-context[open] .routine-more-btn{
+  background:var(--blue-50);
+  border-color:var(--blue);
+  color:var(--blue);
+}
+#view-rutinas .routine-context-menu{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:140;
+  min-width:200px;
+  padding:6px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface);
+  box-shadow:0 16px 36px rgba(19,35,58,.18);
+}
+#view-rutinas .routine-context-menu button{
+  width:100%;
+  min-height:42px;
+  padding:0 11px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  text-align:left;
+}
+#view-rutinas .routine-context-menu button svg{
+  width:18px;
+  height:18px;
+  flex:0 0 auto;
+  color:var(--text-2);
+}
+#view-rutinas .routine-context-menu button:hover{
+  background:var(--surface-2);
+}
+#view-rutinas .routine-context-menu button.danger{
+  color:var(--red);
+}
+#view-rutinas .routine-context-menu button.danger svg{
+  color:var(--red);
+}
+#view-rutinas .routine-context-menu button.danger:hover{
+  background:var(--red-50);
+}
+#view-rutinas .routine-card-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:16px;
+}
+#view-rutinas .routine-meta-chip,
+#view-rutinas .routine-status-slot .badge{
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 11px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--surface-2);
+  color:var(--text-2);
+  font-size:12px;
+  font-weight:650;
+  line-height:1;
+  white-space:nowrap;
+}
+#view-rutinas .routine-meta-chip svg{
+  width:17px;
+  height:17px;
+  color:#687b95;
+  flex:0 0 auto;
+}
+#view-rutinas .routine-meta-primary{
+  color:var(--blue);
+  border-color:var(--blue-100);
+  background:var(--blue-50);
+}
+#view-rutinas .routine-meta-primary svg{
+  color:var(--blue);
+}
+#view-rutinas .routine-status-slot{
+  display:inline-flex;
+}
+#view-rutinas .routine-status-slot .badge{
+  height:34px;
+  margin:0;
+}
+
+@media(max-width:980px){
+  #view-rutinas .routine-grid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:780px){
+  #view-rutinas .routine-toolbar{
+    grid-template-columns:1fr auto;
+    gap:10px 8px;
+    margin-bottom:16px;
+  }
+  #view-rutinas .routine-search-group{
+    grid-column:1/-1;
+  }
+  #view-rutinas .routine-count{
+    grid-column:1/2;
+    justify-self:start;
+    min-height:40px;
+  }
+  #view-rutinas .routine-create-btn{
+    grid-column:1/-1;
+    grid-row:3;
+    width:100%;
+    min-height:48px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--blue),var(--blue-mid));
+    box-shadow:0 7px 18px rgba(27,95,204,.22);
+  }
+  #view-rutinas .routine-grid{
+    grid-template-columns:1fr;
+    gap:13px;
+  }
+  #view-rutinas .routine-card{
+    width:100%;
+    min-width:0;
+    padding:17px;
+    border-radius:17px;
+  }
+  #view-rutinas .routine-card:hover{
+    transform:none;
+  }
+  #view-rutinas .routine-card-head{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:12px;
+  }
+  #view-rutinas .routine-card-actions{
+    gap:7px;
+  }
+  #view-rutinas .routine-card-meta{
+    gap:7px;
+    margin-top:16px;
+  }
+  #view-rutinas .routine-context-menu{
+    position:fixed;
+    top:auto;
+    right:14px;
+    bottom:14px;
+    left:14px;
+    min-width:0;
+    padding:8px;
+    border-radius:15px;
+    box-shadow:0 20px 50px rgba(10,22,38,.28);
+  }
+  #view-rutinas .routine-context-menu button{
+    min-height:48px;
+    font-size:14px;
+  }
+}
+@media(max-width:430px){
+  #view-rutinas .routine-card{
+    padding:15px;
+  }
+  #view-rutinas .routine-card-name{
+    font-size:19px;
+  }
+  #view-rutinas .routine-card-patient{
+    font-size:13.5px;
+  }
+  #view-rutinas .routine-start-btn{
+    min-width:88px;
+    min-height:44px;
+    padding-inline:13px;
+  }
+  #view-rutinas .routine-more-btn{
+    width:44px;
+    height:44px;
+  }
+  #view-rutinas .routine-meta-chip,
+  #view-rutinas .routine-status-slot .badge{
+    min-height:32px;
+    padding-inline:10px;
+    font-size:11.5px;
+  }
+}
+@media(max-width:360px){
+  #view-rutinas .routine-card-head{
+    gap:8px;
+  }
+  #view-rutinas .routine-start-btn{
+    min-width:78px;
+    padding-inline:10px;
+  }
+  #view-rutinas .routine-card-name{
+    font-size:18px;
+  }
+  #view-rutinas .routine-meta-chip,
+  #view-rutinas .routine-status-slot .badge{
+    white-space:normal;
+    text-align:center;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1032,7 +1918,7 @@ const SYNC_WRITE_DELAY=1200;
 const SYNC_INLINE_DELAY=2000;
 const SYNC_RETRY_DELAY=15000;
 const FIRESTORE_BATCH_LIMIT=450;
-const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',historyFilters:{patientId:'',routineId:'',exercise:'',from:'',to:'',status:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null};
+const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',historyFilters:{patientId:'',routineId:'',exercise:'',from:'',to:'',status:''},paymentFilters:{period:'all',from:'',to:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null,confirmReturnFocus:null};
 let data=loadAndMigrateData();
 data.turns=(data.turns||[]).map(normalizeTurn);
 let pendingConfirm=null;
@@ -1052,6 +1938,8 @@ let leaderHeartbeat=null;
 let timerInterval=null;
 const saveDebouncers=new Map();
 const operationLocks=new Set();
+let listenersAttached=false;
+let appInitialized=false;
 let scheduledViewRender=0;
 let lastRenderedView='';
 let deferredRemoteRender=false;
@@ -1065,7 +1953,7 @@ function captureRenderState(){const active=document.activeElement,scrollEl=docum
 function restoreRenderState(state){if(!state||state.view!==ui.view)return;requestAnimationFrame(()=>{const scrollEl=document.scrollingElement||document.documentElement;scrollEl.scrollTop=state.scrollTop;let focusTarget=state.focusId?document.getElementById(state.focusId):null;if(!focusTarget&&state.focusName)focusTarget=document.querySelector(`[name="${CSS.escape(state.focusName)}"]`);if(focusTarget&&document.contains(focusTarget)){focusTarget.focus({preventScroll:true});if(state.selectionStart!==null&&typeof focusTarget.setSelectionRange==='function')focusTarget.setSelectionRange(state.selectionStart,state.selectionEnd)}})}
 function isProtectedEditingContext(){const anamnesisOpen=ui.view==='pacientes'&&ui.patientTab==='anamnesis';const modalOpen=Boolean($('#appModal')?.classList.contains('open'));const active=document.activeElement;const activeFormField=Boolean(active?.matches?.('input,textarea,select,[contenteditable="true"]')&&active.closest?.('#wizBody,#appModalBody,#settingsForm,#turnForm,#paymentForm,#comboForm,#evolutionForm'));return anamnesisOpen||modalOpen||activeFormField}
 function captureActiveDraft(){if(ui.view==='pacientes'&&ui.patientTab==='anamnesis'&&$('#wizBody'))collectWizard()}
-function scheduleCurrentViewRender({force=false,reason='remote'}={}){if(!force&&isProtectedEditingContext()){captureActiveDraft();deferredRemoteRender=true;deferredRemoteReason=reason;return}if(scheduledViewRender)return;scheduledViewRender=requestAnimationFrame(()=>{scheduledViewRender=0;renderCurrentView({preserveState:true})})}
+function scheduleCurrentViewRender({force=false,reason='remote'}={}){if(!force&&isProtectedEditingContext()){captureActiveDraft();deferredRemoteRender=true;deferredRemoteReason=reason;return}if(scheduledViewRender){cancelAnimationFrame(scheduledViewRender);scheduledViewRender=0}scheduledViewRender=requestAnimationFrame(()=>{scheduledViewRender=0;renderCurrentView({preserveState:true})})}
 function flushDeferredRemoteRender(){if(!deferredRemoteRender||isProtectedEditingContext())return;deferredRemoteRender=false;deferredRemoteReason='';scheduleCurrentViewRender({force:true,reason:'deferred'})}
 function firestoreTimestampMs(server){if(!server)return 0;if(typeof server.toMillis==='function')return server.toMillis();if(typeof server.toDate==='function')return server.toDate().getTime();if(Number(server.seconds))return Number(server.seconds)*1000+Math.floor(Number(server.nanoseconds||0)/1e6);return 0}
 function deriveRevisionMs(item={}){const explicit=Number(item._updatedAtMs);if(Number.isFinite(explicit)&&explicit>0)return explicit;const isoMs=new Date(item.updatedAt||item.createdAt||0).getTime();if(Number.isFinite(isoMs)&&isoMs>0)return isoMs;return firestoreTimestampMs(item.serverUpdatedAt)}
@@ -1074,7 +1962,7 @@ function withNormalizedRevision(item={}){const revision=deriveRevisionMs(item);r
 function syncComparable(item={}){const clean={};for(const key of Object.keys(item).sort()){if(['_dirty','_patch','_writeId','_clientId','_seedPending','serverUpdatedAt'].includes(key))continue;clean[key]=item[key]}return JSON.stringify(clean)}
 function collectionSignature(items=[]){return items.map(item=>{const revision=entityRevision(item);return`${item.id}:${revision||syncComparable(item)}`}).sort().join('|')}
 function htmlToElement(html){const template=document.createElement('template');template.innerHTML=html.trim();return template.content.firstElementChild}
-function setElementHtml(element,html){const template=document.createElement('template');template.innerHTML=html;element.replaceChildren(template.content.cloneNode(true))}
+function setElementHtml(element,html){if(!element)return;const template=document.createElement('template');template.innerHTML=String(html??'');element.replaceChildren(template.content.cloneNode(true))}
 function nowIso(){return new Date().toISOString()}
 function todayISO(){return new Date().toLocaleDateString('en-CA')}
 function normalizeDni(value){return String(value||'').replace(/\D/g,'')}
@@ -1141,7 +2029,22 @@ function activeCombosForPatient(patientId,date=todayISO(),excludeTurnId=''){retu
 function turnPaymentState(turn){if(turn.comboId){const combo=getCombo(turn.comboId);return combo?{label:'Incluido en combo',className:'b-blue',detail:combo.name}:{label:'Combo no disponible',className:'b-red',detail:''}}const payment=getPaymentByTurn(turn.id);if(payment)return{label:payment.status,className:payment.status==='Cobrado'?'b-ok':'b-warn',detail:money(payment.amount)};return Number(turn.price||0)>0?{label:'Sin cobrar',className:'b-warn',detail:money(turn.price)}:{label:'Sin precio',className:'b-gray',detail:''}}
 function paymentConcept(payment){if(payment.turnId){const turn=getTurnById(payment.turnId);return turn?`Turno ${fmtDate(turn.fecha)} · ${turn.hora}`:'Turno eliminado'}if(payment.comboId){const combo=getCombo(payment.comboId);return combo?.name||'Pack / combo'}return payment.notes||'Pago sin turno'}
 function turnPatientUi(turn){const patient=resolveTurnPatient(turn);return patient?`<button class="btn btn-sm" data-action="profile" data-id="${patient.id}">Ver ficha</button>`:`<button class="btn btn-sm btn-primary" data-action="create-patient-from-turn" data-id="${esc(turn.id)}">+ Crear ficha</button>`}
-function turnItemHtml(turn,{home=false}={}){const patient=resolveTurnPatient(turn),name=patient?.nombre||turn.paciente||'Sin nombre',billing=turnPaymentState(turn),payment=getPaymentByTurn(turn.id),combo=getCombo(turn.comboId);const finance=`<div class="turn-finance"><span class="turn-price">${combo?'Valor individual '+money(turn.price):money(turn.price)}</span><span class="badge ${billing.className}">${esc(billing.label)}</span>${billing.detail?`<span class="badge b-gray">${esc(billing.detail)}</span>`:''}</div>`;const actions=`${statusBadge(turn.estado)}${home?(patient?`<button class="btn btn-sm" data-action="profile" data-id="${patient.id}">Ficha</button>`:`<button class="btn btn-sm btn-primary" data-action="create-patient-from-turn" data-id="${esc(turn.id)}">+ Crear ficha</button>`):turnPatientUi(turn)}${!home&&!turn.comboId&&!payment&&Number(turn.price)>0?`<button class="btn btn-sm btn-success" data-action="pay-turn" data-id="${turn.id}">Cobrar</button>`:''}<button class="btn btn-sm" data-action="edit-turn" data-id="${turn.id}">Editar</button>${!home?`<button class="btn btn-sm btn-danger" data-action="delete-turn" data-id="${turn.id}">Eliminar</button>`:''}`;return`<div class="item"><div class="item-time">${esc(turn.hora)}</div><div class="item-main"><strong>${esc(name)}</strong><span>${esc(turn.motivo||'Turno clínico')}</span><div class="routine-card-meta"><span class="badge b-gray">ETER</span>${patient?statusBadge(patient.estadoClinico):'<span class="badge b-warn">Paciente sin ficha clínica</span>'}${combo?`<span class="badge b-blue">${esc(combo.name)}</span>`:''}</div>${finance}</div><div class="item-right">${actions}</div></div>`}
+function turnItemHtml(turn,{home=false}={}){
+ const patient=resolveTurnPatient(turn),name=patient?.nombre||turn.paciente||'Sin nombre',billing=turnPaymentState(turn),payment=getPaymentByTurn(turn.id),combo=getCombo(turn.comboId);
+ const finance=`<div class="turn-finance ${home?'agenda-finance':''}">${home?`<span class="agenda-money-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.8-2.1-1.2-3.5-1.2-1.9 0-3.2.9-3.2 2.3 0 1.5 1.2 2.1 3.4 2.5 2.1.4 3.1 1 3.1 2.5 0 1.5-1.4 2.5-3.4 2.5-1.6 0-3-.5-4-1.5M12 5.5v13"/></svg></span>`:''}<span class="turn-price">${combo?'Valor individual '+money(turn.price):money(turn.price)}</span><span class="badge ${billing.className}">${esc(billing.label)}</span>${billing.detail?`<span class="badge b-gray">${esc(billing.detail)}</span>`:''}</div>`;
+ const patientAction=patient
+  ?`<button type="button" class="btn agenda-action-btn agenda-profile-btn" data-action="profile" data-id="${esc(patient.id)}"><span class="agenda-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 19c.8-4 3-6 6.5-6s5.7 2 6.5 6"/></svg></span><span>Ficha</span></button>`
+  :`<button type="button" class="btn agenda-action-btn agenda-create-profile-btn" data-action="create-patient-from-turn" data-id="${esc(turn.id)}"><span class="agenda-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.8 19c.7-4 2.8-6 6.2-6 1.5 0 2.8.4 3.8 1.2M18 13v6M15 16h6"/></svg></span><span>Crear ficha</span></button>`;
+ const payAction=!turn.comboId&&!payment&&Number(turn.price)>0
+  ?`<button type="button" class="btn agenda-action-btn agenda-pay-btn" data-action="pay-turn" data-id="${esc(turn.id)}"><span class="agenda-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M17 14h.01M9 14h6"/></svg></span><span>Cobrar</span></button>`
+  :'';
+ const editAction=`<button type="button" class="btn agenda-action-btn agenda-edit-btn" data-action="edit-turn" data-id="${esc(turn.id)}"><span class="agenda-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 20 4.2-1 10.6-10.6a2 2 0 0 0-2.8-2.8L5.4 16.2 4 20Z"/><path d="m14.8 6.8 2.4 2.4"/></svg></span><span>Editar</span></button>`;
+ if(home){
+  return`<article class="agenda-turn-card"><div class="agenda-time-panel"><span class="agenda-clock-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><strong class="agenda-time">${esc(turn.hora)}</strong></div><div class="agenda-turn-main"><div class="agenda-patient-name">${esc(name)}</div><div class="agenda-turn-reason">${esc(turn.motivo||'Turno clínico')}</div><div class="agenda-clinical-badges"><span class="badge b-gray">ETER</span>${patient?statusBadge(patient.estadoClinico):'<span class="badge b-warn">Paciente sin ficha clínica</span>'}${combo?`<span class="badge b-blue">${esc(combo.name)}</span>`:''}</div>${finance}</div><div class="agenda-turn-actions"><div class="agenda-turn-status">${statusBadge(turn.estado)}</div><div class="agenda-action-group">${patientAction}${payAction}${editAction}</div></div></article>`
+ }
+ const actions=`${statusBadge(turn.estado)}${turnPatientUi(turn)}${payAction?`<button type="button" class="btn btn-sm btn-success" data-action="pay-turn" data-id="${esc(turn.id)}">Cobrar</button>`:''}<button type="button" class="btn btn-sm" data-action="edit-turn" data-id="${esc(turn.id)}">Editar</button><button type="button" class="btn btn-sm btn-danger" data-action="delete-turn" data-id="${esc(turn.id)}">Eliminar</button>`;
+ return`<div class="item"><div class="item-time">${esc(turn.hora)}</div><div class="item-main"><strong>${esc(name)}</strong><span>${esc(turn.motivo||'Turno clínico')}</span><div class="routine-card-meta"><span class="badge b-gray">ETER</span>${patient?statusBadge(patient.estadoClinico):'<span class="badge b-warn">Paciente sin ficha clínica</span>'}${combo?`<span class="badge b-blue">${esc(combo.name)}</span>`:''}</div>${finance}</div><div class="item-right">${actions}</div></div>`
+}
 function mergeImportedPatient(existing,seed,targetId,stamp){
  const merged={...seed,id:targetId};
  if(existing){
@@ -1334,12 +2237,24 @@ function initClinicalListeners(){
 function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw),local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;if(entityRevision(incoming)>=entityRevision(local))current.set(incoming.id,replaceRemoteEntity(key,incoming,local))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
 function hasDirtyEntities(){return Boolean(data.meta?._dirty)||Object.values(ENTITY_COLLECTIONS).some(cfg=>(data[cfg.key]||[]).some(item=>item._dirty))}
 function scheduleCloudWrite(delayMs=SYNC_WRITE_DELAY){
- setSync(navigator.onLine?'syncing':'offline',navigator.onLine?'Sincronizando':'Sin conexión',navigator.onLine?'Cambios pendientes':'Guardado local');
  clearTimeout(syncWriteTimer);
  syncWriteTimer=setTimeout(async()=>{
+  syncWriteTimer=null;
+  const hasPendingDeletes=Boolean((data.pendingDeletes||[]).length);
+  if(!hasDirtyEntities()&&!hasPendingDeletes){
+   if(cloudReady&&navigator.onLine)setSync('online','Conectado','Tiempo real');
+   return
+  }
+  setSync(navigator.onLine?'syncing':'offline',navigator.onLine?'Sincronizando':'Sin conexión',navigator.onLine?'Cambios pendientes':'Guardado local');
   refreshSyncLeadership();
-  if(!isSyncLeader()){broadcast?.postMessage({type:'write-request',deviceId:DEVICE_ID,tabId:TAB_ID});return}
-  if(!cloudReady){if(navigator.onLine)await initFirebase();return}
+  if(!isSyncLeader()){
+   broadcast?.postMessage({type:'write-request',deviceId:DEVICE_ID,tabId:TAB_ID});
+   return
+  }
+  if(!cloudReady){
+   if(navigator.onLine)await initFirebase();
+   return
+  }
   await flushDeletes();
   await writeDirtyEntities()
  },Math.max(20,Number(delayMs)||SYNC_WRITE_DELAY))
@@ -1386,10 +2301,6 @@ async function flushDeletes(){
  if(results.some(result=>result.status==='rejected')){setSync('offline','Eliminaciones pendientes','Reintento automático');scheduleRetry()}
 }
 function scheduleRetry(){clearTimeout(syncRetryTimer);syncRetryTimer=setTimeout(async()=>{if(!navigator.onLine)return;if(!cloudReady)await initFirebase();else{refreshSyncLeadership();await flushDeletes();await writeDirtyEntities()}},SYNC_RETRY_DELAY)}
-window.addEventListener('online',()=>{setSync('syncing','Reconectando','Enviando cambios pendientes');initFirebase().then(()=>scheduleCloudWrite(50))});
-window.addEventListener('offline',()=>setSync('offline','Sin conexión','Cambios guardados localmente'));
-leaderHeartbeat=setInterval(refreshSyncLeadership,3000);
-window.addEventListener('beforeunload',()=>{clearTimeout(syncWriteTimer);clearTimeout(syncRetryTimer);clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)});
 function mergePendingDeletes(incoming=[]){let changed=false;data.pendingDeletes=data.pendingDeletes||[];for(const raw of incoming){const deletion=withNormalizedRevision(raw),cfg=ENTITY_COLLECTIONS[deletion.key];if(!cfg)continue;const local=(data[cfg.key]||[]).find(item=>item.id===deletion.id);if(local?._dirty)continue;if(local){data[cfg.key]=data[cfg.key].filter(item=>item.id!==deletion.id);changed=true}const index=data.pendingDeletes.findIndex(item=>item.key===deletion.key&&item.id===deletion.id);if(index<0){data.pendingDeletes.push(deletion);changed=true}else if(entityRevision(deletion)>=entityRevision(withNormalizedRevision(data.pendingDeletes[index]))){data.pendingDeletes[index]=deletion;changed=true}}return changed}
 function mergeRemoteState(incoming={}){let changed=false;for(const cfg of Object.values(ENTITY_COLLECTIONS)){const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(item=>[item.id,item]));for(const raw of incoming[cfg.key]||[]){const item=normalizeRemoteEntity(cfg.key,raw),local=current.get(item.id);if(!local){current.set(item.id,item);continue}if(local._dirty&&local._writeId!==item._writeId)continue;if(entityRevision(item)>=entityRevision(local))current.set(item.id,normalizeEntityItem(cfg.key,item))}data[cfg.key]=[...current.values()];changed=changed||before!==collectionSignature(data[cfg.key])}const incomingMeta=withNormalizedRevision(incoming.meta||{}),localMeta=withNormalizedRevision(data.meta||{});if((!localMeta._dirty||localMeta._writeId===incomingMeta._writeId)&&entityRevision(incomingMeta)>=entityRevision(localMeta)){const next={...localMeta,...incomingMeta};if(syncComparable(next)!==syncComparable(localMeta)||Boolean(next._dirty)!==Boolean(localMeta._dirty)){data.meta=next;changed=true}}changed=mergePendingDeletes(incoming.pendingDeletes||[])||changed;return changed}
 function applyWriteAcknowledgement(records=[]){let changed=false;for(const record of records){if(record.kind==='meta'||record.key==='meta'){if(data.meta?._dirty&&data.meta._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch;changed=true}continue}const cfg=ENTITY_COLLECTIONS[record.key],item=cfg?(data[cfg.key]||[]).find(entity=>entity.id===record.id):null;if(item?._dirty&&item._writeId===record.writeId){item._dirty=false;delete item._patch;changed=true}}return changed}
@@ -1414,10 +2325,70 @@ if(broadcast)broadcast.onmessage=event=>{
 };
 
 /* MODALES */
-function openModal(title,body,footer='',size='wide'){ui.modalReturnFocus=document.activeElement;$('#appModalTitle').textContent=title;setElementHtml($('#appModalBody'),body);setElementHtml($('#appModalFooter'),footer);const modal=$('#appModal');modal.className=`modal modal-${size} open`;$('#modalOverlay').classList.add('open');document.body.classList.add('modal-open');setTimeout(()=>$('#appModalBody input:not([type=hidden]),#appModalBody select,#appModalBody textarea')?.focus({preventScroll:true}),20)}
-function closeModal(){const modal=$('#appModal');modal.classList.remove('open');$('#confirmModal').classList.remove('open');$('#modalOverlay').classList.remove('open');document.body.classList.remove('modal-open');ui.modalReturnFocus?.focus?.();ui.modalReturnFocus=null;queueMicrotask(flushDeferredRemoteRender)}
-function openConfirm(title,description,action,label='Eliminar',icon=''){ $$('#confirmModal .confirm-extra').forEach(el=>el.remove());pendingConfirm=action;$('#confirmTitle').textContent=title;$('#confirmDesc').textContent=description;$('#confirmActionButton').textContent=label;const iconEl=$('#confirmModal .confirm-icon');if(iconEl){iconEl.textContent=icon||(label.toLowerCase().includes('eliminar')?'🗑️':label.toLowerCase().includes('finalizar')?'✓':label.toLowerCase().includes('abandon')?'!':'?')} $('#confirmModal').classList.add('open');$('#modalOverlay').classList.add('open');document.body.classList.add('modal-open')}
-function closeConfirm(){pendingConfirm=null;$('#confirmModal').classList.remove('open');if(!$('#appModal').classList.contains('open')){$('#modalOverlay').classList.remove('open');document.body.classList.remove('modal-open')}queueMicrotask(flushDeferredRemoteRender)}
+function syncBodyScrollLock(){
+ const modalOpen=Boolean($('#appModal')?.classList.contains('open')||$('#confirmModal')?.classList.contains('open'));
+ const menuOpen=Boolean($('#sidebar')?.classList.contains('open'));
+ document.body.classList.toggle('modal-open',modalOpen);
+ document.body.style.overflow=modalOpen||menuOpen?'hidden':''
+}
+function openModal(title,bodyHtml,footerHtml='',size='wide'){
+ ui.modalReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
+ $('#appModalTitle').textContent=title;
+ setElementHtml($('#appModalBody'),bodyHtml);
+ setElementHtml($('#appModalFooter'),footerHtml);
+ const modal=$('#appModal');
+ modal.className=`modal modal-${size} open`;
+ modal.setAttribute('aria-hidden','false');
+ $('#modalOverlay').classList.add('open');
+ syncBodyScrollLock();
+ requestAnimationFrame(()=>{
+  const firstFocusable=$('#appModalBody')?.querySelector('input:not([type="hidden"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),[tabindex="0"]')||$('#appModal')?.querySelector('button:not([disabled]),[tabindex="0"]');
+  try{firstFocusable?.focus({preventScroll:true})}catch(_){ }
+ })
+}
+function closeModal(){
+ const modal=$('#appModal');
+ modal?.classList.remove('open');
+ modal?.setAttribute('aria-hidden','true');
+ if($('#confirmModal')?.classList.contains('open'))closeConfirm({restoreFocus:false});
+ $('#modalOverlay')?.classList.remove('open');
+ setElementHtml($('#appModalBody'),'');
+ setElementHtml($('#appModalFooter'),'');
+ syncBodyScrollLock();
+ const returnFocus=ui.modalReturnFocus;
+ ui.modalReturnFocus=null;
+ if(returnFocus&&document.contains(returnFocus)){try{returnFocus.focus({preventScroll:true})}catch(_){ }}
+ queueMicrotask(flushDeferredRemoteRender)
+}
+function openConfirm(title,description,action,label='Eliminar',icon=''){
+ $$('#confirmModal .confirm-extra').forEach(el=>el.remove());
+ ui.confirmReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
+ pendingConfirm=typeof action==='function'?action:null;
+ $('#confirmTitle').textContent=title;
+ $('#confirmDesc').textContent=description;
+ const confirmButton=$('#confirmActionButton');
+ confirmButton.textContent=label;
+ confirmButton.disabled=false;
+ const iconEl=$('#confirmModal .confirm-icon');
+ if(iconEl)iconEl.textContent=icon||(label.toLowerCase().includes('eliminar')?'×':label.toLowerCase().includes('finalizar')?'✓':label.toLowerCase().includes('abandon')?'!':'?');
+ $('#confirmModal').classList.add('open');
+ $('#confirmModal').setAttribute('aria-hidden','false');
+ $('#modalOverlay').classList.add('open');
+ syncBodyScrollLock();
+ requestAnimationFrame(()=>{try{confirmButton.focus({preventScroll:true})}catch(_){ }})
+}
+function closeConfirm({restoreFocus=true}={}){
+ pendingConfirm=null;
+ const modal=$('#confirmModal');
+ modal?.classList.remove('open');
+ modal?.setAttribute('aria-hidden','true');
+ if(!$('#appModal')?.classList.contains('open'))$('#modalOverlay')?.classList.remove('open');
+ syncBodyScrollLock();
+ const returnFocus=ui.confirmReturnFocus;
+ ui.confirmReturnFocus=null;
+ if(restoreFocus&&returnFocus&&document.contains(returnFocus)){try{returnFocus.focus({preventScroll:true})}catch(_){ }}
+ queueMicrotask(flushDeferredRemoteRender)
+}
 
 /* NAVEGACIÓN */
 const NAV_ICONS={
@@ -1433,14 +2404,14 @@ configuracion:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="
 function navIconSvg(id){return NAV_ICONS[id]||''}
 function navInit(){const groups={inicio:'Principal',evoluciones:'Clínica',pagos:'Administración'};$('#nav').innerHTML=SECTIONS.map(([id,label])=>`${groups[id]?`<div class="nav-label"><span class="nav-label-dot"></span><span class="nav-label-text">${groups[id]}</span><span class="nav-label-line"></span></div>`:''}<button class="nav-btn ${id==='inicio'?'active':''}" data-view="${id}" type="button"><span class="nav-icon" aria-hidden="true">${navIconSvg(id)}</span><span class="nav-text">${label}</span></button>`).join('')}
 function setView(id){if(id==='anamnesis'){ui.patientTab='anamnesis';id='pacientes'}if(!SECTIONS.some(s=>s[0]===id))return;const changed=ui.view!==id;ui.view=id;$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${id}`));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));$('#sectionTitle').textContent=SECTIONS.find(s=>s[0]===id)[1];closeMenu();renderCurrentView({preserveState:!changed})}
-function renderCurrentView({preserveState=true}={}){const renderer=({inicio:renderInicio,pacientes:renderPacientes,turnos:renderTurnos,evoluciones:renderEvoluciones,rutinas:renderRutinas,pagos:renderPagos,reportes:renderReportes,configuracion:renderConfiguracion}[ui.view]||renderInicio),state=preserveState?captureRenderState():null,view=$(`#view-${ui.view}`);view?.classList.add('is-updating');renderer();lastRenderedView=ui.view;requestAnimationFrame(()=>view?.classList.remove('is-updating'));if(state)restoreRenderState(state)}
-function openMenu(){$('#sidebar').classList.add('open');$('#mobileOverlay').classList.add('open')}
-function closeMenu(){$('#sidebar').classList.remove('open');$('#mobileOverlay').classList.remove('open')}
+function renderCurrentView({preserveState=true}={}){const renderer=({inicio:renderInicio,pacientes:renderPacientes,turnos:renderTurnos,evoluciones:renderEvoluciones,rutinas:renderRutinas,pagos:renderPagos,reportes:renderReportes,configuracion:renderConfiguracion}[ui.view]||renderInicio),state=preserveState?captureRenderState():null,view=$(`#view-${ui.view}`);view?.classList.add('is-updating');try{renderer();lastRenderedView=ui.view}catch(error){console.error(`Render failed [${ui.view}]`,error);toast('No se pudo actualizar esta sección','error')}requestAnimationFrame(()=>view?.classList.remove('is-updating'));if(state)restoreRenderState(state)}
+function openMenu(){$('#sidebar')?.classList.add('open');$('#mobileOverlay')?.classList.add('open');syncBodyScrollLock()}
+function closeMenu(){$('#sidebar')?.classList.remove('open');$('#mobileOverlay')?.classList.remove('open');syncBodyScrollLock()}
 
 /* INICIO */
 function clinicalMetrics(){const histories=data.history;const activeRoutines=data.routines.filter(r=>r.active&&!r.template).length;const activeSessions=data.activeSessions.length;const compliance=Math.round(avg(histories.map(h=>Number(h.progress)||0)));const inactive=data.patients.filter(p=>{const last=patientLastSession(p.id);return !last||Date.now()-new Date(last.finishedAt||last.createdAt).getTime()>30*86400000}).length;return{activeRoutines,activeSessions,compliance,inactive}}
 function renderInicio(){const m=clinicalMetrics(),allTodayTurns=getTurnsForDate(todayISO()),todayTurns=allTodayTurns.slice(0,5),active=data.activeSessions.slice(0,3);$('#view-inicio').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Panel clínico</h2><p>Resumen operativo del ${fmtDate(todayISO())}</p></div><button class="btn btn-primary" data-action="open-anamnesis">+ Nueva anamnesis</button></div><div class="home-dashboard"><div class="grid metrics home-metrics">${[
- ['Pacientes',data.patients.length,'Base clínica unificada','#1B5FCC'],['Turnos hoy',allTodayTurns.length,`${allTodayTurns.length} agendados en ETER`,'#2D74E7'],['Rutinas activas',m.activeRoutines,'Programas asignados','#0A6650'],['Sesiones activas',m.activeSessions,'En ejecución','#C97C10'],['Cumplimiento',`${m.compliance}%`,'Promedio histórico','#5B21B6'],['Sin actividad',m.inactive,'Más de 30 días','#B83232']].map(([label,value,note,color])=>`<article class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div><span class="metric-accent" style="background:${color}"></span></article>`).join('')}</div>${active.length?`<div class="card home-active" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col home-lower"><div class="card home-agenda"><div class="card-head"><div><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div><button class="btn btn-sm" data-goto="turnos">Ver agenda</button></div><div class="list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty">No hay turnos para hoy</div>`}</div></div><div class="card home-quick"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div></div>`;updateTimerNodes()}
+ ['Pacientes',data.patients.length,'Base clínica unificada','#1B5FCC'],['Turnos hoy',allTodayTurns.length,`${allTodayTurns.length} agendados en ETER`,'#2D74E7'],['Rutinas activas',m.activeRoutines,'Programas asignados','#0A6650'],['Sesiones activas',m.activeSessions,'En ejecución','#C97C10'],['Cumplimiento',`${m.compliance}%`,'Promedio histórico','#5B21B6'],['Sin actividad',m.inactive,'Más de 30 días','#B83232']].map(([label,value,note,color])=>`<article class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div><span class="metric-accent" style="background:${color}"></span></article>`).join('')}</div>${active.length?`<div class="card home-active" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col home-lower"><div class="card home-agenda"><div class="agenda-card-head"><div class="agenda-heading"><span class="agenda-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><div class="agenda-heading-copy"><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div></div><button type="button" class="btn agenda-view-btn" data-goto="turnos"><span class="agenda-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span>Ver agenda</span></button></div><div class="agenda-turn-list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty agenda-empty">No hay turnos para hoy</div>`}</div></div><div class="card home-quick"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div></div>`;updateTimerNodes()}
 function getTurnsForDate(date){reconcileLocalTurnPatientLinks();return data.turns.filter(turn=>turn.fecha===date).map(linkTurnToPatient).sort((a,b)=>String(a.hora||'').localeCompare(String(b.hora||'')))}
 
 /* PACIENTES */
@@ -1512,22 +2483,152 @@ function deleteEvolution(patientId,id){const p=getPatient(patientId);if(!p)retur
 
 /* RUTINAS Y BIBLIOTECA */
 function renderRutinas(){const tabs=`<div class="routine-tabs"><button class="routine-tab ${ui.routineTab==='routines'?'active':''}" data-action="routine-tab" data-tab="routines">Rutinas</button><button class="routine-tab ${ui.routineTab==='execution'?'active':''}" data-action="routine-tab" data-tab="execution">Ejecución</button><button class="routine-tab ${ui.routineTab==='history'?'active':''}" data-action="routine-tab" data-tab="history">Historial</button></div>`;$('#view-rutinas').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Rutinas terapéuticas</h2><p>Creación, ejecución e historial clínico</p></div>${tabs}</div><div id="routineTabContent"></div>`;if(ui.routineTab==='routines')renderRoutineList();if(ui.routineTab==='execution')renderExecution();if(ui.routineTab==='history')renderHistory()}
-function renderRoutineList(){const q=($('#routineSearch')?.value||'').toLowerCase();const list=data.routines.filter(r=>!q||`${r.name} ${r.patientName} ${r.objective}`.toLowerCase().includes(q));$('#routineTabContent').innerHTML=`<div class="routine-toolbar"><div class="toolbar" style="margin:0"><input class="input" id="routineSearch" placeholder="Buscar rutina o paciente" style="max-width:320px"><span class="badge b-gray">${list.length} rutinas</span></div><button class="btn btn-primary" data-action="new-routine">+ Crear rutina</button></div><div class="routine-grid">${list.map(renderRoutineCard).join('')||'<div class="empty">No hay rutinas guardadas</div>'}</div>`;$('#routineSearch').oninput=e=>debounce('routine-search',()=>{const query=e.target.value.toLowerCase();const filtered=data.routines.filter(r=>`${r.name} ${r.patientName} ${r.objective}`.toLowerCase().includes(query));$('.routine-grid').innerHTML=filtered.map(renderRoutineCard).join('')||'<div class="empty">Sin resultados</div>'},250)}
+function renderRoutineList(){
+  const currentSearch=($('#routineSearch')?.value||'').toLowerCase();
+  const filterRoutines=query=>data.routines.filter(r=>!query||`${r.name||''} ${r.patientName||''} ${r.objective||''}`.toLowerCase().includes(query));
+  const list=filterRoutines(currentSearch);
+  $('#routineTabContent').innerHTML=`
+    <div class="routine-toolbar">
+      <div class="routine-search-group">
+        <label class="sr-only" for="routineSearch">Buscar rutina o paciente</label>
+        <span class="routine-search-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </span>
+        <input class="input" id="routineSearch" placeholder="Buscar rutina o paciente" value="${esc(currentSearch)}">
+      </div>
+      <span class="routine-count" id="routineCount" aria-live="polite">
+        <span class="routine-count-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4.5V3m6 1.5V3M8 9h8M8 13h8M8 17h5"/></svg>
+        </span>
+        <span>${list.length} rutina${list.length===1?'':'s'}</span>
+      </span>
+      <button type="button" class="btn btn-primary routine-create-btn" data-action="new-routine">
+        <span class="routine-button-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
+        <span>Crear rutina</span>
+      </button>
+    </div>
+    <div class="routine-grid">${list.map(renderRoutineCard).join('')||'<div class="empty">No hay rutinas guardadas</div>'}</div>
+  `;
+  const search=$('#routineSearch');
+  if(search){
+    search.oninput=e=>{
+      const query=e.target.value.toLowerCase();
+      debounce('routine-search',()=>{
+        const filtered=filterRoutines(query);
+        const grid=$('#routineTabContent .routine-grid');
+        const count=$('#routineCount');
+        if(grid)grid.innerHTML=filtered.map(renderRoutineCard).join('')||'<div class="empty">Sin resultados</div>';
+        if(count)count.innerHTML=`<span class="routine-count-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4.5V3m6 1.5V3M8 9h8M8 13h8M8 17h5"/></svg></span><span>${filtered.length} rutina${filtered.length===1?'':'s'}</span>`;
+      },250);
+    };
+  }
+}
 function routineLastHistory(id){return data.history.filter(h=>h.routineId===id).sort((a,b)=>new Date(b.finishedAt)-new Date(a.finishedAt))[0]}
-function renderRoutineCard(r){const patient=getPatient(r.patientId),last=routineLastHistory(r.id),hist=data.history.filter(h=>h.routineId===r.id);return`<article class="routine-card"><div class="routine-card-head"><div><h3>${esc(r.name)}</h3><p>${r.template?'Plantilla':esc(patient?.nombre||r.patientName||'Sin paciente')}</p></div><div class="routine-card-actions"><button class="btn btn-sm btn-primary" data-action="start-routine" data-id="${r.id}" ${r.template?'disabled':''}>Iniciar</button><details class="context"><summary aria-label="Más acciones">⋮</summary><div class="context-menu"><button data-action="view-routine" data-id="${r.id}">Ver detalle</button><button data-action="edit-routine" data-id="${r.id}">Editar</button><button data-action="duplicate-routine" data-id="${r.id}">Duplicar</button><button data-action="print-routine" data-id="${r.id}">Imprimir</button><button class="danger" data-action="delete-routine" data-id="${r.id}">Eliminar</button></div></details></div></div><p>${esc(r.objective||'Sin objetivo definido')}</p><div class="routine-card-meta"><span class="badge b-blue">${r.exercises.length} ejercicios</span>${statusBadge(r.status||'Activa')}<span class="badge b-gray">${r.template?'Plantilla':'Asignada'}</span><span class="badge b-gray">${fmtDate(r.date)}</span><span class="badge b-gray">Última: ${last?fmtDate(last.finishedAt):'—'}</span><span class="badge b-gray">Promedio: ${Math.round(avg(hist.map(h=>h.progress||0)))}%</span></div></article>`}
+function renderRoutineCard(r){
+  const patient=getPatient(r.patientId);
+  const last=routineLastHistory(r.id);
+  const hist=data.history.filter(h=>h.routineId===r.id);
+  const exerciseCount=Array.isArray(r.exercises)?r.exercises.length:0;
+  const average=Math.round(avg(hist.map(h=>h.progress||0)));
+  const routineId=esc(r.id||'');
+  const patientLabel=r.template?'Plantilla':esc(patient?.nombre||r.patientName||'Sin paciente');
+  const assignmentLabel=r.template?'Plantilla':'Asignada';
+  return`
+    <article class="routine-card routine-mobile-card">
+      <div class="routine-card-head">
+        <div class="routine-card-identity">
+          <h3 class="routine-card-name">${esc(r.name||'Rutina sin nombre')}</h3>
+          <p class="routine-card-patient">${patientLabel}</p>
+        </div>
+        <div class="routine-card-actions">
+          <button type="button" class="btn routine-start-btn" data-action="start-routine" data-id="${routineId}" ${r.template?'disabled':''}>
+            <span>Iniciar</span>
+          </button>
+          <details class="context routine-context">
+            <summary class="routine-more-btn" aria-label="Más acciones" title="Más acciones">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.25"/><circle cx="12" cy="12" r="1.25"/><circle cx="12" cy="19" r="1.25"/></svg>
+            </summary>
+            <div class="context-menu routine-context-menu">
+              <button type="button" data-action="view-routine" data-id="${routineId}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/><path d="m17 16 3 2-3 2z"/></svg>
+                <span>Ver detalle</span>
+              </button>
+              <button type="button" data-action="edit-routine" data-id="${routineId}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4Z"/><path d="m12.5 7.5 4 4"/></svg>
+                <span>Editar</span>
+              </button>
+              <button type="button" data-action="duplicate-routine" data-id="${routineId}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                <span>Duplicar</span>
+              </button>
+              <button type="button" data-action="print-routine" data-id="${routineId}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/></svg>
+                <span>Imprimir</span>
+              </button>
+              <button type="button" class="danger" data-action="delete-routine" data-id="${routineId}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+                <span>Eliminar</span>
+              </button>
+            </div>
+          </details>
+        </div>
+      </div>
+      <p class="routine-card-objective">${esc(r.objective||'Sin objetivo definido')}</p>
+      <div class="routine-card-meta">
+        <span class="routine-meta-chip routine-meta-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 8v8M18 8v8M3.5 10v4M20.5 10v4M6 12h12"/></svg>
+          <strong>${exerciseCount}</strong>
+          <span>ejercicio${exerciseCount===1?'':'s'}</span>
+        </span>
+        <span class="routine-status-slot">${statusBadge(r.status||'Activa')}</span>
+        <span class="routine-meta-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">${r.template?'<path d="M7 4h10v16H7zM9 8h6M9 12h6M9 16h4"/>':'<circle cx="12" cy="8" r="3.5"/><path d="M5 19c.8-4 3.2-6 7-6s6.2 2 7 6"/>'}</svg>
+          <span>${assignmentLabel}</span>
+        </span>
+        <span class="routine-meta-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+          <span>${esc(fmtDate(r.date))}</span>
+        </span>
+        <span class="routine-meta-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>
+          <span>Última: ${esc(last?fmtDate(last.finishedAt):'—')}</span>
+        </span>
+        <span class="routine-meta-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 18V9M10 18V5M16 18v-7M22 18V3"/><path d="m3 14 6-5 6 2 7-7"/></svg>
+          <span>Promedio: ${esc(String(average))}%</span>
+        </span>
+      </div>
+    </article>
+  `;
+}
 function persistRoutineEditorDraft(){if(ui.routineDraft&&!ui.routineEditingId)localStorage.setItem(ROUTINE_DRAFT_KEY,JSON.stringify(ui.routineDraft))}
 function clearRoutineEditorDraft(){localStorage.removeItem(ROUTINE_DRAFT_KEY)}
 function openRoutineEditor(patientId='',routineId=''){const existing=routineId?getRoutine(routineId):null,saved=!routineId&&!patientId?safelyParse(localStorage.getItem(ROUTINE_DRAFT_KEY),null):null;ui.routineEditingId=routineId;ui.routineDraft=existing?JSON.parse(JSON.stringify(existing)):(saved||{id:uid('routine'),name:'',patientId:patientId||'',patientName:getPatient(patientId)?.nombre||'',objective:'',notes:'',date:todayISO(),status:'Activa',template:false,active:true,exercises:[],createdAt:nowIso()});renderRoutineEditorModal()}
 function renderRoutineEditorModal(){const d=ui.routineDraft;const categories=[...new Set([...BASE_EXERCISE_LIBRARY,...data.exerciseLibrary].map(e=>e.category))].sort();openModal(ui.routineEditingId?'Editar rutina':'Crear rutina',`<div class="routine-editor-layout"><div class="editor-panel"><h3>Datos de la rutina</h3><div class="form-grid"><div class="field full"><label>Nombre *</label><input class="input" id="routineName" value="${esc(d.name)}"></div><div class="field full"><label>Paciente *</label><select class="select" id="routinePatient"><option value="">Seleccionar paciente</option>${data.patients.map(p=>`<option value="${p.id}" ${p.id===d.patientId?'selected':''}>${esc(p.nombre)}</option>`).join('')}</select></div><div class="field full"><label>Objetivo terapéutico</label><textarea class="textarea" id="routineObjective">${esc(d.objective)}</textarea></div><div class="field full"><label>Observaciones</label><textarea class="textarea" id="routineNotes">${esc(d.notes)}</textarea></div><div class="field"><label>Fecha</label><input class="input" id="routineDate" type="date" value="${esc(d.date||todayISO())}"></div><div class="field"><label>Estado</label><select class="select" id="routineStatus">${['Activa','Borrador','Finalizada'].map(x=>`<option ${x===d.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="field full"><label style="display:flex;align-items:center;gap:8px"><input id="routineTemplate" type="checkbox" ${d.template?'checked':''} style="width:18px;height:18px"> Guardar como plantilla</label></div></div><details class="exercise-library" open><summary>Biblioteca de ejercicios <span class="badge b-gray">${BASE_EXERCISE_LIBRARY.length+data.exerciseLibrary.length}</span></summary><div class="exercise-library-controls"><input class="input" id="exerciseLibrarySearch" placeholder="Buscar por nombre"><select class="select" id="exerciseLibraryCategory"><option value="">Todas las categorías</option>${categories.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div><div class="result-count" id="exerciseResultCount"></div><div class="exercise-results" id="exerciseLibraryResults"></div><button class="btn btn-sm" style="margin-top:10px" data-action="new-custom-exercise">+ Ejercicio personalizado</button></details></div><div class="editor-panel"><div class="routine-toolbar"><div><h3 style="margin:0">Ejercicios ordenados</h3><div class="card-sub"><span id="draftCount">${d.exercises.length}</span> ejercicio(s)</div></div><button class="btn btn-sm" data-action="add-blank-exercise">+ Agregar</button></div><div class="exercise-draft-list" id="exerciseDraftList"></div></div></div>`,`<span id="routineUnsaved" class="unsaved">Cambios sin guardar</span><button class="btn" data-action="close-modal">Cancelar</button><button class="btn" data-action="save-routine-draft">Guardar borrador</button><button class="btn btn-primary" data-action="save-routine">Guardar rutina</button>`,'xl');bindRoutineDraftInputs();renderExerciseLibraryResults();renderExerciseDraftList();persistRoutineEditorDraft()}
 function bindRoutineDraftInputs(){[['routineName','name'],['routinePatient','patientId'],['routineObjective','objective'],['routineNotes','notes'],['routineDate','date'],['routineStatus','status']].forEach(([id,key])=>$(`#${id}`).addEventListener('input',e=>{ui.routineDraft[key]=e.target.value;if(key==='patientId')ui.routineDraft.patientName=getPatient(e.target.value)?.nombre||'';persistRoutineEditorDraft()}));$('#routineTemplate').onchange=e=>{ui.routineDraft.template=e.target.checked;persistRoutineEditorDraft()};$('#exerciseLibrarySearch').oninput=()=>debounce('exercise-lib-search',renderExerciseLibraryResults,220);$('#exerciseLibraryCategory').onchange=renderExerciseLibraryResults}
-function combinedExerciseLibrary(){return[...BASE_EXERCISE_LIBRARY.map((e,i)=>({...e,id:`base-${i}`,custom:false})),...data.exerciseLibrary]}
+function stableExerciseSlug(value,index=0){
+ const slug=String(value||`ejercicio-${index}`).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+ return slug||`ejercicio-${index}`
+}
+function combinedExerciseLibrary(){
+ const custom=(data.exerciseLibrary||[]).map((exercise,index)=>({...exercise,id:exercise.id||`custom-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:true,source:exercise.source||'Personalizado'}));
+ const base=BASE_EXERCISE_LIBRARY.map((exercise,index)=>({...exercise,id:exercise.id||`base-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:false,source:exercise.source||'Biblioteca'}));
+ return[...base,...custom]
+}
 function renderExerciseLibraryResults(){const container=$('#exerciseLibraryResults');if(!container)return;const q=$('#exerciseLibrarySearch').value.toLowerCase(),cat=$('#exerciseLibraryCategory').value;const list=combinedExerciseLibrary().filter(e=>(!q||e.name.toLowerCase().includes(q))&&(!cat||e.category===cat)).slice(0,100);$('#exerciseResultCount').textContent=`${list.length}${list.length===100?' primeros':''} resultados`;container.innerHTML=list.map(e=>`<div class="exercise-result"><div><strong>${esc(e.name)}</strong><small>${esc(e.category)} · ${esc(e.source||'Biblioteca')}</small></div><div class="action-btns"><button class="btn btn-sm btn-primary" data-action="use-library-exercise" data-id="${esc(e.id)}">Agregar</button>${e.custom?`<button class="btn btn-sm btn-danger" data-action="delete-custom-exercise" data-id="${e.id}">Eliminar</button>`:''}</div></div>`).join('')||'<div class="empty">Sin ejercicios coincidentes</div>'}
 function addExerciseToDraft(source){ui.routineDraft.exercises.push(normalizeExercise({...source,id:uid('exercise'),sets:source.sets||3,reps:source.reps||10,seconds:source.seconds||'',load:source.load||'',order:ui.routineDraft.exercises.length}));renderExerciseDraftList();persistRoutineEditorDraft()}
 function renderExerciseDraftList(){const c=$('#exerciseDraftList');if(!c)return;$('#draftCount').textContent=ui.routineDraft.exercises.length;c.innerHTML=ui.routineDraft.exercises.map((e,i)=>`<div class="exercise-draft"><div class="exercise-draft-head"><div class="exercise-order"><button data-action="move-exercise" data-index="${i}" data-direction="-1" ${i===0?'disabled':''}>↑</button><button data-action="move-exercise" data-index="${i}" data-direction="1" ${i===ui.routineDraft.exercises.length-1?'disabled':''}>↓</button></div><div class="exercise-draft-title"><strong>${esc(e.name)}</strong><small>${esc(e.category)} · ${esc(e.source||'Manual')}</small></div><button class="btn btn-sm" data-action="duplicate-draft-exercise" data-index="${i}">Duplicar</button><button class="btn btn-sm btn-danger" data-action="remove-draft-exercise" data-index="${i}">Eliminar</button></div><div class="exercise-draft-grid"><div class="field"><label>Series</label><input class="input" data-draft-index="${i}" data-field="sets" type="number" min="0" value="${esc(e.sets)}"></div><div class="field"><label>Repeticiones</label><input class="input" data-draft-index="${i}" data-field="reps" value="${esc(e.reps)}"></div><div class="field"><label>Segundos</label><input class="input" data-draft-index="${i}" data-field="seconds" value="${esc(e.seconds)}"></div><div class="field"><label>Carga</label><input class="input" data-draft-index="${i}" data-field="load" value="${esc(e.load)}"></div></div><div class="exercise-draft-notes"><input class="input" data-draft-index="${i}" data-field="notes" placeholder="Observaciones" value="${esc(e.notes)}"></div></div>`).join('')||'<div class="empty">Agregá ejercicios desde la biblioteca</div>';$$('[data-draft-index]',c).forEach(el=>el.oninput=e=>{const ex=ui.routineDraft.exercises[Number(e.target.dataset.draftIndex)];ex[e.target.dataset.field]=e.target.type==='number'?Number(e.target.value):e.target.value;persistRoutineEditorDraft()})}
 function saveRoutine(asDraft=false){const d=ui.routineDraft;if(!d)return;if(!d.name.trim()||(!d.patientId&&!d.template)||!d.exercises.length)return toast('La rutina requiere nombre, paciente y ejercicios','error');d.status=asDraft?'Borrador':d.status;d.patientName=getPatient(d.patientId)?.nombre||'';d.exercises.forEach((e,i)=>e.order=i);upsertEntity('routines',normalizeRoutine(d));clearRoutineEditorDraft();closeModal();ui.routineDraft=null;ui.routineEditingId='';renderAll();toast(asDraft?'Borrador guardado':'Rutina guardada')}
 function duplicateRoutine(id){const r=getRoutine(id);if(!r)return;upsertEntity('routines',normalizeRoutine({...JSON.parse(JSON.stringify(r)),id:uid('routine'),name:`${r.name} (copia)`,createdAt:nowIso(),date:todayISO()}));renderAll();toast('Rutina duplicada')}
 function deleteRoutineFlow(id){const r=getRoutine(id);if(!r)return;openConfirm('Eliminar rutina',`Se eliminará ${r.name}. El historial ya registrado se conservará.`,async()=>{const active=data.activeSessions.filter(s=>s.routineId===id);data.activeSessions=data.activeSessions.filter(s=>s.routineId!==id);persistLocal();await Promise.all([removeEntity('routines',id),...active.map(s=>removeEntity('activeSessions',s.id))]);closeConfirm();renderAll();toast('Rutina eliminada','info')})}
-function viewRoutine(id){const r=getRoutine(id),p=getPatient(r?.patientId);if(!r)return;openModal('Detalle de rutina',`<div class="clinical-grid"><div class="clinical-block"><h4>Paciente</h4><p>${esc(p?.nombre||'Plantilla')}</p></div><div class="clinical-block"><h4>Objetivo</h4><p>${esc(r.objective||'—')}</p></div><div class="clinical-block"><h4>Estado</h4><p>${esc(r.status)}</p></div><div class="clinical-block"><h4>Fecha</h4><p>${fmtDate(r.date)}</p></div></div><div class="list" style="margin-top:14px">${r.exercises.map((e,i)=>`<div class="item"><div class="item-time">${i+1}</div><div class="item-main"><strong>${esc(e.name)}</strong><span>${e.sets} series · ${esc(e.reps||'—')} reps · ${esc(e.seconds||'—')} seg · ${esc(e.load||'sin carga')}</span></div></div>`).join('')}</div>`,`<button class="btn" data-action="print-routine" data-id="${r.id}">Imprimir</button><button class="btn btn-primary" data-action="edit-routine" data-id="${r.id}">Editar</button>`,'wide')}
+function viewRoutine(id){
+ const routine=getRoutine(id);
+ if(!routine)return toast('Rutina no encontrada','warn');
+ const patient=getPatient(routine.patientId);
+ openModal('Detalle de rutina',`<div class="clinical-grid"><div class="clinical-block"><h4>Paciente</h4><p>${esc(patient?.nombre||'Plantilla')}</p></div><div class="clinical-block"><h4>Objetivo</h4><p>${esc(routine.objective||'—')}</p></div><div class="clinical-block"><h4>Estado</h4><p>${esc(routine.status||'—')}</p></div><div class="clinical-block"><h4>Fecha</h4><p>${fmtDate(routine.date)}</p></div></div><div class="list" style="margin-top:14px">${(routine.exercises||[]).map((exercise,index)=>`<div class="item"><div class="item-time">${index+1}</div><div class="item-main"><strong>${esc(exercise.name)}</strong><span>${esc(exercise.sets||'—')} series · ${esc(exercise.reps||'—')} reps · ${esc(exercise.seconds||'—')} seg · ${esc(exercise.load||'sin carga')}</span></div></div>`).join('')||'<div class="empty">La rutina no tiene ejercicios</div>'}</div>`,`<button type="button" class="btn" data-action="print-routine" data-id="${esc(routine.id)}">Imprimir</button><button type="button" class="btn btn-primary" data-action="edit-routine" data-id="${esc(routine.id)}">Editar</button>`,'wide')
+}
 function openCustomExerciseForm(){openModal('Ejercicio personalizado',`<form id="customExerciseForm" class="form-grid"><div class="field full"><label>Nombre *</label><input class="input" name="name" required></div><div class="field"><label>Categoría *</label><input class="input" name="category" required></div><div class="field"><label>Tipo</label><input class="input" name="type"></div><div class="field"><label>Equipamiento</label><input class="input" name="equipment"></div><div class="field"><label>Fuente</label><input class="input" name="source" value="Personalizado"></div><div class="field full"><label>Descripción</label><textarea class="textarea" name="description"></textarea></div></form>`,`<button class="btn" data-action="return-routine-editor">Volver</button><button class="btn btn-primary" data-action="save-custom-exercise">Guardar ejercicio</button>`,'wide')}
 function saveCustomExercise(){const f=$('#customExerciseForm');if(!f.reportValidity())return;const v=Object.fromEntries(new FormData(f));upsertEntity('exerciseLibrary',created({...v,id:uid('custom-exercise'),custom:true}));toast('Ejercicio personalizado guardado');renderRoutineEditorModal()}
 
@@ -1547,13 +2648,13 @@ function toggleExercise(sessionId,exerciseId){const s=data.activeSessions.find(x
 function cancelSessionDebounces(sessionId){for(const [key,timer] of saveDebouncers.entries()){if(key.startsWith(`execution-${sessionId}-`)){clearTimeout(timer);saveDebouncers.delete(key)}}}
 async function finalizeSession(id,status='Finalizada'){cancelSessionDebounces(id);const s=data.activeSessions.find(x=>x.id===id);if(!s)return;const prog=sessionProgress(s),finishedAt=nowIso(),duration=sessionElapsed(s);const finalStatus=status==='Abandonada'?'Abandonada':prog.completed===prog.total?'Finalizada':'Incompleta';const record=created({id:uid('history'),patientId:s.patientId,patientName:s.patientName,routineId:s.routineId,routineName:s.routineName,source:s.source||'professional',startedAt:s.startedAt,finishedAt,duration,completedCount:prog.completed,totalCount:prog.total,progress:prog.pct,volume:volumeForExecution(s.executionData),status:status==='Abandonada'?'Abandonada':finalStatus,notes:s.notes||'',executionData:s.executionData.map(x=>({...x})),createdAt:finishedAt});upsertEntity('history',record);await removeEntity('activeSessions',id);const p=getPatient(s.patientId);if(p)upsertEntity('patients',{...p,ultimaConsulta:todayISO(),sesionesRealizadas:(p.sesionesRealizadas||0)+1});renderAll();toast(status==='Abandonada'?'Sesión registrada como abandonada':'Sesión finalizada y guardada')}
 function updateTimerNodes(){$$('[data-timer-session]').forEach(el=>{const s=data.activeSessions.find(x=>x.id===el.dataset.timerSession);if(s)el.textContent=formatDuration(sessionElapsed(s))})}
-function startTimerLoop(){clearInterval(timerInterval);timerInterval=setInterval(updateTimerNodes,1000)}
+function startTimerLoop(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(ui.view!=='rutinas'||ui.routineTab!=='execution')return;if(!(data.activeSessions||[]).length)return;(data.activeSessions||[]).forEach(session=>{const el=document.querySelector(`[data-timer-session="${CSS.escape(session.id)}"]`);if(el)el.textContent=formatDuration(sessionElapsed(session))});updateNotifications()},1000)}
 
 /* HISTORIAL Y PROGRESO */
 function filteredHistory(){const f=ui.historyFilters;return data.history.filter(h=>(!f.patientId||h.patientId===f.patientId)&&(!f.routineId||h.routineId===f.routineId)&&(!f.status||h.status===f.status)&&(!f.from||String(h.finishedAt).slice(0,10)>=f.from)&&(!f.to||String(h.finishedAt).slice(0,10)<=f.to)&&(!f.exercise||(h.executionData||[]).some(e=>e.name.toLowerCase().includes(f.exercise.toLowerCase())))).sort((a,b)=>new Date(b.finishedAt)-new Date(a.finishedAt))}
 function renderHistory(){const list=filteredHistory(),mostPatient=mode(list.map(item=>livePatientName(item))),allExercises=list.flatMap(item=>(item.executionData||[]).filter(exercise=>exercise.completed).map(exercise=>exercise.name)),mostExercise=mode(allExercises);$('#routineTabContent').innerHTML=`<div class="history-filters"><select class="select" data-history-filter="patientId"><option value="">Todos los pacientes</option>${data.patients.map(patient=>`<option value="${patient.id}" ${ui.historyFilters.patientId===patient.id?'selected':''}>${esc(patient.nombre)}</option>`).join('')}</select><select class="select" data-history-filter="routineId"><option value="">Todas las rutinas</option>${data.routines.map(routine=>`<option value="${routine.id}" ${ui.historyFilters.routineId===routine.id?'selected':''}>${esc(routine.name)}</option>`).join('')}</select><input class="input" data-history-filter="exercise" placeholder="Ejercicio" value="${esc(ui.historyFilters.exercise)}"><input class="input" data-history-filter="from" type="date" value="${esc(ui.historyFilters.from)}"><input class="input" data-history-filter="to" type="date" value="${esc(ui.historyFilters.to)}"><select class="select" data-history-filter="status"><option value="">Todos los estados</option>${['Finalizada','Incompleta','Abandonada'].map(status=>`<option ${ui.historyFilters.status===status?'selected':''}>${status}</option>`).join('')}</select></div><div class="history-metrics">${[['Cumplimiento promedio',`${Math.round(avg(list.map(item=>item.progress||0)))}%`],['Tiempo promedio',formatDuration(avg(list.map(item=>item.duration||0)))],['Volumen total',Math.round(list.reduce((sum,item)=>sum+Number(item.volume||0),0))],['Más sesiones',mostPatient||'—'],['Ejercicio más realizado',mostExercise||'—'],['Rutinas activas',data.routines.filter(routine=>routine.active&&!routine.template).length],['Sesiones activas',data.activeSessions.length],['Sin actividad reciente',clinicalMetrics().inactive]].map(([label,value])=>`<div class="kpi"><small>${label}</small><strong>${esc(value)}</strong></div>`).join('')}</div>${renderHistoryTable(list)}<div class="card" style="margin-top:14px"><div class="card-head"><div><div class="card-title">Progreso por ejercicio</div><div class="card-sub">Series, repeticiones, carga y volumen real</div></div></div>${renderExerciseProgressTable(list)}</div>`;$$('[data-history-filter]').forEach(element=>element.onchange=element.oninput=event=>debounce('history-filter',()=>{ui.historyFilters[event.target.dataset.historyFilter]=event.target.value;renderHistory()},220))}
 function mode(values){const counts=new Map();for(const v of values.filter(Boolean))counts.set(v,(counts.get(v)||0)+1);return [...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||''}
-function renderHistoryTable(list){return`<div class="table-wrap responsive history-table"><table class="table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Rutina</th><th>Duración</th><th>Progreso</th><th>Volumen</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>${list.map(item=>`<tr><td><span class="mobile-card-label">Fecha</span>${fmtDateTime(item.finishedAt)}</td><td><span class="mobile-card-label">Paciente</span>${esc(livePatientName(item))}</td><td><span class="mobile-card-label">Rutina</span>${esc(item.routineName)}</td><td><span class="mobile-card-label">Duración</span>${formatDuration(item.duration)}</td><td><span class="mobile-card-label">Progreso</span>${Number(item.progress||0)}%</td><td><span class="mobile-card-label">Volumen</span>${Math.round(Number(item.volume||0))}</td><td><span class="mobile-card-label">Estado</span>${statusBadge(item.status)}</td><td><span class="mobile-card-label">Detalle</span><details class="history-detail"><summary>Ver ejercicios</summary><div class="history-exercise-list">${(item.executionData||[]).map(exercise=>`<div class="history-exercise-row"><strong>${esc(exercise.name)}</strong> · ${exercise.completed?'Completado':'Pendiente'} · ${esc(exercise.actualSets||0)} series · ${esc(exercise.actualReps||0)} reps · ${esc(exercise.actualLoad||0)} kg · ${esc(exercise.actualSeconds||0)} seg<br>${esc(exercise.executionNotes||'')}</div>`).join('')}</div></details></td></tr>`).join('')||'<tr><td colspan="8"><div class="empty">No hay sesiones en el historial</div></td></tr>'}</tbody></table></div>`}
+function renderHistoryTable(list){return`<div class="table-wrap responsive history-table"><table class="table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Rutina</th><th>Duración</th><th>Progreso</th><th>Volumen</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>${list.map(item=>{const patient=getPatient(item.patientId),routine=getRoutine(item.routineId),progress=Number(item.progress||0),safeProgress=Math.max(0,Math.min(100,progress)),normalizedStatus=String(item.status||'').toLowerCase(),statusClass=normalizedStatus.includes('final')?'is-finalizada':normalizedStatus.includes('incompleta')?'is-incompleta':normalizedStatus.includes('abandon')?'is-abandonada':'is-unknown',progressClass=progress>=100?'is-complete':progress>0?'is-progress':'is-zero',exercises=Array.isArray(item.executionData)?item.executionData:[];return`<tr class="history-session-card ${statusClass}"><td class="history-date-cell"><span class="mobile-card-label">Fecha</span><span class="history-date">${item.finishedAt?fmtDateTime(item.finishedAt):'Fecha no disponible'}</span></td><td class="history-patient-cell"><span class="mobile-card-label">Paciente</span><strong class="history-patient-name">${esc(livePatientName(item)||'Sin nombre')}</strong></td><td class="history-routine-cell"><span class="mobile-card-label">Rutina</span><span class="history-routine-name"><span class="history-routine-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 8v8M18 8v8M3.5 10v4M20.5 10v4M6 12h12"/></svg></span><span>${esc(item.routineName||'Sin rutina')}</span></span></td><td class="history-duration-cell"><span class="mobile-card-label">Duración</span><span class="history-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span><strong class="history-metric-value">${formatDuration(item.duration)}</strong></td><td class="history-progress-cell ${progressClass}" style="--history-progress:${safeProgress}%"><span class="mobile-card-label">Progreso</span><span class="history-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12l5 5L20 6"/></svg></span><strong class="history-metric-value">${progress}%</strong><span class="history-progress-track" aria-hidden="true"><span></span></span></td><td class="history-volume-cell"><span class="mobile-card-label">Volumen</span><span class="history-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 7h10v10H7z"/><path d="M3 10v4M21 10v4M7 12H3M21 12h-4"/></svg></span><strong class="history-metric-value">${Math.round(Number(item.volume||0))}</strong></td><td class="history-status-cell"><span class="mobile-card-label">Estado</span>${statusBadge(item.status)}</td><td class="history-actions-cell"><span class="mobile-card-label">Acciones</span><div class="history-direct-actions">${patient?`<button type="button" class="btn history-action-btn history-profile-btn" data-action="profile" data-id="${esc(patient.id)}" data-patient-id="${esc(patient.id)}"><span class="history-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="3.5"/><path d="M5 19c.8-4 3.2-6 7-6s6.2 2 7 6"/></svg></span><span>Ficha</span></button>`:''}${routine?`<button type="button" class="btn history-action-btn history-routine-btn" data-action="view-routine" data-id="${esc(routine.id)}" data-routine-id="${esc(routine.id)}"><span class="history-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h10"/><path d="m17 16 3 2-3 2z"/></svg></span><span>Ver rutina</span></button>`:''}</div><details class="history-detail"><summary><span class="history-detail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 6h14M5 12h14M5 18h9"/><path d="m17 16 3 2-3 2z"/></svg></span><span class="history-detail-open">Ver ejercicios</span><span class="history-detail-close">Ocultar ejercicios</span><span class="history-detail-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="history-exercise-list">${exercises.length?exercises.map(exercise=>`<article class="history-exercise-card history-exercise-row"><div class="history-exercise-head"><strong>${esc(exercise.name||'Ejercicio sin nombre')}</strong><span class="badge ${exercise.completed?'b-ok':'b-warn'}">${exercise.completed?'Completado':'Pendiente'}</span></div><div class="history-exercise-metrics"><div><small>Series</small><strong>${esc(exercise.actualSets||0)}</strong></div><div><small>Repeticiones</small><strong>${esc(exercise.actualReps||0)}</strong></div><div><small>Carga</small><strong>${esc(exercise.actualLoad||0)} kg</strong></div><div><small>Tiempo</small><strong>${esc(exercise.actualSeconds||0)} s</strong></div></div>${exercise.executionNotes?`<p class="history-exercise-notes">${esc(exercise.executionNotes)}</p>`:''}</article>`).join(''):`<div class="history-exercises-empty">Esta sesión no tiene ejercicios registrados.</div>`}</div></details></td></tr>`}).join('')||'<tr class="history-empty-row"><td colspan="8"><div class="empty">No hay sesiones en el historial</div></td></tr>'}</tbody></table></div>`}
 function renderExerciseProgressTable(list){const rows=list.flatMap(item=>(item.executionData||[]).filter(exercise=>exercise.completed).map(exercise=>({date:item.finishedAt,patient:livePatientName(item),name:exercise.name,sets:Number(exercise.actualSets||0),reps:Number(exercise.actualReps||0),load:Number(exercise.actualLoad||0)})));return`<div class="table-wrap responsive"><table class="table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Ejercicio</th><th>Series</th><th>Repeticiones</th><th>Carga</th><th>Volumen</th></tr></thead><tbody>${rows.map(row=>`<tr><td><span class="mobile-card-label">Fecha</span>${fmtDate(row.date)}</td><td><span class="mobile-card-label">Paciente</span>${esc(row.patient)}</td><td><span class="mobile-card-label">Ejercicio</span>${esc(row.name)}</td><td><span class="mobile-card-label">Series</span>${row.sets}</td><td><span class="mobile-card-label">Repeticiones</span>${row.reps}</td><td><span class="mobile-card-label">Carga</span>${row.load}</td><td><span class="mobile-card-label">Volumen</span>${Math.round(row.sets*row.reps*row.load)}</td></tr>`).join('')||'<tr><td colspan="7">Sin datos de progreso</td></tr>'}</tbody></table></div>`}
 
 /* TURNOS */
@@ -1565,7 +2666,50 @@ function deleteTurn(id){const turn=getTurnById(id);if(!turn)return;if(getPayment
 /* PAGOS, REPORTES Y CONFIGURACIÓN */
 function renderPromoCard(promo){const action=promo.kind==='single'?'new-turn-promo':'new-combo-promo',button=promo.kind==='single'?'Agendar sesión':'Asignar a paciente',validity=promo.sameMonth?'Usable dentro del mismo mes':'Cobro por sesión';return`<article class="promo-card"><div class="promo-card-top"><div><div class="promo-service">${esc(promo.service)}</div><div class="promo-name">${esc(promo.kind==='single'?'Sesión suelta':promo.name.split(' · ')[1]||promo.name)}</div></div><div class="promo-price">${money(promo.price)}</div></div><div class="promo-detail">${esc(promo.frequency)}</div><div class="promo-validity">${esc(validity)}</div><button class="btn btn-sm ${promo.kind==='single'?'':'btn-primary'}" data-action="${action}" data-promo-id="${promo.id}">${button}</button></article>`}
 function renderPromoCatalog(){return`<section class="finance-section"><div class="finance-section-head"><div><h3>Tarifas y promociones</h3><p>Valores preestablecidos para sesiones sueltas, packs quincenales y mensuales</p></div></div><div class="promo-catalog">${PROMO_CATALOG.map(renderPromoCard).join('')}</div></section>`}
-function renderPagos(){const collected=data.payments.filter(payment=>payment.status==='Cobrado').reduce((sum,payment)=>sum+Number(payment.amount||0),0),pendingTurns=data.turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0&&!getPaymentByTurn(turn.id)).reduce((sum,turn)=>sum+Number(turn.price||0),0),pendingCombos=data.packages.filter(combo=>!getPaymentByCombo(combo.id)).reduce((sum,combo)=>sum+Number(combo.price||0),0),activeCombos=data.packages.filter(combo=>comboComputedStatus(combo)==='Vigente').length,expiring=data.packages.filter(combo=>{const days=daysUntil(combo.endDate);return comboComputedStatus(combo)==='Vigente'&&days>=0&&days<=7}).length;const combos=data.packages.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate))),payments=data.payments.slice().sort((a,b)=>new Date(b.date||b.createdAt)-new Date(a.date||a.createdAt));$('#view-pagos').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Pagos y promociones</h2><p>Tarifas, turnos, cobros y vigencia de packs por paciente</p></div><div class="finance-actions"><button class="btn" data-action="new-combo">+ Pack personalizado</button><button class="btn btn-primary" data-action="new-payment">+ Registrar pago</button></div></div><div class="grid metrics"><article class="card metric"><div class="metric-label">Ingresos cobrados</div><div class="metric-value">${money(collected)}</div><div class="metric-note">Pagos confirmados</div></article><article class="card metric"><div class="metric-label">Pendiente en turnos</div><div class="metric-value">${money(pendingTurns)}</div><div class="metric-note">Sesiones sueltas sin pago</div></article><article class="card metric"><div class="metric-label">Pendiente en packs</div><div class="metric-value">${money(pendingCombos)}</div><div class="metric-note">Packs sin pago</div></article><article class="card metric"><div class="metric-label">Packs vigentes</div><div class="metric-value">${activeCombos}</div><div class="metric-note">${expiring} vencen en 7 días</div></article></div>${renderPromoCatalog()}<section class="finance-section"><div class="finance-section-head"><div><h3>Packs asignados</h3><p>Vigencia, frecuencia, sesiones usadas, reservadas y disponibles</p></div></div><div class="combo-grid">${combos.map(renderComboCard).join('')||'<div class="empty finance-empty">No hay packs registrados</div>'}</div></section><section class="finance-section"><div class="finance-section-head"><div><h3>Movimientos</h3><p>Pagos vinculados a turnos, packs o cargados sin turno</p></div></div><div class="card"><div class="list">${payments.map(payment=>{const refs=paymentActivityRefs(payment),name=refs.patient?.nombre||payment.patientName||'Sin paciente';return`<div class="item"><div class="item-main"><div class="payment-concept">${esc(payment.type)}</div><strong>${esc(name)}</strong><span>${fmtDate(payment.date)} · ${esc(payment.method)} · ${esc(paymentConcept(payment))}</span></div><div class="item-right"><strong>${money(payment.amount)}</strong>${statusBadge(payment.status)}${refs.patient?`<button class="btn btn-sm" data-action="profile" data-id="${refs.patient.id}">Ficha</button>`:''}<button class="btn btn-sm" data-action="edit-payment" data-id="${payment.id}">Editar</button><button class="btn btn-sm btn-danger" data-action="delete-payment" data-id="${payment.id}">Eliminar</button></div></div>`}).join('')||'<div class="empty">Sin pagos registrados</div>'}</div></div></section>`}
+function paymentDateValue(payment){return dateOnly(payment?.date||payment?.createdAt||payment?.updatedAt)}
+function paymentRangeForPeriod(){
+ const period=ui.paymentFilters?.period||'all',today=todayISO();
+ let from='',to='',label='Todo el historial';
+ if(period==='week'){
+  const current=new Date(`${today}T12:00:00`),offset=(current.getDay()+6)%7;
+  from=addDaysISO(today,-offset);to=addDaysISO(from,6);label=`Semana del ${fmtDate(from)} al ${fmtDate(to)}`
+ }else if(period==='month'){
+  from=`${today.slice(0,7)}-01`;to=monthEndISO(today);label=`Mes actual · ${fmtDate(from)} al ${fmtDate(to)}`
+ }else if(period==='year'){
+  from=`${today.slice(0,4)}-01-01`;to=`${today.slice(0,4)}-12-31`;label=`Año ${today.slice(0,4)}`
+ }else if(period==='custom'){
+  from=ui.paymentFilters.from||'';to=ui.paymentFilters.to||'';
+  if(from&&to&&from>to)[from,to]=[to,from];
+  label=from&&to?`${fmtDate(from)} al ${fmtDate(to)}`:'Rango personalizado'
+ }
+ let previousFrom='',previousTo='';
+ if(from&&to){
+  const days=Math.max(1,Math.round((new Date(`${to}T12:00:00`)-new Date(`${from}T12:00:00`))/86400000)+1);
+  previousTo=addDaysISO(from,-1);previousFrom=addDaysISO(previousTo,-days+1)
+ }
+ return{period,from,to,previousFrom,previousTo,label}
+}
+function paymentWithinRange(payment,from,to){const date=paymentDateValue(payment);if(!date)return false;return(!from||date>=from)&&(!to||date<=to)}
+function collectedPaymentsTotal(payments){return payments.filter(payment=>payment.status==='Cobrado').reduce((sum,payment)=>sum+Number(payment.amount||0),0)}
+function renderPagos(){
+ const range=paymentRangeForPeriod();
+ const allPayments=data.payments.slice().sort((a,b)=>new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0));
+ const payments=range.from||range.to?allPayments.filter(payment=>paymentWithinRange(payment,range.from,range.to)):allPayments;
+ const previousPayments=range.previousFrom&&range.previousTo?allPayments.filter(payment=>paymentWithinRange(payment,range.previousFrom,range.previousTo)):[];
+ const collected=collectedPaymentsTotal(payments),previousCollected=collectedPaymentsTotal(previousPayments);
+ const variation=range.previousFrom?(previousCollected>0?Math.round(((collected-previousCollected)/previousCollected)*100):(collected>0?null:0)):null;
+ const variationLabel=variation===null?(range.previousFrom?'Sin base anterior':'—'):`${variation>0?'+':''}${variation}%`;
+ const variationNote=range.previousFrom?`${fmtDate(range.previousFrom)} al ${fmtDate(range.previousTo)}`:'Seleccioná semana, mes, año o fechas';
+ const pendingTurns=data.turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0&&!getPaymentByTurn(turn.id)).reduce((sum,turn)=>sum+Number(turn.price||0),0);
+ const pendingCombos=data.packages.filter(combo=>!getPaymentByCombo(combo.id)).reduce((sum,combo)=>sum+Number(combo.price||0),0);
+ const activeCombos=data.packages.filter(combo=>comboComputedStatus(combo)==='Vigente').length;
+ const expiring=data.packages.filter(combo=>{const days=daysUntil(combo.endDate);return comboComputedStatus(combo)==='Vigente'&&days>=0&&days<=7}).length;
+ const combos=data.packages.slice().sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)));
+ const custom=range.period==='custom';
+ const fromValue=custom?(ui.paymentFilters.from||''):(range.from||'');
+ const toValue=custom?(ui.paymentFilters.to||''):(range.to||'');
+ setElementHtml($('#view-pagos'),`<div class="page-header"><div class="page-header-left"><h2>Pagos y promociones</h2><p>Tarifas, turnos, cobros y vigencia de packs por paciente</p></div><div class="finance-actions"><button type="button" class="btn" data-action="new-combo">+ Pack personalizado</button><button type="button" class="btn btn-primary" data-action="new-payment">+ Registrar pago</button></div></div><section class="card payment-filter-panel" style="margin-bottom:16px"><div class="card-head" style="margin-bottom:12px"><div><div class="card-title">Filtro y comparación de ingresos</div><div class="card-sub">${esc(range.label)} · ${payments.length} movimiento${payments.length===1?'':'s'}</div></div><button type="button" class="btn btn-sm" data-action="reset-payment-filters">Restablecer</button></div><div class="payment-filter-grid"><div class="field"><label>Período</label><select class="select" id="paymentPeriodFilter"><option value="all" ${range.period==='all'?'selected':''}>Todo el historial</option><option value="week" ${range.period==='week'?'selected':''}>Semana actual</option><option value="month" ${range.period==='month'?'selected':''}>Mes actual</option><option value="year" ${range.period==='year'?'selected':''}>Año actual</option><option value="custom" ${range.period==='custom'?'selected':''}>Rango de fechas</option></select></div><div class="field"><label>Desde</label><input class="input" id="paymentFromFilter" type="date" value="${esc(fromValue)}" ${custom?'':'disabled'}></div><div class="field"><label>Hasta</label><input class="input" id="paymentToFilter" type="date" value="${esc(toValue)}" ${custom?'':'disabled'}></div></div></section><div class="grid metrics"><article class="card metric"><div class="metric-label">Ingresos del período</div><div class="metric-value">${money(collected)}</div><div class="metric-note">${esc(range.label)}</div></article><article class="card metric"><div class="metric-label">Período anterior</div><div class="metric-value">${range.previousFrom?money(previousCollected):'—'}</div><div class="metric-note">${esc(variationNote)}</div></article><article class="card metric"><div class="metric-label">Variación de ingresos</div><div class="metric-value">${esc(variationLabel)}</div><div class="metric-note">Comparación contra período equivalente</div></article><article class="card metric"><div class="metric-label">Pendiente en turnos</div><div class="metric-value">${money(pendingTurns)}</div><div class="metric-note">Sesiones sueltas sin pago</div></article><article class="card metric"><div class="metric-label">Pendiente en packs</div><div class="metric-value">${money(pendingCombos)}</div><div class="metric-note">Packs sin pago</div></article><article class="card metric"><div class="metric-label">Packs vigentes</div><div class="metric-value">${activeCombos}</div><div class="metric-note">${expiring} vencen en 7 días</div></article></div>${renderPromoCatalog()}<section class="finance-section"><div class="finance-section-head"><div><h3>Packs asignados</h3><p>Vigencia, frecuencia, sesiones usadas, reservadas y disponibles</p></div></div><div class="combo-grid">${combos.map(renderComboCard).join('')||'<div class="empty finance-empty">No hay packs registrados</div>'}</div></section><section class="finance-section"><div class="finance-section-head"><div><h3>Movimientos</h3><p>${esc(range.label)} · pagos vinculados a turnos, packs o cargados sin turno</p></div></div><div class="card"><div class="list">${payments.map(payment=>{const refs=paymentActivityRefs(payment),name=refs.patient?.nombre||payment.patientName||'Sin paciente';return`<div class="item"><div class="item-main"><div class="payment-concept">${esc(payment.type)}</div><strong>${esc(name)}</strong><span>${fmtDate(payment.date)} · ${esc(payment.method)} · ${esc(paymentConcept(payment))}</span></div><div class="item-right"><strong>${money(payment.amount)}</strong>${statusBadge(payment.status)}${refs.patient?`<button type="button" class="btn btn-sm" data-action="profile" data-id="${esc(refs.patient.id)}">Ficha</button>`:''}<button type="button" class="btn btn-sm" data-action="edit-payment" data-id="${esc(payment.id)}">Editar</button><button type="button" class="btn btn-sm btn-danger" data-action="delete-payment" data-id="${esc(payment.id)}">Eliminar</button></div></div>`}).join('')||'<div class="empty">No hay movimientos en el período seleccionado</div>'}</div></div></section>`)
+}
 function openPaymentForm(prefill={}){const existing=prefill.paymentId?data.payments.find(payment=>payment.id===prefill.paymentId)||null:null,selectedTurn=prefill.turnId?getTurnById(prefill.turnId):existing?.turnId?getTurnById(existing.turnId):null,selectedCombo=prefill.comboId?getCombo(prefill.comboId):existing?.comboId?getCombo(existing.comboId):null,patientId=prefill.patientId||existing?.patientId||selectedTurn?.patientId||selectedCombo?.patientId||'',type=existing?.type?(existing.type==='Pack / combo'?'Pack / combo':existing.type==='Turno'?'Turno':'Pago sin turno'):(selectedTurn?'Turno':selectedCombo?'Pack / combo':'Pago sin turno');openModal(existing?'Editar pago':'Registrar pago',`<form id="paymentForm" class="form-grid"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><div class="field"><label>Concepto *</label><select class="select" name="type" id="paymentType"><option ${type==='Turno'?'selected':''}>Turno</option><option ${type==='Pack / combo'?'selected':''}>Pack / combo</option><option value="Pago sin turno" ${type==='Pago sin turno'?'selected':''}>Pago sin turno</option></select></div><div class="field"><label>Paciente *</label><select class="select" name="patientId" id="paymentPatient" required><option value="">Seleccionar</option>${data.patients.map(patient=>`<option value="${patient.id}" ${patient.id===patientId?'selected':''}>${esc(patient.nombre)}</option>`).join('')}</select></div><div class="field full" id="paymentReferenceField"><label id="paymentReferenceLabel">Turno vinculado *</label><select class="select" name="referenceId" id="paymentReference"></select></div><div class="field"><label>Monto *</label><input class="input" name="amount" id="paymentAmount" type="number" min="0" step="1" required value="${existing?Number(existing.amount||0):''}"></div><div class="field"><label>Fecha</label><input class="input" name="date" id="paymentDate" type="date" value="${existing?.date||todayISO()}"></div><div class="field"><label>Método</label><select class="select" name="method">${['Efectivo','Transferencia','Tarjeta'].map(method=>`<option ${method===(existing?.method||'Efectivo')?'selected':''}>${method}</option>`).join('')}</select></div><div class="field"><label>Estado</label><select class="select" name="status"><option ${existing?.status!=='Pendiente'?'selected':''}>Cobrado</option><option ${existing?.status==='Pendiente'?'selected':''}>Pendiente</option></select></div><div class="field full"><label>Observación</label><input class="input" name="notes" value="${esc(existing?.notes||'')}"></div><div class="field full"><div class="billing-note" id="paymentHelp">Seleccioná un turno para completar automáticamente el monto y la fecha.</div></div></form>`,`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn btn-primary" data-action="save-payment">${existing?'Actualizar':'Guardar'}</button>`,'wide');const typeSelect=$('#paymentType'),patientSelect=$('#paymentPatient'),referenceField=$('#paymentReferenceField'),referenceLabel=$('#paymentReferenceLabel'),referenceSelect=$('#paymentReference'),amountInput=$('#paymentAmount'),dateInput=$('#paymentDate'),help=$('#paymentHelp');const initialReference=selectedTurn?.id||selectedCombo?.id||'';const refreshReferences=()=>{const concept=typeSelect.value,pid=patientSelect.value;referenceField.hidden=concept==='Pago sin turno'||concept==='Otro';referenceSelect.required=concept==='Turno'||concept==='Pack / combo';if(concept==='Turno'){referenceLabel.textContent='Turno vinculado *';const turns=data.turns.filter(turn=>turn.patientId===pid&&(!getPaymentByTurn(turn.id)||turn.id===existing?.turnId)).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`));referenceSelect.innerHTML=`<option value="">Seleccionar turno</option>${turns.map(turn=>`<option value="${turn.id}" ${turn.id===initialReference?'selected':''}>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)} · ${money(turn.price)}</option>`).join('')}`;help.textContent=turns.length?'El pago quedará enlazado al turno seleccionado y se verá en la agenda.':'Este paciente no tiene turnos disponibles. Elegí “Pago sin turno” en Concepto para registrar el cobro igualmente.'}else if(concept==='Pack / combo'){referenceLabel.textContent='Pack vinculado *';const combos=getPatientCombos(pid).filter(combo=>!getPaymentByCombo(combo.id)||combo.id===existing?.comboId);referenceSelect.innerHTML=`<option value="">Seleccionar pack</option>${combos.map(combo=>`<option value="${combo.id}" ${combo.id===initialReference?'selected':''}>${esc(combo.name)} · ${fmtDate(combo.startDate)} a ${fmtDate(combo.endDate)} · ${money(combo.price)}</option>`).join('')}`;help.textContent='El pago quedará enlazado al pack y conservará su vigencia y cantidad de sesiones.'}else{referenceSelect.innerHTML='';help.textContent='El pago se registrará para el paciente sin exigir un turno o pack vinculado.'}syncReference()};const syncReference=()=>{const concept=typeSelect.value,referenceId=referenceSelect.value;if(concept==='Turno'){const turn=getTurnById(referenceId);if(turn){if(!amountInput.value||!existing)amountInput.value=Number(turn.price||0);dateInput.value=turn.fecha}}else if(concept==='Pack / combo'){const combo=getCombo(referenceId);if(combo){if(!amountInput.value||!existing)amountInput.value=Number(combo.price||0);dateInput.value=combo.startDate}}};typeSelect.addEventListener('change',refreshReferences);patientSelect.addEventListener('change',refreshReferences);referenceSelect.addEventListener('change',syncReference);refreshReferences()}
 function savePayment(){const form=$('#paymentForm');if(!form.reportValidity())return;const values=Object.fromEntries(new FormData(form)),existing=values.id?data.payments.find(payment=>payment.id===values.id)||null:null,patient=getPatient(values.patientId);if(!patient)return toast('Seleccioná un paciente','error');let turnId='',comboId='',date=values.date,type=values.type;if(type==='Turno'){const turn=getTurnById(values.referenceId);if(!turn||turn.patientId!==patient.id)return toast('Seleccioná un turno válido del paciente','error');if(turn.comboId)return toast('Ese turno está incluido en un pack y no debe cobrarse por separado','error');if(data.payments.some(payment=>payment.turnId===turn.id&&payment.id!==existing?.id))return toast('El turno ya tiene un pago registrado','error');turnId=turn.id;date=turn.fecha}else if(type==='Pack / combo'){const combo=getCombo(values.referenceId);if(!combo||combo.patientId!==patient.id)return toast('Seleccioná un pack válido del paciente','error');if(data.payments.some(payment=>payment.comboId===combo.id&&payment.id!==existing?.id))return toast('El pack ya tiene un pago registrado','error');comboId=combo.id;date=values.date||combo.startDate}else type='Pago sin turno';const payment=normalizePayment({...existing,id:existing?.id||uid('payment'),patientId:patient.id,patientName:patient.nombre,type,turnId,comboId,amount:Number(values.amount||0),date,method:values.method,status:values.status,notes:values.notes});upsertEntity('payments',payment);closeModal();renderPagos();renderTurnos(date);toast(existing?'Pago actualizado':'Pago registrado')}
 function renderComboCard(combo){const patient=getPatient(combo.patientId),usage=comboUsage(combo),status=comboComputedStatus(combo),payment=getPaymentByCombo(combo.id),days=daysUntil(combo.endDate),expiry=status==='Vigente'&&days<=7?`<span class="badge b-warn">Vence en ${Math.max(0,days)} día${days===1?'':'s'}</span>`:'',schedule=comboScheduleInfo(combo),scheduleNote=schedule&&usage.remaining>0?`<div class="combo-schedule-note">Próxima sesión sugerida: <strong>${fmtDate(schedule.nextDate)}</strong>${schedule.withinValidity?'':'. No entra dentro de la vigencia actual.'}</div>`:'';return`<article class="combo-card"><div class="combo-card-head"><div><div class="combo-card-title">${esc(combo.name)}</div><div class="combo-card-patient">${esc(patient?.nombre||combo.patientName||'Sin paciente')}</div></div>${statusBadge(status)}</div><div class="combo-meta">${combo.serviceType?`<span class="badge b-blue">${esc(combo.serviceType)}</span>`:''}${combo.frequencyLabel?`<span class="badge b-gray">${esc(combo.frequencyLabel)}</span>`:''}<span class="badge b-gray">${fmtDate(combo.startDate)} a ${fmtDate(combo.endDate)}</span><span class="badge ${payment?.status==='Cobrado'?'b-ok':'b-warn'}">${payment?.status||'Sin cobrar'} · ${money(combo.price)}</span>${expiry}</div><div class="combo-validity"><span>Ocupación del pack</span><strong>${usage.assigned}/${usage.total}</strong></div><div class="combo-progress"><span style="width:${usage.pct}%"></span></div><div class="combo-counts"><div class="combo-count"><strong>${usage.used}</strong><small>Usadas</small></div><div class="combo-count"><strong>${usage.reserved}</strong><small>Reservadas</small></div><div class="combo-count"><strong>${usage.remaining}</strong><small>Disponibles</small></div></div>${scheduleNote}${combo.notes?`<p class="card-sub" style="margin-top:10px">${esc(combo.notes)}</p>`:''}<div class="combo-card-actions">${patient?`<button class="btn btn-sm" data-action="profile" data-id="${patient.id}">Ficha</button>`:''}${!payment?`<button class="btn btn-sm btn-success" data-action="pay-combo" data-id="${combo.id}">Cobrar pack</button>`:''}<button class="btn btn-sm" data-action="edit-combo" data-id="${combo.id}">Editar</button><button class="btn btn-sm btn-danger" data-action="delete-combo" data-id="${combo.id}">Eliminar</button></div></article>`}
@@ -1575,7 +2719,26 @@ function deleteCombo(id){const combo=getCombo(id);if(!combo)return;const usage=c
 function deletePayment(id){const payment=data.payments.find(item=>item.id===id);if(!payment)return;openConfirm('Eliminar pago',`Se eliminará el registro de ${money(payment.amount)} y el turno o combo volverá a figurar como pendiente.`,async()=>{await removeEntity('payments',id);closeConfirm();renderPagos();renderTurnos(payment.date);toast('Pago eliminado','info')})}
 function renderPatientFinance(patientId){const combos=getPatientCombos(patientId),turns=data.turns.filter(turn=>turn.patientId===patientId).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`)),payments=data.payments.filter(payment=>payment.patientId===patientId),paid=payments.filter(payment=>payment.status==='Cobrado').reduce((sum,payment)=>sum+Number(payment.amount||0),0),pending=turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0&&!getPaymentByTurn(turn.id)).reduce((sum,turn)=>sum+Number(turn.price||0),0),available=combos.filter(combo=>comboComputedStatus(combo)==='Vigente').reduce((sum,combo)=>sum+comboUsage(combo).remaining,0);return`<div class="routine-toolbar"><div><strong>Pagos, turnos y packs</strong><div class="card-sub">Organización financiera completa del paciente</div></div><div class="finance-actions"><button class="btn" data-action="new-combo" data-patient-id="${patientId}">+ Combo</button><button class="btn btn-primary" data-action="new-payment" data-patient-id="${patientId}">+ Pago</button></div></div><div class="kpi-grid" style="margin-bottom:14px">${[['Total cobrado',money(paid)],['Pendiente',money(pending)],['Packs',combos.length],['Sesiones disponibles',available]].map(([label,value])=>`<div class="kpi"><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`).join('')}</div><div class="finance-section-head"><div><h3>Packs del paciente</h3></div></div><div class="combo-grid" style="margin-bottom:16px">${combos.map(renderComboCard).join('')||'<div class="empty finance-empty">Sin combos registrados</div>'}</div><div class="finance-section-head"><div><h3>Turnos y estado de cobro</h3></div></div><div class="list">${turns.slice(0,20).map(turn=>{const billing=turnPaymentState(turn);return`<div class="item"><div class="item-main"><strong>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)}</strong><span>${turn.comboId?esc(getCombo(turn.comboId)?.name||'Combo eliminado'):money(turn.price)}</span></div><div class="item-right"><span class="badge ${billing.className}">${esc(billing.label)}</span>${!turn.comboId&&!getPaymentByTurn(turn.id)&&Number(turn.price)>0?`<button class="btn btn-sm btn-success" data-action="pay-turn" data-id="${turn.id}">Cobrar</button>`:''}</div></div>`}).join('')||'<div class="empty">Sin turnos registrados</div>'}</div>`}
 function renderReportes(){const m=clinicalMetrics(),rows=allEvolutions();$('#view-reportes').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Reportes</h2><p>Indicadores clínicos reales</p></div><button class="btn" data-action="export-csv">Exportar CSV</button></div><div class="grid three-col" style="margin-bottom:16px"><article class="card metric"><div class="metric-label">Pacientes</div><div class="metric-value">${data.patients.length}</div></article><article class="card metric"><div class="metric-label">Sesiones históricas</div><div class="metric-value">${data.history.length}</div></article><article class="card metric"><div class="metric-label">Cumplimiento</div><div class="metric-value">${m.compliance}%</div></article></div><div class="card"><div class="card-head"><div class="card-title">EVA promedio</div></div><div class="stat-row"><div class="stat-label">Actividad</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaActividad))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaActividad)).toFixed(1)}</div></div><div class="stat-row"><div class="stat-label">Reposo</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaReposo))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaReposo)).toFixed(1)}</div></div></div>`}
-function exportCsv(){const rows=[['Fecha','Paciente','Rutina','Duración','Progreso','Volumen','Estado'],...data.history.map(item=>[item.finishedAt,getPatient(item.patientId)?.nombre||item.patientName||item.paciente||'Paciente eliminado',item.routineName,item.duration,item.progress,item.volume,item.status])];const csv=rows.map(row=>row.map(value=>`"${String(value??'').replace(/"/g,'""')}"`).join(',')).join('\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download=`eter-reporte-${todayISO()}.csv`;link.click();URL.revokeObjectURL(link.href)}
+function exportCsv(){
+ const rows=[['Fecha','Paciente','Rutina','Duración','Progreso','Volumen','Estado'],...data.history.map(item=>[item.finishedAt,getPatient(item.patientId)?.nombre||item.patientName||item.paciente||'Paciente eliminado',item.routineName,item.duration,item.progress,item.volume,item.status])];
+ const csv=rows.map(row=>row.map(value=>`"${String(value??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ const link=document.createElement('a');
+ try{
+  link.href=url;
+  link.download=`eter-reporte-${todayISO()}.csv`;
+  link.style.display='none';
+  document.body.appendChild(link);
+  link.click();
+  toast('Reporte CSV generado','success')
+ }catch(error){
+  console.error('CSV export failed',error);
+  toast('No se pudo generar el CSV','error')
+ }finally{
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000)
+ }
+}
 function renderConfiguracion(){$('#view-configuracion').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div><div class="grid two-col"><div class="card"><div class="card-head"><div class="card-title">Datos del profesional</div></div><form id="settingsForm" class="form-grid"><div class="field"><label>Nombre completo</label><input class="input" name="name" value="${esc(data.meta.professionalName||'Juan Magurno')}"></div><div class="field"><label>Especialidad</label><input class="input" name="specialty" value="${esc(data.meta.specialty||'Kinesiología')}"></div><div class="field"><label>Matrícula</label><input class="input" name="license" value="${esc(data.meta.license||'')}"></div><div class="field"><label>Teléfono</label><input class="input" name="phone" value="${esc(data.meta.professionalPhone||'')}"></div></form><button class="btn btn-primary" style="margin-top:14px" data-action="save-settings">Guardar cambios</button></div><div class="card"><div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div><div class="clinical-grid"><div class="clinical-block"><h4>Base clínica ETER</h4><p>agenda-d3987 · pacientes, rutinas, sesiones e historial</p></div><div class="clinical-block"><h4>Agenda</h4><p>Turnos internos de ETER · sin conexión externa</p></div><div class="clinical-block"><h4>Dispositivo</h4><p>${esc(DEVICE_ID)}</p></div><div class="clinical-block"><h4>Versión de datos</h4><p>${DATA_VERSION}</p></div></div><button class="btn" style="margin-top:14px" data-action="force-sync">Forzar sincronización</button></div></div>`}
 function saveSettings(){const f=$('#settingsForm'),v=Object.fromEntries(new FormData(f)),stamp=Date.now();data.meta={...data.meta,...v,professionalName:v.name,professionalPhone:v.phone,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};persistLocal();scheduleCloudWrite(50);toast('Configuración guardada')}
 
@@ -1585,31 +2748,116 @@ function printPatient(id){const p=getPatient(id),s=patientStats(id);if(!p)return
 
 /* EVENTOS */
 async function handleAppClick(e){const target=e.target.closest('[data-action],[data-view],[data-goto]');if(!target)return;const patientCard=target.closest('.patient-card');if(patientCard&&target.dataset.action){e.preventDefault();e.stopPropagation();const cardId=patientCard.dataset.patientCardId;if(cardId)ui.expandedPatientIds.add(cardId)}if(target.dataset.view)return setView(target.dataset.view);if(target.dataset.goto)return setView(target.dataset.goto);const a=target.dataset.action,id=target.dataset.id,patientId=target.dataset.patientId,promoId=target.dataset.promoId;
- if(a==='close-modal')closeModal();else if(a==='wizard-jump'){collectWizard();ui.wiz=Math.max(1,Math.min(wizNames.length,Number(target.dataset.step)||1));renderAnamnesis()}else if(a==='patient-tab'){if(target.dataset.tab==='anamnesis')startAnamnesis();else{ui.patientTab='list';renderPacientes()}}else if(a==='open-anamnesis'||a==='new-patient')startAnamnesis();else if(a==='edit-anamnesis'||a==='edit-patient')handleEditPatient(patientId||id);else if(a==='cancel-anamnesis')cancelAnamnesis();else if(a==='show-alerts'){ui.routineTab='execution';setView('rutinas');const count=data.activeSessions.filter(s=>Date.now()-new Date(s.updatedAt||s.startedAt).getTime()>ABANDONED_SESSION_MS).length;toast(count?`${count} sesión(es) requieren revisión`:'No hay alertas activas','info')}else if(a==='cancel-confirm')closeConfirm();else if(a==='delete-patient')handleDeletePatient(patientId||id);else if(a==='profile')handleViewPatient(patientId||id);else if(a==='profile-tab'){ui.profileTab=target.dataset.tab;renderPatientProfile()}
+ if(a==='close-modal')closeModal();else if(a==='wizard-jump'){collectWizard();const step=parseInt(target.dataset.step,10);if(!Number.isFinite(step)||step<1)return;ui.wiz=Math.max(1,Math.min(wizNames.length,step));renderAnamnesis()}else if(a==='patient-tab'){if(target.dataset.tab==='anamnesis')startAnamnesis();else{ui.patientTab='list';renderPacientes()}}else if(a==='open-anamnesis'||a==='new-patient'){if(operationLocks.has('anamnesis'))return;operationLocks.add('anamnesis');try{startAnamnesis()}finally{setTimeout(()=>operationLocks.delete('anamnesis'),800)}}else if(a==='edit-anamnesis'||a==='edit-patient')handleEditPatient(patientId||id);else if(a==='cancel-anamnesis')cancelAnamnesis();else if(a==='show-alerts'){ui.routineTab='execution';setView('rutinas');const count=data.activeSessions.filter(s=>Date.now()-new Date(s.updatedAt||s.startedAt).getTime()>ABANDONED_SESSION_MS).length;toast(count?`${count} sesión(es) requieren revisión`:'No hay alertas activas','info')}else if(a==='cancel-confirm')closeConfirm();else if(a==='delete-patient')handleDeletePatient(patientId||id);else if(a==='profile')handleViewPatient(patientId||id);else if(a==='profile-tab'){const tab=target.dataset.tab;if(!tab)return;ui.profileTab=tab;renderPatientProfile()}
  else if(a==='new-evolution')openEvolutionForm(patientId||'');else if(a==='edit-evolution')openEvolutionForm(patientId,id);else if(a==='save-evolution')saveEvolution();else if(a==='delete-evolution')deleteEvolution(patientId,id);
  else if(a==='routine-tab'){ui.routineTab=target.dataset.tab;renderRutinas()}else if(a==='new-routine'){if(patientId||id)handleCreateRoutineForPatient(patientId||id);else openRoutineEditor('')}else if(a==='edit-routine')openRoutineEditor('',id);else if(a==='view-routine')viewRoutine(id);else if(a==='save-routine')saveRoutine(false);else if(a==='save-routine-draft')saveRoutine(true);else if(a==='duplicate-routine')duplicateRoutine(id);else if(a==='delete-routine')deleteRoutineFlow(id);else if(a==='print-routine')printRoutine(id);else if(a==='print-patient')printPatient(id);
  else if(a==='use-library-exercise'){const ex=combinedExerciseLibrary().find(x=>x.id===id);if(ex)addExerciseToDraft(ex)}else if(a==='add-blank-exercise')addExerciseToDraft({name:'Nuevo ejercicio',category:'General',source:'Manual'});else if(a==='move-exercise'){const i=Number(target.dataset.index),j=i+Number(target.dataset.direction);if(j>=0&&j<ui.routineDraft.exercises.length){[ui.routineDraft.exercises[i],ui.routineDraft.exercises[j]]=[ui.routineDraft.exercises[j],ui.routineDraft.exercises[i]];renderExerciseDraftList();persistRoutineEditorDraft()}}else if(a==='duplicate-draft-exercise'){const i=Number(target.dataset.index);ui.routineDraft.exercises.splice(i+1,0,{...ui.routineDraft.exercises[i],id:uid('exercise')});renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='remove-draft-exercise'){ui.routineDraft.exercises.splice(Number(target.dataset.index),1);renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='new-custom-exercise')openCustomExerciseForm();else if(a==='save-custom-exercise')saveCustomExercise();else if(a==='return-routine-editor')renderRoutineEditorModal();else if(a==='delete-custom-exercise')openConfirm('Eliminar ejercicio personalizado','Se quitará de la biblioteca. Las rutinas existentes no se modificarán.',async()=>{await removeEntity('exerciseLibrary',id);closeConfirm();renderRoutineEditorModal()});
- else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session')startSelectedSession();else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){ui.routineTab='execution';setView('rutinas')}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{await finalizeSession(id);closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{await finalizeSession(id,'Abandonada');closeConfirm()},'Abandonar');
- else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}
+ else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session'){const selectedRoutineId=$('#sessionRoutine')?.value;if(!selectedRoutineId)return toast('Seleccioná una rutina primero','warn');startSelectedSession()}else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){if(!(data.activeSessions||[]).length){ui.routineTab='routines';setView('rutinas');toast('Elegí una rutina y tocá Iniciar','info')}else{ui.routineTab='execution';setView('rutinas')}}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{await finalizeSession(id);closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{await finalizeSession(id,'Abandonada');closeConfirm()},'Abandonar');
+ else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+ if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
-document.removeEventListener('click',handleAppClick);document.addEventListener('click',handleAppClick);
-document.addEventListener('toggle',e=>{const card=e.target;if(!(card instanceof HTMLDetailsElement)||!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)},true);
+function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement)||!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
 function handleAppInput(e){const el=e.target;if(ui.view==='pacientes'&&ui.patientTab==='anamnesis')syncAnamnesisDraftField(el);if(el.dataset.executionField)updateExecutionField(el.dataset.sessionId,el.dataset.exerciseId,el.dataset.executionField,el.value);if(el.id==='patientSearch'){ui.patientSearch=el.value;debounce('patient-search',()=>renderPacientes(),180)}}
-function handleAppChange(e){const el=e.target;if(ui.view==='pacientes'&&ui.patientTab==='anamnesis')syncAnamnesisDraftField(el);if(el.id==='patientStateFilter'){ui.patientStateFilter=el.value;renderPacientes()}else if(el.id==='patientTreatmentFilter'){ui.patientTreatmentFilter=el.value;renderPacientes()}else if(el.id==='patientSort'){ui.patientSort=el.value;renderPacientes()}}
-document.removeEventListener('input',handleAppInput);document.addEventListener('input',handleAppInput);document.removeEventListener('change',handleAppChange);document.addEventListener('change',handleAppChange);
-document.addEventListener('focusout',()=>setTimeout(flushDeferredRemoteRender,0),true);
-$('#confirmActionButton').addEventListener('click',async()=>{const action=pendingConfirm;pendingConfirm=null;if(action)await action()});
-$('#modalOverlay').addEventListener('click',()=>{if($('#confirmModal').classList.contains('open'))closeConfirm();else closeModal()});
-$('#menuBtn').addEventListener('click',openMenu);$('#mobileOverlay').addEventListener('click',closeMenu);
-$('#globalSearch').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();if(q.length<2)return;const patient=data.patients.find(p=>[p.nombre,p.dni,p.diagnostico].some(v=>String(v||'').toLowerCase().includes(q)));if(patient){ui.patientTab='list';ui.patientSearch=e.target.value.trim();setView('pacientes');return}const turn=data.turns.find(t=>[livePatientName(t),t.motivo,t.fecha].some(v=>String(v||'').toLowerCase().includes(q)));if(turn){setView('turnos');return}const evolution=allEvolutions().find(x=>[x.patientName,x.observaciones,x.planAplicado].some(v=>String(v||'').toLowerCase().includes(q)));if(evolution){setView('evoluciones');return}const routine=data.routines.find(r=>[r.name,livePatientName(r),r.objective].some(v=>String(v||'').toLowerCase().includes(q)));if(routine){ui.routineTab='routines';setView('rutinas')}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#confirmModal').classList.contains('open'))closeConfirm();else if($('#appModal').classList.contains('open'))closeModal();else closeMenu()}});
-window.addEventListener('afterprint',()=>{$('#printArea').innerHTML=''});
+function handleAppChange(e){
+ const el=e.target;
+ if(ui.view==='pacientes'&&ui.patientTab==='anamnesis')syncAnamnesisDraftField(el);
+ if(el.id==='patientStateFilter'){ui.patientStateFilter=el.value;renderPacientes()}
+ else if(el.id==='patientTreatmentFilter'){ui.patientTreatmentFilter=el.value;renderPacientes()}
+ else if(el.id==='patientSort'){ui.patientSort=el.value;renderPacientes()}
+ else if(el.id==='paymentPeriodFilter'){
+  ui.paymentFilters.period=el.value;
+  if(el.value==='custom'&&(!ui.paymentFilters.from||!ui.paymentFilters.to)){ui.paymentFilters.from=`${todayISO().slice(0,7)}-01`;ui.paymentFilters.to=todayISO()}
+  renderPagos()
+ }
+ else if(el.id==='paymentFromFilter'||el.id==='paymentToFilter'){
+  const key=el.id==='paymentFromFilter'?'from':'to';
+  ui.paymentFilters[key]=el.value;
+  ui.paymentFilters.period='custom';
+  if(ui.paymentFilters.from&&ui.paymentFilters.to&&ui.paymentFilters.from>ui.paymentFilters.to){toast('La fecha desde no puede ser posterior a la fecha hasta','warn');return}
+  renderPagos()
+ }
+}
+function handleDeferredFocusout(){setTimeout(flushDeferredRemoteRender,0)}
+function handleGlobalSearch(event){
+ const value=event.target.value;
+ debounce('global-search',()=>{
+  const q=value.trim().toLowerCase();
+  if(q.length<2)return;
+  const patient=data.patients.find(p=>[p.nombre,p.dni,p.diagnostico].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(patient){ui.patientTab='list';ui.patientSearch=value.trim();setView('pacientes');return}
+  const turn=data.turns.find(t=>[livePatientName(t),t.motivo,t.fecha].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(turn){setView('turnos');return}
+  const evolution=allEvolutions().find(x=>[x.patientName,x.observaciones,x.planAplicado].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(evolution){setView('evoluciones');return}
+  const routine=data.routines.find(r=>[r.name,livePatientName(r),r.objective].some(v=>String(v||'').toLowerCase().includes(q)));
+  if(routine){ui.routineTab='routines';setView('rutinas');return}
+  toast('No se encontraron coincidencias','info')
+ },220)
+}
+function handleEscapeKey(event){if(event.key!=='Escape')return;if($('#confirmModal')?.classList.contains('open'))closeConfirm();else if($('#appModal')?.classList.contains('open'))closeModal();else closeMenu()}
+function handleConfirmAction(){
+ const button=$('#confirmActionButton'),action=pendingConfirm;
+ if(!button||typeof action!=='function')return;
+ pendingConfirm=null;
+ button.disabled=true;
+ Promise.resolve().then(action).catch(error=>{console.error('Confirm action failed',error);toast('No se pudo completar la acción','error')}).finally(()=>{if(document.contains(button))button.disabled=false})
+}
+function handleModalOverlay(){if($('#confirmModal')?.classList.contains('open'))closeConfirm();else closeModal()}
+function handleContextOutsideClick(event){const current=event.target.closest('details.context');$$('details.context[open]').forEach(detail=>{if(detail!==current)detail.removeAttribute('open')})}
+function handleAfterPrint(){setElementHtml($('#printArea'),'')}
+function handleOnline(){setSync('syncing','Reconectando','Enviando cambios pendientes');initFirebase().then(()=>scheduleCloudWrite(50)).catch(error=>{console.error('Reconnect failed',error);scheduleRetry()})}
+function handleOffline(){setSync('offline','Sin conexión','Cambios guardados localmente')}
+function handleBeforeUnload(){clearTimeout(syncWriteTimer);clearTimeout(syncRetryTimer);if(timerInterval)clearInterval(timerInterval);if(leaderHeartbeat)clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)}
+function startLeaderHeartbeat(){if(leaderHeartbeat)clearInterval(leaderHeartbeat);refreshSyncLeadership();leaderHeartbeat=setInterval(refreshSyncLeadership,3000)}
+function attachListeners(){
+ if(listenersAttached)return;
+ listenersAttached=true;
+ document.addEventListener('click',handleAppClick);
+ document.addEventListener('click',handleContextOutsideClick);
+ document.addEventListener('input',handleAppInput);
+ document.addEventListener('change',handleAppChange);
+ document.addEventListener('toggle',handlePatientDetailsToggle,true);
+ document.addEventListener('focusout',handleDeferredFocusout,true);
+ document.addEventListener('keydown',handleEscapeKey);
+ window.addEventListener('afterprint',handleAfterPrint);
+ window.addEventListener('online',handleOnline);
+ window.addEventListener('offline',handleOffline);
+ window.addEventListener('beforeunload',handleBeforeUnload);
+ $('#confirmActionButton')?.addEventListener('click',handleConfirmAction);
+ $('#modalOverlay')?.addEventListener('click',handleModalOverlay);
+ $('#menuBtn')?.addEventListener('click',openMenu);
+ $('#mobileOverlay')?.addEventListener('click',closeMenu);
+ $('#globalSearch')?.addEventListener('input',handleGlobalSearch)
+}
 
 /* INICIALIZACIÓN */
+function ensureRuntimeStyles(){
+ if(document.getElementById('eterRuntimeFixStyles'))return;
+ const style=document.createElement('style');
+ style.id='eterRuntimeFixStyles';
+ style.textContent=`
+  .payment-filter-grid{display:grid;grid-template-columns:minmax(190px,1.1fr) repeat(2,minmax(150px,.8fr));gap:10px;align-items:end}
+  .payment-filter-panel .card-head{align-items:center}
+  .payment-filter-panel .field{min-width:0}
+  details.context[open]{z-index:130!important}
+  @media(max-width:780px){
+   .payment-filter-grid{grid-template-columns:1fr 1fr}
+   .payment-filter-grid .field:first-child{grid-column:1/-1}
+   .payment-filter-panel{padding:16px}
+   .payment-filter-panel .card-head{align-items:flex-start;flex-wrap:wrap}
+  }
+  @media(max-width:430px){
+   .payment-filter-grid{grid-template-columns:1fr}
+   .payment-filter-grid .field:first-child{grid-column:auto}
+   .payment-filter-panel .card-head>.btn{width:100%}
+  }
+ `;
+ document.head.appendChild(style)
+}
 function renderAll(){renderCurrentView({preserveState:true});updateNotifications()}
 function updateNotifications(){const count=data.activeSessions.filter(s=>Date.now()-new Date(s.updatedAt||s.startedAt).getTime()>ABANDONED_SESSION_MS).length;$('#notificationDot').style.display=count?'block':'none';$('#notificationButton').title=count?`${count} sesión(es) posiblemente abandonada(s)`:'Sin alertas'}
-async function init(){navInit();renderCurrentView({preserveState:false});updateNotifications();startTimerLoop();await initFirebase()}
-init();
+async function init(){if(appInitialized)return;appInitialized=true;ensureRuntimeStyles();navInit();renderCurrentView({preserveState:false});updateNotifications();startTimerLoop();startLeaderHeartbeat();attachListeners();await initFirebase()}
+init().catch(error=>{console.error('ETER init failed',error);toast('La aplicación inició en modo local','warn')});
 </script>
 </body>
 </html>
