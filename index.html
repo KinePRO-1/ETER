@@ -960,6 +960,10 @@ const broadcast='BroadcastChannel' in window?new BroadcastChannel('eter-kinepro-
 const TAB_ID=`tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 const SYNC_LEADER_KEY='eter.kinepro.syncLeader.v1';
 const SYNC_LEADER_TTL=8000;
+const SYNC_WRITE_DELAY=1200;
+const SYNC_INLINE_DELAY=2000;
+const SYNC_RETRY_DELAY=15000;
+const FIRESTORE_BATCH_LIMIT=450;
 const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',historyFilters:{patientId:'',routineId:'',exercise:'',from:'',to:'',status:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null};
 let data=loadAndMigrateData();
 data.turns=(data.turns||[]).map(normalizeTurn);
@@ -995,7 +999,10 @@ function isProtectedEditingContext(){const anamnesisOpen=ui.view==='pacientes'&&
 function captureActiveDraft(){if(ui.view==='pacientes'&&ui.patientTab==='anamnesis'&&$('#wizBody'))collectWizard()}
 function scheduleCurrentViewRender({force=false,reason='remote'}={}){if(!force&&isProtectedEditingContext()){captureActiveDraft();deferredRemoteRender=true;deferredRemoteReason=reason;return}if(scheduledViewRender)return;scheduledViewRender=requestAnimationFrame(()=>{scheduledViewRender=0;renderCurrentView({preserveState:true})})}
 function flushDeferredRemoteRender(){if(!deferredRemoteRender||isProtectedEditingContext())return;deferredRemoteRender=false;deferredRemoteReason='';scheduleCurrentViewRender({force:true,reason:'deferred'})}
-function entityRevision(item={}){const server=item.serverUpdatedAt;const serverMs=typeof server?.toMillis==='function'?server.toMillis():typeof server?.toDate==='function'?server.toDate().getTime():Number(server?.seconds)*1000||0;return Number(item._updatedAtMs)||new Date(item.updatedAt||item.createdAt||0).getTime()||serverMs||0}
+function firestoreTimestampMs(server){if(!server)return 0;if(typeof server.toMillis==='function')return server.toMillis();if(typeof server.toDate==='function')return server.toDate().getTime();if(Number(server.seconds))return Number(server.seconds)*1000+Math.floor(Number(server.nanoseconds||0)/1e6);return 0}
+function deriveRevisionMs(item={}){const explicit=Number(item._updatedAtMs);if(Number.isFinite(explicit)&&explicit>0)return explicit;const isoMs=new Date(item.updatedAt||item.createdAt||0).getTime();if(Number.isFinite(isoMs)&&isoMs>0)return isoMs;return firestoreTimestampMs(item.serverUpdatedAt)}
+function entityRevision(item={}){const value=Number(item._updatedAtMs);return Number.isFinite(value)&&value>0?value:0}
+function withNormalizedRevision(item={}){const revision=deriveRevisionMs(item);return revision?{...item,_updatedAtMs:revision}:{...item,_updatedAtMs:0}}
 function syncComparable(item={}){const clean={};for(const key of Object.keys(item).sort()){if(['_dirty','_patch','_writeId','_clientId','_seedPending','serverUpdatedAt'].includes(key))continue;clean[key]=item[key]}return JSON.stringify(clean)}
 function collectionSignature(items=[]){return items.map(item=>{const revision=entityRevision(item);return`${item.id}:${revision||syncComparable(item)}`}).sort().join('|')}
 function htmlToElement(html){const template=document.createElement('template');template.innerHTML=html.trim();return template.content.firstElementChild}
@@ -1132,7 +1139,7 @@ function loadAndMigrateData(){
  localStorage.setItem(STORAGE_KEY,JSON.stringify(base));
  return base
 }
-function mergePatientFields(base={},incoming={}){const merged={...base};for(const [key,value] of Object.entries(incoming)){const empty=value===''||value===null||value===undefined||(Array.isArray(value)&&value.length===0);if(!empty||!(key in merged)||merged[key]===''||merged[key]===null||merged[key]===undefined)merged[key]=value}const baseMs=Number(base._updatedAtMs)||new Date(base.updatedAt||0).getTime()||0,incomingMs=Number(incoming._updatedAtMs)||new Date(incoming.updatedAt||0).getTime()||0;merged.updatedAt=incomingMs>=baseMs?(incoming.updatedAt||base.updatedAt):(base.updatedAt||incoming.updatedAt);merged._updatedAtMs=Math.max(baseMs,incomingMs);merged._dirty=Boolean(base._dirty||incoming._dirty);return merged}
+function mergePatientFields(base={},incoming={}){const normalizedBase=withNormalizedRevision(base),normalizedIncoming=withNormalizedRevision(incoming),merged={...normalizedBase};for(const [key,value] of Object.entries(normalizedIncoming)){const empty=value===''||value===null||value===undefined||(Array.isArray(value)&&value.length===0);if(!empty||!(key in merged)||merged[key]===''||merged[key]===null||merged[key]===undefined)merged[key]=value}const baseMs=entityRevision(normalizedBase),incomingMs=entityRevision(normalizedIncoming);merged.updatedAt=incomingMs>=baseMs?(normalizedIncoming.updatedAt||normalizedBase.updatedAt):(normalizedBase.updatedAt||normalizedIncoming.updatedAt);merged._updatedAtMs=Math.max(baseMs,incomingMs);merged._dirty=Boolean(normalizedBase._dirty||normalizedIncoming._dirty);return merged}
 function dedupePatients(list){const byId=new Map(),dniToId=new Map();for(const raw of list){const p=normalizePatient(raw),dni=normalizeDni(p.dni);let targetId=p.id;if(dni&&dniToId.has(dni))targetId=dniToId.get(dni);const prior=byId.get(targetId);const merged=prior?mergePatientFields(prior,{...p,id:targetId,dni}):{...p,id:targetId,dni};byId.set(targetId,merged);if(dni)dniToId.set(dni,targetId)}return [...byId.values()]}
 function readLeader(){return safelyParse(localStorage.getItem(SYNC_LEADER_KEY),null)}
 function claimSyncLeadership(){const now=Date.now(),leader=readLeader();if(!leader||leader.expiresAt<now||leader.tabId===TAB_ID){localStorage.setItem(SYNC_LEADER_KEY,JSON.stringify({tabId:TAB_ID,expiresAt:now+SYNC_LEADER_TTL}));return true}return false}
@@ -1141,7 +1148,7 @@ function refreshSyncLeadership(){if(isSyncLeader()||claimSyncLeadership())localS
 function persistLocal(target=data,{broadcastState=true}={}){localStorage.setItem(STORAGE_KEY,JSON.stringify(target));if(broadcastState&&broadcast&&!applyingRemote)broadcast.postMessage({type:'state',deviceId:DEVICE_ID,tabId:TAB_ID,state:target});return target}
 function markEntityDirty(key,id){const item=data[key]?.find(x=>x.id===id);if(item)Object.assign(item,touch(item));persistLocal();scheduleCloudWrite()}
 function upsertEntity(key,entity){const index=data[key].findIndex(x=>x.id===entity.id),existing=index>=0?data[key][index]:null;const patch={};if(existing){for(const [k,v] of Object.entries(entity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const next=touch({...existing,...entity,_patch:{...(existing?._patch||{}),...patch}});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite();return next}
-async function removeEntity(key,id){data[key]=data[key].filter(x=>x.id!==id);data.pendingDeletes.push({key,id,createdAt:nowIso()});persistLocal();renderAll();await flushDeletes()}
+async function removeEntity(key,id){const stamp=Date.now();data[key]=(data[key]||[]).filter(x=>x.id!==id);data.pendingDeletes=data.pendingDeletes||[];const existing=data.pendingDeletes.find(item=>item.key===key&&item.id===id);if(existing){existing.createdAt=new Date(stamp).toISOString();existing._updatedAtMs=stamp;existing._clientId=DEVICE_ID;existing._writeId=`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`}else data.pendingDeletes.push({key,id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`});persistLocal();renderAll();scheduleCloudWrite(SYNC_WRITE_DELAY);return true}
 
 /* FIREBASE Y REPOSITORIOS */
 async function initFirebase(){
@@ -1158,6 +1165,7 @@ async function initFirebase(){
    await reconcileInitialPatients();
    await seedEmptyClinicalCollections();
    initClinicalListeners();
+   refreshSyncLeadership();
    await flushDeletes();
    await writeDirtyEntities();
    setSync('online','Conectado','Tiempo real');
@@ -1201,124 +1209,140 @@ async function reconcileInitialPatients(){
   localStorage.setItem(PATIENT_LOCAL_IMPORT_KEY,'1');persistLocal(data,{broadcastState:false});scheduleCurrentViewRender({reason:'initial-patients'})
  }catch(error){console.error('No se pudo sincronizar la base inicial de pacientes',error);persistLocal(data,{broadcastState:false});scheduleCurrentViewRender({reason:'initial-patients-error'})}
 }
+function buildFirestorePayload(item){const payload={...item};for(const key of ['_dirty','_patch','_seedPending','serverUpdatedAt'])delete payload[key];return payload}
+function normalizeRemoteEntity(key,raw={}){return normalizeEntityItem(key,withNormalizedRevision(raw))}
+function replaceRemoteEntity(key,remote,local){const cleanRemote={...remote,_dirty:false};delete cleanRemote._patch;if(key==='patients'&&local)return normalizePatient({...mergePatientFields(local,cleanRemote),_dirty:false,_patch:undefined});return normalizeRemoteEntity(key,cleanRemote)}
+function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite)return false;const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
 function initClinicalListeners(){
  if(listenersStarted)return;
  listenersStarted=true;
  const {collection,onSnapshot}=firebaseApi;
  listenerUnsubscribers=Object.entries(ENTITY_COLLECTIONS).map(([entityKey,cfg])=>onSnapshot(
-  collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snap=>{
-   const remote=snap.docs.filter(d=>cfg.key!=='patients'||!d.id.startsWith('__meta_')).map(d=>({id:d.id,...d.data()}));
-   let changed=mergeRemoteCollection(cfg.key,remote);
-   if(cfg.key==='patients'){const before=collectionSignature(data.patients);data.patients=dedupePatients(data.patients.map(normalizePatient));changed=changed||before!==collectionSignature(data.patients);reconcileLocalTurnPatientLinks()}
-   persistLocal(data,{broadcastState:false});
-   if(changed)scheduleCurrentViewRender({reason:`firestore:${cfg.key}`});
-   const pending=snap.metadata.hasPendingWrites||hasDirtyEntities()||data.pendingDeletes.length||data.meta?._dirty;
-   if(pending)setSync('syncing','Sincronizando','Cambios pendientes');else if(snap.metadata.fromCache)setSync('syncing','Caché','Esperando conexión');else setSync('online','Conectado','Tiempo real');
-  },err=>{console.error(`Listener ${cfg.collection} failed`,err);setSync('offline','Modo local','No se interrumpe la edición')}
- ));
- if(!settingsUnsubscribe)settingsUnsubscribe=onSnapshot(firebaseApi.doc(firebaseApi.collection(clinicalDb,'app_meta'),'settings'),{includeMetadataChanges:true},snap=>{
-  if(!snap.exists())return;
-  const remote=snap.data()||{},remoteMs=Number(remote._updatedAtMs)||new Date(remote.updatedAt||0).getTime()||0,localMs=Number(data.meta?._updatedAtMs)||new Date(data.meta?.updatedAt||0).getTime()||0;
-  let changed=false;
-  if(!data.meta?._dirty&&(remoteMs>localMs||(remoteMs===localMs&&syncComparable(remote)!==syncComparable(data.meta||{})))){data.meta={...data.meta,...remote,_dirty:false};changed=true}
-  persistLocal(data,{broadcastState:false});
-  if(changed)scheduleCurrentViewRender({reason:'firestore:settings'})
- },err=>{console.error('Settings listener failed',err);setSync('offline','Modo local','Configuración pendiente')});
-}
-function mergeRemoteCollection(key,remote){
- if(applyingRemote)return false;
- applyingRemote=true;
- const before=collectionSignature(data[key]||[]);
- try{
-  const localMap=new Map((data[key]||[]).map(x=>[x.id,x]));
-  const merged=[];
-  for(const rawItem of remote){
-   const item=normalizeEntityItem(key,rawItem),local=localMap.get(item.id);
-   const remoteMs=entityRevision(item),localMs=entityRevision(local||{});
-   if(local?._dirty)merged.push(local);
-   else if(local&&localMs>remoteMs)merged.push(local);
-   else merged.push({...item,_dirty:false,_patch:undefined});
-   localMap.delete(item.id)
+  collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snapshot=>{
+   if(applyingRemote)return;
+   applyingRemote=true;
+   let changed=false;
+   try{
+    for(const change of snapshot.docChanges()){
+     if(cfg.key==='patients'&&change.doc.id.startsWith('__meta_'))continue;
+     changed=applyRemoteDocumentChange(cfg.key,change)||changed
+    }
+    if(cfg.key==='patients'){
+     const before=collectionSignature(data.patients);
+     data.patients=dedupePatients((data.patients||[]).map(normalizePatient));
+     changed=changed||before!==collectionSignature(data.patients);
+     reconcileLocalTurnPatientLinks()
+    }
+    persistLocal(data,{broadcastState:false});
+    if(changed)scheduleCurrentViewRender({reason:`firestore:${cfg.key}`})
+   }catch(error){
+    console.error(`Remote merge failed [${cfg.collection}]`,{error,cloudReady,leader:isSyncLeader()});
+    setSync('offline','Modo local','La edición permanece guardada');
+    toast('Error remoto. Los cambios siguen guardados localmente','warn');
+    scheduleRetry()
+   }finally{applyingRemote=false}
+   const pending=snapshot.metadata.hasPendingWrites||hasDirtyEntities()||(data.pendingDeletes||[]).length||data.meta?._dirty;
+   if(pending)setSync('syncing','Sincronizando','Cambios pendientes');else if(snapshot.metadata.fromCache)setSync('syncing','Caché','Esperando conexión');else setSync('online','Conectado','Tiempo real')
+  },error=>{
+   console.error(`Listener error [${cfg.collection}]`,{error,cloudReady,leader:isSyncLeader()});
+   setSync('offline','Error de listener','La edición permanece guardada');
+   toast('Sin conexión con Firebase. Se mantiene el modo local','warn');
+   scheduleRetry()
   }
-  for(const local of localMap.values())if(local._dirty)merged.push(local);
-  data[key]=merged.map(item=>normalizeEntityItem(key,item));
-  return before!==collectionSignature(data[key]);
- }finally{applyingRemote=false}
+ ));
+ if(!settingsUnsubscribe)settingsUnsubscribe=onSnapshot(firebaseApi.doc(firebaseApi.collection(clinicalDb,'app_meta'),'settings'),{includeMetadataChanges:true},snapshot=>{
+  if(!snapshot.exists()||applyingRemote)return;
+  applyingRemote=true;
+  let changed=false;
+  try{
+   const remote=withNormalizedRevision(snapshot.data()||{}),local=withNormalizedRevision(data.meta||{}),confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!snapshot.metadata.hasPendingWrites);
+   if((!local._dirty||confirmedOwnWrite)&&entityRevision(remote)>=entityRevision(local)){data.meta={...local,...remote,_dirty:false};delete data.meta._patch;changed=syncComparable(data.meta)!==syncComparable(local)||Boolean(local._dirty)}
+   persistLocal(data,{broadcastState:false});
+   if(changed)scheduleCurrentViewRender({reason:'firestore:settings'})
+  }catch(error){console.error('Settings remote merge failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Modo local','Configuración pendiente');scheduleRetry()}
+  finally{applyingRemote=false}
+ },error=>{console.error('Settings listener failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Modo local','Configuración pendiente');scheduleRetry()})
 }
+function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw),local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;if(entityRevision(incoming)>=entityRevision(local))current.set(incoming.id,replaceRemoteEntity(key,incoming,local))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
 function hasDirtyEntities(){return Boolean(data.meta?._dirty)||Object.values(ENTITY_COLLECTIONS).some(cfg=>(data[cfg.key]||[]).some(item=>item._dirty))}
-function scheduleCloudWrite(delay=500){
+function scheduleCloudWrite(delayMs=SYNC_WRITE_DELAY){
  setSync(navigator.onLine?'syncing':'offline',navigator.onLine?'Sincronizando':'Sin conexión',navigator.onLine?'Cambios pendientes':'Guardado local');
  clearTimeout(syncWriteTimer);
- syncWriteTimer=setTimeout(()=>{if(!claimSyncLeadership()){broadcast?.postMessage({type:'write-request',tabId:TAB_ID});return}if(cloudReady)writeDirtyEntities();else if(navigator.onLine)initFirebase()},delay)
-}
-async function writeDirtyEntities(){
- if(writeInProgress){writeQueued=true;return}
- if(!cloudReady||!navigator.onLine){setSync('offline','Sin conexión','Cambios guardados localmente');return}
- if(!claimSyncLeadership())return;
- writeInProgress=true;
- const {collection,doc,setDoc,serverTimestamp}=firebaseApi;
- try{
-  const jobs=[];
-  for(const cfg of Object.values(ENTITY_COLLECTIONS))for(const item of (data[cfg.key]||[]).filter(x=>x._dirty)){
-   const writeId=item._writeId;
-   const payload={...item,serverUpdatedAt:serverTimestamp()};
-   delete payload._dirty;delete payload._patch;delete payload._seedPending;
-   jobs.push(setDoc(doc(collection(clinicalDb,cfg.collection),item.id),payload,{merge:true}).then(()=>{
-    const current=(data[cfg.key]||[]).find(x=>x.id===item.id);
-    if(current&&current._writeId===writeId){current._dirty=false;delete current._patch}
-   }))
-  }
-  if(data.meta?._dirty){const writeId=data.meta._writeId,payload={...data.meta,serverUpdatedAt:serverTimestamp()};delete payload._dirty;jobs.push(setDoc(doc(collection(clinicalDb,'app_meta'),'settings'),payload,{merge:true}).then(()=>{if(data.meta._writeId===writeId)data.meta._dirty=false}))}
-  await Promise.all(jobs);
+ syncWriteTimer=setTimeout(async()=>{
+  refreshSyncLeadership();
+  if(!isSyncLeader()){broadcast?.postMessage({type:'write-request',deviceId:DEVICE_ID,tabId:TAB_ID});return}
+  if(!cloudReady){if(navigator.onLine)await initFirebase();return}
   await flushDeletes();
-  persistLocal();
-  setSync(hasDirtyEntities()||data.pendingDeletes.length?'syncing':'online',hasDirtyEntities()?'Sincronizando':'Conectado',hasDirtyEntities()?'Cambios pendientes':'Sincronizado')
- }catch(error){console.error('Clinical write failed',error);setSync('offline','Cambios pendientes','Reintento automático');scheduleRetry()}
- finally{writeInProgress=false;refreshSyncLeadership();if(writeQueued||hasDirtyEntities()||data.meta?._dirty){writeQueued=false;scheduleCloudWrite(250)}}
+  await writeDirtyEntities()
+ },Math.max(20,Number(delayMs)||SYNC_WRITE_DELAY))
+}
+async function commitWriteChunk(records){const {collection,doc,writeBatch,serverTimestamp}=firebaseApi,batch=writeBatch(clinicalDb);for(const record of records){if(record.kind==='meta')batch.set(doc(collection(clinicalDb,'app_meta'),'settings'),{...buildFirestorePayload(record.item),serverUpdatedAt:serverTimestamp()},{merge:true});else batch.set(doc(collection(clinicalDb,record.cfg.collection),record.item.id),{...buildFirestorePayload(record.item),serverUpdatedAt:serverTimestamp()},{merge:true})}await batch.commit();for(const record of records){if(record.kind==='meta'){if(data.meta?._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch}}else{const current=(data[record.cfg.key]||[]).find(item=>item.id===record.item.id);if(current&&current._writeId===record.writeId){current._dirty=false;delete current._patch}}}broadcast?.postMessage({type:'write-ack',deviceId:DEVICE_ID,tabId:TAB_ID,records:records.map(record=>({kind:record.kind,key:record.cfg?.key||'meta',id:record.item.id||'settings',writeId:record.writeId}))})}
+async function writeDirtyEntities(){
+ if(!cloudReady||writeInProgress){if(writeInProgress)writeQueued=true;return}
+ if(!navigator.onLine){setSync('offline','Sin conexión','Cambios guardados localmente');return}
+ if(!isSyncLeader())return;
+ writeInProgress=true;
+ try{
+  const records=[];
+  for(const cfg of Object.values(ENTITY_COLLECTIONS))for(const item of (data[cfg.key]||[])){if(item._dirty)records.push({kind:'entity',cfg,item:{...item},writeId:item._writeId})}
+  if(data.meta?._dirty)records.push({kind:'meta',item:{...data.meta},writeId:data.meta._writeId});
+  for(let index=0;index<records.length;index+=FIRESTORE_BATCH_LIMIT)await commitWriteChunk(records.slice(index,index+FIRESTORE_BATCH_LIMIT));
+  persistLocal(data,{broadcastState:false});
+  const pending=hasDirtyEntities()||(data.pendingDeletes||[]).length;
+  setSync(pending?'syncing':'online',pending?'Sincronizando':'Conectado',pending?'Cambios pendientes':'Sincronizado')
+ }catch(error){
+  console.error('Clinical write failed',{error,cloudReady,leader:isSyncLeader()});
+  setSync('offline','Cambios pendientes','Reintento automático');
+  toast('No se pudo completar la sincronización. Los datos permanecen guardados','warn');
+  scheduleRetry()
+ }finally{
+  writeInProgress=false;
+  refreshSyncLeadership();
+  if(writeQueued||hasDirtyEntities()){writeQueued=false;scheduleCloudWrite(100)}
+ }
 }
 async function seedEmptyClinicalCollections(){
  const {collection,getDocs}=firebaseApi;
  for(const cfg of Object.values(ENTITY_COLLECTIONS)){
-  const snap=await getDocs(collection(clinicalDb,cfg.collection));
-  if(snap.empty&&(data[cfg.key]||[]).length)(data[cfg.key]||[]).forEach(x=>{if(!x._dirty)Object.assign(x,touch(x))})
+  const snapshot=await getDocs(collection(clinicalDb,cfg.collection));
+  if(snapshot.empty&&(data[cfg.key]||[]).length)(data[cfg.key]||[]).forEach(item=>{if(!item._dirty)Object.assign(item,touch(item))})
  }
- persistLocal()
+ persistLocal(data,{broadcastState:false})
 }
 async function flushDeletes(){
- if(!cloudReady||!navigator.onLine||!data.pendingDeletes.length)return;
- const {collection,doc,deleteDoc}=firebaseApi;
- for(const item of [...data.pendingDeletes]){
-  const cfg=ENTITY_COLLECTIONS[item.key];if(!cfg)continue;
-  try{await deleteDoc(doc(collection(clinicalDb,cfg.collection),item.id));data.pendingDeletes=data.pendingDeletes.filter(x=>!(x.key===item.key&&x.id===item.id))}
-  catch(error){console.error('Delete failed',error)}
- }
- persistLocal()
+ if(!cloudReady||!navigator.onLine||!(data.pendingDeletes||[]).length||!isSyncLeader())return;
+ const {collection,doc,deleteDoc}=firebaseApi,toProcess=[...(data.pendingDeletes||[])],succeeded=[];
+ const results=await Promise.allSettled(toProcess.map(item=>{const cfg=ENTITY_COLLECTIONS[item.key];if(!cfg)return Promise.resolve({skipped:true,item});return deleteDoc(doc(collection(clinicalDb,cfg.collection),item.id)).then(()=>({item}))}));
+ results.forEach((result,index)=>{const item=toProcess[index];if(result.status==='fulfilled'&&!result.value?.skipped)succeeded.push(item);else if(result.status==='rejected')console.error(`Delete failed [${item.key}]`,{id:item.id,error:result.reason,cloudReady,leader:isSyncLeader()})});
+ if(succeeded.length){const done=new Set(succeeded.map(item=>`${item.key}:${item.id}:${item._writeId||''}`));data.pendingDeletes=(data.pendingDeletes||[]).filter(item=>!done.has(`${item.key}:${item.id}:${item._writeId||''}`));persistLocal(data,{broadcastState:false});broadcast?.postMessage({type:'delete-ack',deviceId:DEVICE_ID,tabId:TAB_ID,records:succeeded.map(item=>({key:item.key,id:item.id,writeId:item._writeId||''}))})}
+ if(results.some(result=>result.status==='rejected')){setSync('offline','Eliminaciones pendientes','Reintento automático');scheduleRetry()}
 }
-function scheduleRetry(){clearTimeout(syncRetryTimer);syncRetryTimer=setTimeout(()=>{if(navigator.onLine)initFirebase()},5000)}
+function scheduleRetry(){clearTimeout(syncRetryTimer);syncRetryTimer=setTimeout(async()=>{if(!navigator.onLine)return;if(!cloudReady)await initFirebase();else{refreshSyncLeadership();await flushDeletes();await writeDirtyEntities()}},SYNC_RETRY_DELAY)}
 window.addEventListener('online',()=>{setSync('syncing','Reconectando','Enviando cambios pendientes');initFirebase().then(()=>scheduleCloudWrite(50))});
 window.addEventListener('offline',()=>setSync('offline','Sin conexión','Cambios guardados localmente'));
 leaderHeartbeat=setInterval(refreshSyncLeadership,3000);
-window.addEventListener('beforeunload',()=>{clearTimeout(syncWriteTimer);clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)});
-if(broadcast)broadcast.onmessage=e=>{
- const message=e.data||{};
- if(message.tabId===TAB_ID)return;
+window.addEventListener('beforeunload',()=>{clearTimeout(syncWriteTimer);clearTimeout(syncRetryTimer);clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)});
+function mergePendingDeletes(incoming=[]){let changed=false;data.pendingDeletes=data.pendingDeletes||[];for(const raw of incoming){const deletion=withNormalizedRevision(raw),cfg=ENTITY_COLLECTIONS[deletion.key];if(!cfg)continue;const local=(data[cfg.key]||[]).find(item=>item.id===deletion.id);if(local?._dirty)continue;if(local){data[cfg.key]=data[cfg.key].filter(item=>item.id!==deletion.id);changed=true}const index=data.pendingDeletes.findIndex(item=>item.key===deletion.key&&item.id===deletion.id);if(index<0){data.pendingDeletes.push(deletion);changed=true}else if(entityRevision(deletion)>=entityRevision(withNormalizedRevision(data.pendingDeletes[index]))){data.pendingDeletes[index]=deletion;changed=true}}return changed}
+function mergeRemoteState(incoming={}){let changed=false;for(const cfg of Object.values(ENTITY_COLLECTIONS)){const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(item=>[item.id,item]));for(const raw of incoming[cfg.key]||[]){const item=normalizeRemoteEntity(cfg.key,raw),local=current.get(item.id);if(!local){current.set(item.id,item);continue}if(local._dirty&&local._writeId!==item._writeId)continue;if(entityRevision(item)>=entityRevision(local))current.set(item.id,normalizeEntityItem(cfg.key,item))}data[cfg.key]=[...current.values()];changed=changed||before!==collectionSignature(data[cfg.key])}const incomingMeta=withNormalizedRevision(incoming.meta||{}),localMeta=withNormalizedRevision(data.meta||{});if((!localMeta._dirty||localMeta._writeId===incomingMeta._writeId)&&entityRevision(incomingMeta)>=entityRevision(localMeta)){const next={...localMeta,...incomingMeta};if(syncComparable(next)!==syncComparable(localMeta)||Boolean(next._dirty)!==Boolean(localMeta._dirty)){data.meta=next;changed=true}}changed=mergePendingDeletes(incoming.pendingDeletes||[])||changed;return changed}
+function applyWriteAcknowledgement(records=[]){let changed=false;for(const record of records){if(record.kind==='meta'||record.key==='meta'){if(data.meta?._dirty&&data.meta._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch;changed=true}continue}const cfg=ENTITY_COLLECTIONS[record.key],item=cfg?(data[cfg.key]||[]).find(entity=>entity.id===record.id):null;if(item?._dirty&&item._writeId===record.writeId){item._dirty=false;delete item._patch;changed=true}}return changed}
+function applyDeleteAcknowledgement(records=[]){const keys=new Set(records.map(record=>`${record.key}:${record.id}:${record.writeId||''}`)),before=(data.pendingDeletes||[]).length;data.pendingDeletes=(data.pendingDeletes||[]).filter(item=>!keys.has(`${item.key}:${item.id}:${item._writeId||''}`));return before!==data.pendingDeletes.length}
+if(broadcast)broadcast.onmessage=event=>{
+ const message=event.data||{};
+ if(message.tabId===TAB_ID||message.deviceId!==DEVICE_ID)return;
  if(message.type==='write-request'){if(claimSyncLeadership())scheduleCloudWrite(50);return}
+ if(message.type==='write-ack'||message.type==='delete-ack'){
+  const changed=message.type==='write-ack'?applyWriteAcknowledgement(message.records):applyDeleteAcknowledgement(message.records);
+  if(changed)persistLocal(data,{broadcastState:false});
+  return
+ }
  if(message.type!=='state'||applyingRemote)return;
  applyingRemote=true;
- let changed=false;
  try{
-  const incoming=message.state||{};
-  for(const cfg of Object.values(ENTITY_COLLECTIONS)){
-   const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(x=>[x.id,x]));
-   for(const raw of incoming[cfg.key]||[]){const item=normalizeEntityItem(cfg.key,raw),local=current.get(item.id),im=entityRevision(item),lm=entityRevision(local||{});if(!local||(!local._dirty&&im>lm))current.set(item.id,item)}
-   data[cfg.key]=[...current.values()];
-   changed=changed||before!==collectionSignature(data[cfg.key])
-  }
-  const incomingMeta=incoming.meta||{},im=entityRevision(incomingMeta),lm=entityRevision(data.meta||{});if(!data.meta?._dirty&&im>lm){data.meta={...data.meta,...incomingMeta};changed=true}
-  data.pendingDeletes=[...(data.pendingDeletes||[]),...(incoming.pendingDeletes||[])].filter((v,i,a)=>a.findIndex(x=>x.key===v.key&&x.id===v.id)===i);
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  if(changed)scheduleCurrentViewRender({reason:'other-tab'})
- }finally{applyingRemote=false}
+  const changed=mergeRemoteState(message.state||{});
+  persistLocal(data,{broadcastState:false});
+  if(changed)scheduleCurrentViewRender({reason:'broadcast'})
+ }catch(error){console.error('Broadcast merge failed',{error,cloudReady,leader:isSyncLeader()})}
+ finally{applyingRemote=false}
 };
 
 /* MODALES */
@@ -1485,7 +1509,7 @@ function renderPatientFinance(patientId){const combos=getPatientCombos(patientId
 function renderReportes(){const m=clinicalMetrics(),rows=allEvolutions();$('#view-reportes').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Reportes</h2><p>Indicadores clínicos reales</p></div><button class="btn" data-action="export-csv">Exportar CSV</button></div><div class="grid three-col" style="margin-bottom:16px"><article class="card metric"><div class="metric-label">Pacientes</div><div class="metric-value">${data.patients.length}</div></article><article class="card metric"><div class="metric-label">Sesiones históricas</div><div class="metric-value">${data.history.length}</div></article><article class="card metric"><div class="metric-label">Cumplimiento</div><div class="metric-value">${m.compliance}%</div></article></div><div class="card"><div class="card-head"><div class="card-title">EVA promedio</div></div><div class="stat-row"><div class="stat-label">Actividad</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaActividad))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaActividad)).toFixed(1)}</div></div><div class="stat-row"><div class="stat-label">Reposo</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaReposo))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaReposo)).toFixed(1)}</div></div></div>`}
 function exportCsv(){const rows=[['Fecha','Paciente','Rutina','Duración','Progreso','Volumen','Estado'],...data.history.map(item=>[item.finishedAt,getPatient(item.patientId)?.nombre||item.patientName||item.paciente||'Paciente eliminado',item.routineName,item.duration,item.progress,item.volume,item.status])];const csv=rows.map(row=>row.map(value=>`"${String(value??'').replace(/"/g,'""')}"`).join(',')).join('\n');const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download=`eter-reporte-${todayISO()}.csv`;link.click();URL.revokeObjectURL(link.href)}
 function renderConfiguracion(){$('#view-configuracion').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div><div class="grid two-col"><div class="card"><div class="card-head"><div class="card-title">Datos del profesional</div></div><form id="settingsForm" class="form-grid"><div class="field"><label>Nombre completo</label><input class="input" name="name" value="${esc(data.meta.professionalName||'Juan Magurno')}"></div><div class="field"><label>Especialidad</label><input class="input" name="specialty" value="${esc(data.meta.specialty||'Kinesiología')}"></div><div class="field"><label>Matrícula</label><input class="input" name="license" value="${esc(data.meta.license||'')}"></div><div class="field"><label>Teléfono</label><input class="input" name="phone" value="${esc(data.meta.professionalPhone||'')}"></div></form><button class="btn btn-primary" style="margin-top:14px" data-action="save-settings">Guardar cambios</button></div><div class="card"><div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div><div class="clinical-grid"><div class="clinical-block"><h4>Base clínica ETER</h4><p>agenda-d3987 · pacientes, rutinas, sesiones e historial</p></div><div class="clinical-block"><h4>Agenda</h4><p>Turnos internos de ETER · sin conexión externa</p></div><div class="clinical-block"><h4>Dispositivo</h4><p>${esc(DEVICE_ID)}</p></div><div class="clinical-block"><h4>Versión de datos</h4><p>${DATA_VERSION}</p></div></div><button class="btn" style="margin-top:14px" data-action="force-sync">Forzar sincronización</button></div></div>`}
-function saveSettings(){const f=$('#settingsForm'),v=Object.fromEntries(new FormData(f)),stamp=Date.now();data.meta={...data.meta,...v,professionalName:v.name,professionalPhone:v.phone,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};persistLocal();scheduleCloudWrite(50);toast('Configuración guardada')}
+function saveSettings(){const f=$('#settingsForm'),v=Object.fromEntries(new FormData(f)),stamp=Date.now();data.meta={...data.meta,...v,professionalName:v.name,professionalPhone:v.phone,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`};persistLocal();scheduleCloudWrite(SYNC_WRITE_DELAY);toast('Configuración guardada')}
 
 /* IMPRESIÓN */
 function printRoutine(id){const r=getRoutine(id),p=getPatient(r?.patientId);if(!r)return;$('#printArea').innerHTML=`<div class="print-sheet"><h1>ETER KinePro</h1><p>Rutina terapéutica</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p?.nombre||'Plantilla')}</div><div><strong>Fecha:</strong> ${fmtDate(r.date)}</div><div><strong>Diagnóstico:</strong> ${esc(p?.diagnostico||'—')}</div><div><strong>Objetivo:</strong> ${esc(r.objective||'—')}</div></div><table><thead><tr><th>#</th><th>Ejercicio</th><th>Series</th><th>Repeticiones</th><th>Segundos</th><th>Carga</th><th>Observaciones</th></tr></thead><tbody>${r.exercises.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.sets)}</td><td>${esc(e.reps)}</td><td>${esc(e.seconds)}</td><td>${esc(e.load)}</td><td>${esc(e.notes)}</td></tr>`).join('')}</tbody></table><div class="print-note"><strong>Profesional:</strong> ${esc(data.meta.professionalName||'Juan Magurno')} · ${esc(data.meta.specialty||'Kinesiología')} · ${esc(data.meta.license||'')}</div></div>`;window.print()}
@@ -1498,7 +1522,7 @@ async function handleAppClick(e){const target=e.target.closest('[data-action],[d
  else if(a==='routine-tab'){ui.routineTab=target.dataset.tab;renderRutinas()}else if(a==='new-routine'){if(patientId||id)handleCreateRoutineForPatient(patientId||id);else openRoutineEditor('')}else if(a==='edit-routine')openRoutineEditor('',id);else if(a==='view-routine')viewRoutine(id);else if(a==='save-routine')saveRoutine(false);else if(a==='save-routine-draft')saveRoutine(true);else if(a==='duplicate-routine')duplicateRoutine(id);else if(a==='delete-routine')deleteRoutineFlow(id);else if(a==='print-routine')printRoutine(id);else if(a==='print-patient')printPatient(id);
  else if(a==='use-library-exercise'){const ex=combinedExerciseLibrary().find(x=>x.id===id);if(ex)addExerciseToDraft(ex)}else if(a==='add-blank-exercise')addExerciseToDraft({name:'Nuevo ejercicio',category:'General',source:'Manual'});else if(a==='move-exercise'){const i=Number(target.dataset.index),j=i+Number(target.dataset.direction);if(j>=0&&j<ui.routineDraft.exercises.length){[ui.routineDraft.exercises[i],ui.routineDraft.exercises[j]]=[ui.routineDraft.exercises[j],ui.routineDraft.exercises[i]];renderExerciseDraftList();persistRoutineEditorDraft()}}else if(a==='duplicate-draft-exercise'){const i=Number(target.dataset.index);ui.routineDraft.exercises.splice(i+1,0,{...ui.routineDraft.exercises[i],id:uid('exercise')});renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='remove-draft-exercise'){ui.routineDraft.exercises.splice(Number(target.dataset.index),1);renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='new-custom-exercise')openCustomExerciseForm();else if(a==='save-custom-exercise')saveCustomExercise();else if(a==='return-routine-editor')renderRoutineEditorModal();else if(a==='delete-custom-exercise')openConfirm('Eliminar ejercicio personalizado','Se quitará de la biblioteca. Las rutinas existentes no se modificarán.',async()=>{await removeEntity('exerciseLibrary',id);closeConfirm();renderRoutineEditorModal()});
  else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session')startSelectedSession();else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){ui.routineTab='execution';setView('rutinas')}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{await finalizeSession(id);closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{await finalizeSession(id,'Abandonada');closeConfirm()},'Abandonar');
- else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}
+ else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>Object.assign(item,touch(item))));if(data.meta&&Object.keys(data.meta).length){const stamp=Date.now();Object.assign(data.meta,{updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`})}persistLocal();scheduleCloudWrite(20)}
 }
 document.removeEventListener('click',handleAppClick);document.addEventListener('click',handleAppClick);
 document.addEventListener('toggle',e=>{const card=e.target;if(!(card instanceof HTMLDetailsElement)||!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)},true);
