@@ -861,6 +861,74 @@ body.modal-open{overflow:hidden}
 @media(max-width:980px){.combo-grid{grid-template-columns:1fr}}
 @media(max-width:780px){.promo-catalog{grid-template-columns:1fr}.finance-actions{width:100%}.finance-actions .btn{flex:1}.finance-section-head{align-items:flex-start;flex-direction:column}.combo-counts{grid-template-columns:repeat(3,1fr)}.combo-card-actions .btn{flex:1}.turn-finance{align-items:flex-start}.item-right{width:100%;flex-wrap:wrap}.item-right .btn{flex:1}}
 
+
+
+/* ─── INICIO MÓVIL: AGENDA PRIMERO Y MÉTRICAS COMPACTAS ───────────── */
+.home-dashboard{display:block}
+.home-lower{margin-top:0}
+@media(max-width:780px){
+  #view-inicio .home-dashboard{display:flex;flex-direction:column}
+  #view-inicio .home-lower{display:contents}
+  #view-inicio .home-agenda{order:1;margin-bottom:14px;padding:14px}
+  #view-inicio .home-metrics{order:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  #view-inicio .home-active{order:3;margin-bottom:14px!important}
+  #view-inicio .home-quick{order:4}
+  #view-inicio .home-metrics .metric{
+    min-height:102px;
+    padding:12px 13px;
+    border-radius:14px;
+  }
+  #view-inicio .home-metrics .metric::after{
+    width:42px;
+    height:42px;
+    right:-8px;
+    bottom:-8px;
+  }
+  #view-inicio .home-metrics .metric-label{
+    font-size:9.5px;
+    line-height:1.2;
+    letter-spacing:.25px;
+  }
+  #view-inicio .home-metrics .metric-value{
+    font-size:25px;
+    line-height:1;
+    margin:7px 0 5px;
+    letter-spacing:-.6px;
+  }
+  #view-inicio .home-metrics .metric-note{
+    font-size:10px;
+    line-height:1.25;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    overflow:hidden;
+  }
+  #view-inicio .home-metrics .metric-accent{
+    width:3px;
+    height:24px;
+    top:12px;
+    right:12px;
+  }
+  #view-inicio .home-agenda .card-head{margin-bottom:11px;align-items:center}
+  #view-inicio .home-agenda .card-title{font-size:15px}
+  #view-inicio .home-agenda .card-sub{font-size:11px}
+  #view-inicio .home-agenda .item{padding:10px 11px;gap:8px}
+  #view-inicio .home-agenda .item-time{font-size:13px;min-width:42px}
+  #view-inicio .home-agenda .item-main strong{font-size:13px}
+  #view-inicio .home-agenda .item-main>span{font-size:11px}
+  #view-inicio .home-agenda .item-right{width:auto;align-self:flex-end}
+  #view-inicio .home-quick{padding:14px}
+  #view-inicio .home-quick .quick{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  #view-inicio .home-quick .quick-btn{min-height:60px;padding:10px 8px;font-size:11.5px}
+  #view-inicio .home-quick .quick-icon{font-size:17px}
+}
+@media(max-width:420px){
+  #view-inicio .home-metrics{gap:8px}
+  #view-inicio .home-metrics .metric{min-height:96px;padding:11px 12px}
+  #view-inicio .home-metrics .metric-value{font-size:23px;margin:6px 0 4px}
+  #view-inicio .home-metrics .metric-note{font-size:9.5px}
+}
+
 </style>
 </head>
 <body>
@@ -1371,8 +1439,8 @@ function closeMenu(){$('#sidebar').classList.remove('open');$('#mobileOverlay').
 
 /* INICIO */
 function clinicalMetrics(){const histories=data.history;const activeRoutines=data.routines.filter(r=>r.active&&!r.template).length;const activeSessions=data.activeSessions.length;const compliance=Math.round(avg(histories.map(h=>Number(h.progress)||0)));const inactive=data.patients.filter(p=>{const last=patientLastSession(p.id);return !last||Date.now()-new Date(last.finishedAt||last.createdAt).getTime()>30*86400000}).length;return{activeRoutines,activeSessions,compliance,inactive}}
-function renderInicio(){const m=clinicalMetrics(),allTodayTurns=getTurnsForDate(todayISO()),todayTurns=allTodayTurns.slice(0,5),active=data.activeSessions.slice(0,3);$('#view-inicio').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Panel clínico</h2><p>Resumen operativo del ${fmtDate(todayISO())}</p></div><button class="btn btn-primary" data-action="open-anamnesis">+ Nueva anamnesis</button></div><div class="grid metrics">${[
- ['Pacientes',data.patients.length,'Base clínica unificada','#1B5FCC'],['Turnos hoy',allTodayTurns.length,`${allTodayTurns.length} agendados en ETER`,'#2D74E7'],['Rutinas activas',m.activeRoutines,'Programas asignados','#0A6650'],['Sesiones activas',m.activeSessions,'En ejecución','#C97C10'],['Cumplimiento',`${m.compliance}%`,'Promedio histórico','#5B21B6'],['Sin actividad',m.inactive,'Más de 30 días','#B83232']].map(([label,value,note,color])=>`<article class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div><span class="metric-accent" style="background:${color}"></span></article>`).join('')}</div>${active.length?`<div class="card" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col"><div class="card"><div class="card-head"><div><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div><button class="btn btn-sm" data-goto="turnos">Ver agenda</button></div><div class="list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty">No hay turnos para hoy</div>`}</div></div><div class="card"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div>`;updateTimerNodes()}
+function renderInicio(){const m=clinicalMetrics(),allTodayTurns=getTurnsForDate(todayISO()),todayTurns=allTodayTurns.slice(0,5),active=data.activeSessions.slice(0,3);$('#view-inicio').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Panel clínico</h2><p>Resumen operativo del ${fmtDate(todayISO())}</p></div><button class="btn btn-primary" data-action="open-anamnesis">+ Nueva anamnesis</button></div><div class="home-dashboard"><div class="grid metrics home-metrics">${[
+ ['Pacientes',data.patients.length,'Base clínica unificada','#1B5FCC'],['Turnos hoy',allTodayTurns.length,`${allTodayTurns.length} agendados en ETER`,'#2D74E7'],['Rutinas activas',m.activeRoutines,'Programas asignados','#0A6650'],['Sesiones activas',m.activeSessions,'En ejecución','#C97C10'],['Cumplimiento',`${m.compliance}%`,'Promedio histórico','#5B21B6'],['Sin actividad',m.inactive,'Más de 30 días','#B83232']].map(([label,value,note,color])=>`<article class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div><span class="metric-accent" style="background:${color}"></span></article>`).join('')}</div>${active.length?`<div class="card home-active" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col home-lower"><div class="card home-agenda"><div class="card-head"><div><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div><button class="btn btn-sm" data-goto="turnos">Ver agenda</button></div><div class="list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty">No hay turnos para hoy</div>`}</div></div><div class="card home-quick"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div></div>`;updateTimerNodes()}
 function getTurnsForDate(date){reconcileLocalTurnPatientLinks();return data.turns.filter(turn=>turn.fecha===date).map(linkTurnToPatient).sort((a,b)=>String(a.hora||'').localeCompare(String(b.hora||'')))}
 
 /* PACIENTES */
