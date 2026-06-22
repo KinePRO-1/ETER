@@ -3045,8 +3045,6 @@ body.modal-open{overflow:hidden}
 #view-inicio .turn-status-btn,
 #view-turnos .turn-status-btn{
   width:100%;
-  display:flex;
-  align-items:center;
   justify-content:center;
   box-shadow:none;
   list-style:none;
@@ -3218,6 +3216,181 @@ body.modal-open{overflow:hidden}
   #view-turnos .turn-more-menu{right:0;bottom:calc(100% + 8px)}
 }
 
+
+
+/* ─── PAGOS: PESTAÑAS Y MOVIMIENTOS PLEGABLES ───── */
+#view-pagos .payments-tabs{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+  margin-bottom:16px;
+  padding:6px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--surface-2);
+}
+#view-pagos .payments-tab-btn{
+  min-width:0;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 14px;
+  border:1px solid transparent;
+  border-radius:10px;
+  color:var(--text-2);
+  background:transparent;
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+  transition:background var(--transition),color var(--transition),border-color var(--transition),box-shadow var(--transition),transform var(--transition);
+}
+#view-pagos .payments-tab-btn svg{
+  width:19px;
+  height:19px;
+  flex:0 0 auto;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#view-pagos .payments-tab-btn strong{
+  min-width:25px;
+  min-height:24px;
+  display:grid;
+  place-items:center;
+  padding:0 7px;
+  border-radius:999px;
+  color:var(--muted);
+  background:var(--surface);
+  font-size:10.5px;
+  line-height:1;
+}
+#view-pagos .payments-tab-btn:hover{color:var(--blue);background:var(--blue-50)}
+#view-pagos .payments-tab-btn.active{
+  color:var(--blue);
+  background:var(--surface);
+  border-color:var(--blue-100);
+  box-shadow:var(--shadow-sm);
+}
+#view-pagos .payments-tab-btn.active strong{color:#fff;background:var(--blue)}
+#view-pagos .payments-tab-btn:active{transform:translateY(1px)}
+#view-pagos .payments-tab-btn:focus-visible{outline:3px solid rgba(27,95,204,.22);outline-offset:2px}
+#view-pagos .payments-tab-panel{min-width:0}
+#view-pagos .payments-summary-first{margin-bottom:18px}
+#view-pagos .payment-movement-card{
+  padding:0;
+  overflow:hidden;
+}
+#view-pagos .payment-movement-summary{
+  min-width:0;
+  min-height:78px;
+  display:grid;
+  grid-template-columns:minmax(180px,1.25fr) minmax(190px,.9fr) auto auto;
+  align-items:center;
+  gap:14px;
+  padding:13px 15px;
+  list-style:none;
+  cursor:pointer;
+  user-select:none;
+}
+#view-pagos .payment-movement-summary::-webkit-details-marker{display:none}
+#view-pagos .payment-movement-summary:hover{background:var(--surface-2)}
+#view-pagos .payment-movement-summary:focus-visible{outline:3px solid rgba(27,95,204,.22);outline-offset:-3px}
+#view-pagos .payment-movement-summary-meta{
+  min-width:0;
+  color:var(--muted);
+  font-size:11.5px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+#view-pagos .payment-movement-summary-side{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  min-width:0;
+}
+#view-pagos .payment-movement-chevron{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border:1px solid var(--border);
+  border-radius:9px;
+  color:var(--text-2);
+  background:var(--surface);
+  transition:transform .2s ease,background .2s ease;
+}
+#view-pagos .payment-movement-chevron svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+#view-pagos .payment-movement-details[open] .payment-movement-chevron{transform:rotate(180deg);background:var(--blue-50);color:var(--blue)}
+#view-pagos .payment-movement-body{
+  padding:13px 15px 15px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  animation:paymentMovementOpen .16s ease both;
+}
+@keyframes paymentMovementOpen{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+#view-pagos .payment-movement-detail-line{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+  color:var(--muted);
+  font-size:11.5px;
+}
+#view-pagos .payment-movement-detail-line strong{
+  max-width:75%;
+  color:var(--text-2);
+  font-weight:650;
+  text-align:right;
+  overflow-wrap:anywhere;
+}
+#view-pagos .payment-movement-body .payment-movement-actions{
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+#view-pagos .payments-packs-panel .assigned-packs-section{margin-top:0}
+#view-pagos .payments-packs-panel .finance-promotions{margin-bottom:0}
+
+@media(max-width:900px){
+  #view-pagos .payment-movement-summary{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px 12px;
+  }
+  #view-pagos .payment-movement-identity{grid-column:1/2;grid-row:1/2}
+  #view-pagos .payment-movement-summary-side{grid-column:2/3;grid-row:1/2}
+  #view-pagos .payment-movement-summary .payment-amount{grid-column:1/2;grid-row:2/3}
+  #view-pagos .payment-movement-summary-meta{grid-column:1/-1;grid-row:3/4}
+}
+@media(max-width:780px){
+  #view-pagos .payments-tabs{margin-bottom:14px;padding:5px;border-radius:12px}
+  #view-pagos .payments-tab-btn{min-height:46px;padding:0 9px;gap:6px;font-size:12px}
+  #view-pagos .payments-tab-btn strong{min-width:22px;min-height:22px;padding:0 6px;font-size:10px}
+  #view-pagos .payment-movement-summary{min-height:0;padding:12px 13px}
+  #view-pagos .payment-movement-summary-side{gap:6px}
+  #view-pagos .payment-movement-chevron{width:30px;height:30px}
+  #view-pagos .payment-movement-body{padding:12px 13px 13px}
+  #view-pagos .payment-movement-detail-line{display:grid;grid-template-columns:1fr;gap:3px}
+  #view-pagos .payment-movement-detail-line strong{max-width:none;text-align:left}
+}
+@media(max-width:430px){
+  #view-pagos .payments-tab-btn span{white-space:normal;text-align:center;line-height:1.15}
+  #view-pagos .payments-tab-btn svg{display:none}
+  #view-pagos .payment-movement-summary-side .badge{max-width:94px;overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 </head>
 <body>
@@ -3321,7 +3494,7 @@ const SYNC_WRITE_DELAY=1200;
 const SYNC_INLINE_DELAY=2000;
 const SYNC_RETRY_DELAY=15000;
 const FIRESTORE_BATCH_LIMIT=450;
-const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',historyFilters:{patientId:'',routineId:'',exercise:'',from:'',to:'',status:''},paymentFilters:{period:'all',from:'',to:''},turnFilters:{period:'day',anchor:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null,confirmReturnFocus:null};
+const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',historyFilters:{patientId:'',routineId:'',exercise:'',from:'',to:'',status:''},paymentFilters:{period:'all',from:'',to:''},paymentTab:'movements',turnFilters:{period:'day',anchor:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null,confirmReturnFocus:null};
 let data=loadAndMigrateData();
 data.turns=(data.turns||[]).map(normalizeTurn);
 let pendingConfirm=null;
@@ -4442,6 +4615,7 @@ function paymentWithinRange(payment,from,to){const date=paymentDateValue(payment
 function collectedPaymentsTotal(payments){return payments.filter(payment=>payment.status==='Cobrado').reduce((sum,payment)=>sum+Number(payment.amount||0),0)}
 function renderPagos(){
  const range=paymentRangeForPeriod();
+ const activeTab=ui.paymentTab==='packs'?'packs':'movements';
  const allPayments=data.payments.slice().sort((a,b)=>new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0));
  const payments=range.from||range.to?allPayments.filter(payment=>paymentWithinRange(payment,range.from,range.to)):allPayments;
  const previousPayments=range.previousFrom&&range.previousTo?allPayments.filter(payment=>paymentWithinRange(payment,range.previousFrom,range.previousTo)):[];
@@ -4464,15 +4638,24 @@ function renderPagos(){
  const movementLabel=`${range.label} · ${payments.length} movimiento${payments.length===1?'':'s'}`;
  const plusIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
  const packIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14M7.5 7C5.6 7 4 5.9 4 4.5S5.2 2 6.8 2C9.3 2 12 7 12 7s2.7-5 5.2-5C18.8 2 20 3.1 20 4.5S18.4 7 16.5 7"/></svg>';
+ const movementIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><path d="m17 15 3 2-3 2"/></svg>';
  const userIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
  const editIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>';
  const deleteIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 15H6L5 6M10 10v7M14 10v7"/></svg>';
+ const chevronIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
  const movementCards=payments.map(payment=>{
   const refs=paymentActivityRefs(payment);
   const name=refs.patient?.nombre||payment.patientName||'Sin paciente';
-  return`<article class="payment-movement-card"><div class="payment-movement-head"><div class="payment-movement-identity"><span class="payment-concept">${esc(payment.type||'Pago')}</span><strong class="payment-patient-name">${esc(name)}</strong></div>${statusBadge(payment.status)}</div><div class="payment-movement-meta">${fmtDate(payment.date||payment.createdAt)} · ${esc(payment.method||'Sin método')} · ${esc(paymentConcept(payment))}</div><div class="payment-movement-bottom"><strong class="payment-amount">${money(payment.amount)}</strong><div class="payment-movement-actions">${refs.patient?`<button type="button" class="btn payment-profile-btn" data-action="profile" data-id="${esc(refs.patient.id)}">${userIcon}<span>Ficha</span></button>`:''}<button type="button" class="btn payment-edit-btn" data-action="edit-payment" data-id="${esc(payment.id)}">${editIcon}<span>Editar</span></button><button type="button" class="btn payment-delete-btn" data-action="delete-payment" data-id="${esc(payment.id)}">${deleteIcon}<span>Eliminar</span></button></div></div></article>`
+  const dateLabel=fmtDate(payment.date||payment.createdAt);
+  const method=payment.method||'Sin método';
+  const concept=paymentConcept(payment);
+  return`<details class="payment-movement-card payment-movement-details"><summary class="payment-movement-summary"><div class="payment-movement-identity"><span class="payment-concept">${esc(payment.type||'Pago')}</span><strong class="payment-patient-name">${esc(name)}</strong></div><span class="payment-movement-summary-meta">${esc(dateLabel)} · ${esc(method)}</span><strong class="payment-amount">${money(payment.amount)}</strong><span class="payment-movement-summary-side">${statusBadge(payment.status)}<span class="payment-movement-chevron" aria-hidden="true">${chevronIcon}</span></span></summary><div class="payment-movement-body"><div class="payment-movement-detail-line"><span>Detalle</span><strong>${esc(concept)}</strong></div><div class="payment-movement-actions">${refs.patient?`<button type="button" class="btn payment-profile-btn" data-action="profile" data-id="${esc(refs.patient.id)}">${userIcon}<span>Ficha</span></button>`:''}<button type="button" class="btn payment-edit-btn" data-action="edit-payment" data-id="${esc(payment.id)}">${editIcon}<span>Editar</span></button><button type="button" class="btn payment-delete-btn" data-action="delete-payment" data-id="${esc(payment.id)}">${deleteIcon}<span>Eliminar</span></button></div></div></details>`
  }).join('')||'<div class="payments-empty">No hay movimientos en el período seleccionado</div>';
- setElementHtml($('#view-pagos'),`<div class="payments-dashboard"><header class="payments-page-header"><div class="payments-heading"><h2>Pagos y promociones</h2><p>Tarifas, turnos, cobros y vigencia de packs por paciente</p></div><div class="payments-main-actions"><button type="button" class="btn payments-new-pack-btn" data-action="new-combo">${packIcon}<span>Pack personalizado</span></button><button type="button" class="btn btn-primary payments-new-payment-btn" data-action="new-payment">${plusIcon}<span>Registrar pago</span></button></div></header><section class="finance-section assigned-packs-section"><div class="finance-section-head"><div><h3>Packs asignados</h3><p>Vigencia, frecuencia, sesiones usadas, reservadas y disponibles</p></div></div><div class="combo-grid">${combos.map(renderComboCard).join('')||'<div class="payments-empty finance-empty">No hay packs registrados</div>'}</div></section><section class="finance-section payment-movements-section"><div class="finance-section-head"><div><h3>Movimientos</h3><p>${esc(movementLabel)}</p></div></div><div class="payment-movements-list">${movementCards}</div></section>${renderPromoCatalog()}<section class="payments-summary-card"><div class="payments-summary-head"><div><h3>Resumen del período</h3><p>${esc(range.label)}</p></div></div><div class="payments-compact-metrics"><article class="payment-compact-metric is-primary"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.8-2.1-1.2-3.5-1.2-1.9 0-3.2.9-3.2 2.3 0 1.5 1.2 2.1 3.4 2.5 2.1.4 3.1 1 3.1 2.5 0 1.5-1.4 2.5-3.4 2.5-1.6 0-3-.5-4-1.5M12 5.5v13"/></svg></span><strong>${money(collected)}</strong><span>Ingresos del período</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M3 17 9 11l4 4 8-9"/><path d="M15 6h6v6"/></svg></span><strong>${range.previousFrom?money(previousCollected):'—'}</strong><span>Período anterior</span></article><article class="payment-compact-metric is-purple ${variationClass}"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M4 18V6M4 18h16"/><path d="m7 14 4-4 3 3 5-6"/></svg></span><strong>${esc(variationLabel)}</strong><span>Variación</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><strong>${money(pendingTurns)}</strong><span>Pendiente en turnos</span></article><article class="payment-compact-metric is-purple"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14"/></svg></span><strong>${money(pendingCombos)}</strong><span>Pendiente en packs</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg></span><strong>${activeCombos}</strong><span>Packs vigentes</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3"/></svg></span><strong>${expiring}</strong><span>Packs próximos a vencer</span></article></div><details class="payments-filter-details"${filtersOpen?' open':''}><summary><span class="payments-filter-summary-main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7Z"/></svg><span>Filtros y comparación</span></span><span class="finance-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary><div class="payments-filter-content"><div class="payments-filter-grid"><div class="field payments-filter-period"><label>Período</label><select class="select" id="paymentPeriodFilter"><option value="all" ${range.period==='all'?'selected':''}>Todo el historial</option><option value="week" ${range.period==='week'?'selected':''}>Esta semana</option><option value="month" ${range.period==='month'?'selected':''}>Este mes</option><option value="year" ${range.period==='year'?'selected':''}>Este año</option><option value="custom" ${range.period==='custom'?'selected':''}>Rango personalizado</option></select></div><div class="field"><label>Desde</label><input class="input" id="paymentFromFilter" type="date" value="${esc(fromValue)}" ${custom?'':'disabled'}></div><div class="field"><label>Hasta</label><input class="input" id="paymentToFilter" type="date" value="${esc(toValue)}" ${custom?'':'disabled'}></div><button type="button" class="btn payment-filter-reset" data-action="reset-payment-filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Restablecer</span></button></div><div class="card-sub" style="margin-top:10px">Comparación: ${esc(previousLabel)}</div></div></details></section></div>`)
+ const summaryHtml=`<section class="payments-summary-card payments-summary-first"><div class="payments-summary-head"><div><h3>Resumen del período</h3><p>${esc(range.label)}</p></div></div><div class="payments-compact-metrics"><article class="payment-compact-metric is-primary"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.8-2.1-1.2-3.5-1.2-1.9 0-3.2.9-3.2 2.3 0 1.5 1.2 2.1 3.4 2.5 2.1.4 3.1 1 3.1 2.5 0 1.5-1.4 2.5-3.4 2.5-1.6 0-3-.5-4-1.5M12 5.5v13"/></svg></span><strong>${money(collected)}</strong><span>Ingresos del período</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M3 17 9 11l4 4 8-9"/><path d="M15 6h6v6"/></svg></span><strong>${range.previousFrom?money(previousCollected):'—'}</strong><span>Período anterior</span></article><article class="payment-compact-metric is-purple ${variationClass}"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M4 18V6M4 18h16"/><path d="m7 14 4-4 3 3 5-6"/></svg></span><strong>${esc(variationLabel)}</strong><span>Variación</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><strong>${money(pendingTurns)}</strong><span>Pendiente en turnos</span></article><article class="payment-compact-metric is-purple"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14"/></svg></span><strong>${money(pendingCombos)}</strong><span>Pendiente en packs</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg></span><strong>${activeCombos}</strong><span>Packs vigentes</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3"/></svg></span><strong>${expiring}</strong><span>Packs próximos a vencer</span></article></div><details class="payments-filter-details"${filtersOpen?' open':''}><summary><span class="payments-filter-summary-main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7Z"/></svg><span>Filtros y comparación</span></span><span class="finance-chevron" aria-hidden="true">${chevronIcon}</span></summary><div class="payments-filter-content"><div class="payments-filter-grid"><div class="field payments-filter-period"><label>Período</label><select class="select" id="paymentPeriodFilter"><option value="all" ${range.period==='all'?'selected':''}>Todo el historial</option><option value="week" ${range.period==='week'?'selected':''}>Esta semana</option><option value="month" ${range.period==='month'?'selected':''}>Este mes</option><option value="year" ${range.period==='year'?'selected':''}>Este año</option><option value="custom" ${range.period==='custom'?'selected':''}>Rango personalizado</option></select></div><div class="field"><label>Desde</label><input class="input" id="paymentFromFilter" type="date" value="${esc(fromValue)}" ${custom?'':'disabled'}></div><div class="field"><label>Hasta</label><input class="input" id="paymentToFilter" type="date" value="${esc(toValue)}" ${custom?'':'disabled'}></div><button type="button" class="btn payment-filter-reset" data-action="reset-payment-filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Restablecer</span></button></div><div class="card-sub" style="margin-top:10px">Comparación: ${esc(previousLabel)}</div></div></details></section>`;
+ const movementsPanel=`<div class="payments-tab-panel payments-movements-panel" role="tabpanel"><section class="finance-section payment-movements-section"><div class="finance-section-head"><div><h3>Movimientos</h3><p>${esc(movementLabel)} · Tocá una tarjeta para ver sus acciones</p></div></div><div class="payment-movements-list">${movementCards}</div></section></div>`;
+ const packsPanel=`<div class="payments-tab-panel payments-packs-panel" role="tabpanel"><section class="finance-section assigned-packs-section"><div class="finance-section-head"><div><h3>Packs asignados</h3><p>Vigencia, frecuencia, sesiones usadas, reservadas y disponibles</p></div></div><div class="combo-grid">${combos.map(renderComboCard).join('')||'<div class="payments-empty finance-empty">No hay packs registrados</div>'}</div></section>${renderPromoCatalog()}</div>`;
+ const headerAction=activeTab==='packs'?`<button type="button" class="btn payments-new-pack-btn" data-action="new-combo">${packIcon}<span>Pack personalizado</span></button>`:`<button type="button" class="btn btn-primary payments-new-payment-btn" data-action="new-payment">${plusIcon}<span>Registrar pago</span></button>`;
+ setElementHtml($('#view-pagos'),`<div class="payments-dashboard"><header class="payments-page-header"><div class="payments-heading"><h2>Pagos y promociones</h2><p>${activeTab==='packs'?'Packs asignados, tarifas y promociones':'Ingresos, cobros y movimientos registrados'}</p></div><div class="payments-main-actions">${headerAction}</div></header>${summaryHtml}<nav class="payments-tabs" aria-label="Secciones de pagos"><button type="button" class="payments-tab-btn ${activeTab==='movements'?'active':''}" data-action="payment-tab" data-tab="movements" aria-selected="${activeTab==='movements'}">${movementIcon}<span>Movimientos</span><strong>${payments.length}</strong></button><button type="button" class="payments-tab-btn ${activeTab==='packs'?'active':''}" data-action="payment-tab" data-tab="packs" aria-selected="${activeTab==='packs'}">${packIcon}<span>Packs y promociones</span><strong>${combos.length}</strong></button></nav>${activeTab==='packs'?packsPanel:movementsPanel}</div>`)
 }
 function openPaymentForm(prefill={}){const existing=prefill.paymentId?data.payments.find(payment=>payment.id===prefill.paymentId)||null:null,selectedTurn=prefill.turnId?getTurnById(prefill.turnId):existing?.turnId?getTurnById(existing.turnId):null,selectedCombo=prefill.comboId?getCombo(prefill.comboId):existing?.comboId?getCombo(existing.comboId):null,patientId=prefill.patientId||existing?.patientId||selectedTurn?.patientId||selectedCombo?.patientId||'',type=existing?.type?(existing.type==='Pack / combo'?'Pack / combo':existing.type==='Turno'?'Turno':'Pago sin turno'):(selectedTurn?'Turno':selectedCombo?'Pack / combo':'Pago sin turno');openModal(existing?'Editar pago':'Registrar pago',`<form id="paymentForm" class="form-grid"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><div class="field"><label>Concepto *</label><select class="select" name="type" id="paymentType"><option ${type==='Turno'?'selected':''}>Turno</option><option ${type==='Pack / combo'?'selected':''}>Pack / combo</option><option value="Pago sin turno" ${type==='Pago sin turno'?'selected':''}>Pago sin turno</option></select></div><div class="field"><label>Paciente *</label><select class="select" name="patientId" id="paymentPatient" required><option value="">Seleccionar</option>${data.patients.map(patient=>`<option value="${patient.id}" ${patient.id===patientId?'selected':''}>${esc(patient.nombre)}</option>`).join('')}</select></div><div class="field full" id="paymentReferenceField"><label id="paymentReferenceLabel">Turno vinculado *</label><select class="select" name="referenceId" id="paymentReference"></select></div><div class="field"><label>Monto *</label><input class="input" name="amount" id="paymentAmount" type="number" min="0" step="1" required value="${existing?Number(existing.amount||0):''}"></div><div class="field"><label>Fecha</label><input class="input" name="date" id="paymentDate" type="date" value="${existing?.date||todayISO()}"></div><div class="field"><label>Método</label><select class="select" name="method">${['Efectivo','Transferencia','Tarjeta'].map(method=>`<option ${method===(existing?.method||'Efectivo')?'selected':''}>${method}</option>`).join('')}</select></div><div class="field"><label>Estado</label><select class="select" name="status"><option ${existing?.status!=='Pendiente'?'selected':''}>Cobrado</option><option ${existing?.status==='Pendiente'?'selected':''}>Pendiente</option></select></div><div class="field full"><label>Observación</label><input class="input" name="notes" value="${esc(existing?.notes||'')}"></div><div class="field full"><div class="billing-note" id="paymentHelp">Seleccioná un turno para completar automáticamente el monto y la fecha.</div></div></form>`,`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn btn-primary" data-action="save-payment">${existing?'Actualizar':'Guardar'}</button>`,'wide');const typeSelect=$('#paymentType'),patientSelect=$('#paymentPatient'),referenceField=$('#paymentReferenceField'),referenceLabel=$('#paymentReferenceLabel'),referenceSelect=$('#paymentReference'),amountInput=$('#paymentAmount'),dateInput=$('#paymentDate'),help=$('#paymentHelp');const initialReference=selectedTurn?.id||selectedCombo?.id||'';const refreshReferences=()=>{const concept=typeSelect.value,pid=patientSelect.value;referenceField.hidden=concept==='Pago sin turno'||concept==='Otro';referenceSelect.required=concept==='Turno'||concept==='Pack / combo';if(concept==='Turno'){referenceLabel.textContent='Turno vinculado *';const turns=data.turns.filter(turn=>turn.patientId===pid&&(!getPaymentByTurn(turn.id)||turn.id===existing?.turnId)).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`));referenceSelect.innerHTML=`<option value="">Seleccionar turno</option>${turns.map(turn=>`<option value="${turn.id}" ${turn.id===initialReference?'selected':''}>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)} · ${money(turn.price)}</option>`).join('')}`;help.textContent=turns.length?'El pago quedará enlazado al turno seleccionado y se verá en la agenda.':'Este paciente no tiene turnos disponibles. Elegí “Pago sin turno” en Concepto para registrar el cobro igualmente.'}else if(concept==='Pack / combo'){referenceLabel.textContent='Pack vinculado *';const combos=getPatientCombos(pid).filter(combo=>!getPaymentByCombo(combo.id)||combo.id===existing?.comboId);referenceSelect.innerHTML=`<option value="">Seleccionar pack</option>${combos.map(combo=>`<option value="${combo.id}" ${combo.id===initialReference?'selected':''}>${esc(combo.name)} · ${fmtDate(combo.startDate)} a ${fmtDate(combo.endDate)} · ${money(combo.price)}</option>`).join('')}`;help.textContent='El pago quedará enlazado al pack y conservará su vigencia y cantidad de sesiones.'}else{referenceSelect.innerHTML='';help.textContent='El pago se registrará para el paciente sin exigir un turno o pack vinculado.'}syncReference()};const syncReference=()=>{const concept=typeSelect.value,referenceId=referenceSelect.value;if(concept==='Turno'){const turn=getTurnById(referenceId);if(turn){if(!amountInput.value||!existing)amountInput.value=Number(turn.price||0);dateInput.value=turn.fecha}}else if(concept==='Pack / combo'){const combo=getCombo(referenceId);if(combo){if(!amountInput.value||!existing)amountInput.value=Number(combo.price||0);dateInput.value=combo.startDate}}};typeSelect.addEventListener('change',refreshReferences);patientSelect.addEventListener('change',refreshReferences);referenceSelect.addEventListener('change',syncReference);refreshReferences()}
 function savePayment(){const form=$('#paymentForm');if(!form.reportValidity())return;const values=Object.fromEntries(new FormData(form)),existing=values.id?data.payments.find(payment=>payment.id===values.id)||null:null,patient=getPatient(values.patientId);if(!patient)return toast('Seleccioná un paciente','error');let turnId='',comboId='',date=values.date,type=values.type;if(type==='Turno'){const turn=getTurnById(values.referenceId);if(!turn||turn.patientId!==patient.id)return toast('Seleccioná un turno válido del paciente','error');if(turn.comboId)return toast('Ese turno está incluido en un pack y no debe cobrarse por separado','error');if(data.payments.some(payment=>payment.turnId===turn.id&&payment.id!==existing?.id))return toast('El turno ya tiene un pago registrado','error');turnId=turn.id;date=turn.fecha}else if(type==='Pack / combo'){const combo=getCombo(values.referenceId);if(!combo||combo.patientId!==patient.id)return toast('Seleccioná un pack válido del paciente','error');if(data.payments.some(payment=>payment.comboId===combo.id&&payment.id!==existing?.id))return toast('El pack ya tiene un pago registrado','error');comboId=combo.id;date=values.date||combo.startDate}else type='Pago sin turno';const payment=normalizePayment({...existing,id:existing?.id||uid('payment'),patientId:patient.id,patientName:patient.nombre,type,turnId,comboId,amount:Number(values.amount||0),date,method:values.method,status:values.status,notes:values.notes});upsertEntity('payments',payment);closeModal();renderPagos();renderTurnos(date);toast(existing?'Pago actualizado':'Pago registrado')}
@@ -4533,7 +4716,7 @@ async function handleAppClick(e){const target=e.target.closest('[data-action],[d
  else if(a==='routine-tab'){ui.routineTab=target.dataset.tab;renderRutinas()}else if(a==='new-routine'){if(patientId||id)handleCreateRoutineForPatient(patientId||id);else openRoutineEditor('')}else if(a==='edit-routine')openRoutineEditor('',id);else if(a==='view-routine')viewRoutine(id);else if(a==='save-routine')saveRoutine(false);else if(a==='save-routine-draft')saveRoutine(true);else if(a==='duplicate-routine')duplicateRoutine(id);else if(a==='delete-routine')deleteRoutineFlow(id);else if(a==='print-routine')printRoutine(id);else if(a==='print-patient')printPatient(id);
  else if(a==='use-library-exercise'){const ex=combinedExerciseLibrary().find(x=>x.id===id);if(ex)addExerciseToDraft(ex)}else if(a==='add-blank-exercise')addExerciseToDraft({name:'Nuevo ejercicio',category:'General',source:'Manual'});else if(a==='move-exercise'){const i=Number(target.dataset.index),j=i+Number(target.dataset.direction);if(j>=0&&j<ui.routineDraft.exercises.length){[ui.routineDraft.exercises[i],ui.routineDraft.exercises[j]]=[ui.routineDraft.exercises[j],ui.routineDraft.exercises[i]];renderExerciseDraftList();persistRoutineEditorDraft()}}else if(a==='duplicate-draft-exercise'){const i=Number(target.dataset.index);ui.routineDraft.exercises.splice(i+1,0,{...ui.routineDraft.exercises[i],id:uid('exercise')});renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='remove-draft-exercise'){ui.routineDraft.exercises.splice(Number(target.dataset.index),1);renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='new-custom-exercise')openCustomExerciseForm();else if(a==='save-custom-exercise')saveCustomExercise();else if(a==='return-routine-editor')renderRoutineEditorModal();else if(a==='delete-custom-exercise')openConfirm('Eliminar ejercicio personalizado','Se quitará de la biblioteca. Las rutinas existentes no se modificarán.',async()=>{await removeEntity('exerciseLibrary',id);closeConfirm();renderRoutineEditorModal()});
  else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session'){const selectedRoutineId=$('#sessionRoutine')?.value;if(!selectedRoutineId)return toast('Seleccioná una rutina primero','warn');startSelectedSession()}else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){if(!(data.activeSessions||[]).length){ui.routineTab='routines';setView('rutinas');toast('Elegí una rutina y tocá Iniciar','info')}else{ui.routineTab='execution';setView('rutinas')}}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{await finalizeSession(id);closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{await finalizeSession(id,'Abandonada');closeConfirm()},'Abandonar');
- else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+ else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='payment-tab'){const tab=target.dataset.tab;if(!['movements','packs'].includes(tab))return;ui.paymentTab=tab;renderPagos()}else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement)||!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
