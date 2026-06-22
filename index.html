@@ -341,7 +341,66 @@ a{color:inherit;text-decoration:none}
   box-shadow:0 0 0 4px rgba(25,200,102,.12);
 }
 
-/* ─── CONTENT ─────────────────────────────────────── */
+/* ─── AGENDA PREMIUM: CALENDAR VIEWS ─────────────── */
+.cal-view-toggle{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:3px}
+.cal-view-btn{height:34px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--text-2);font-size:12.5px;font-weight:700;cursor:pointer;transition:background var(--transition),color var(--transition),box-shadow var(--transition)}
+.cal-view-btn:hover{background:var(--surface);color:var(--blue)}
+.cal-view-btn.active{background:var(--surface);color:var(--blue);box-shadow:var(--shadow-sm)}
+
+/* ─── WEEK CALENDAR ──────────────────────────────── */
+.cal-week-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:auto;margin-top:4px}
+.cal-week-header{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:10}
+.cal-time-gutter{border-right:1px solid var(--border)}
+.cal-week-day-header{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-right:1px solid var(--border);gap:4px}
+.cal-week-day-header:last-child{border-right:0}
+.cal-week-day-header.is-today .cal-week-dow{color:var(--blue);font-weight:800}
+.cal-week-dow{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.cal-week-date-btn{width:32px;height:32px;border-radius:50%;border:0;background:transparent;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;transition:background var(--transition),color var(--transition)}
+.cal-week-date-btn:hover{background:var(--blue-50);color:var(--blue)}
+.cal-week-day-header.is-today .cal-week-date-btn{background:var(--blue);color:#fff}
+.cal-week-body{display:grid;grid-template-columns:52px 1fr;min-width:600px}
+.cal-time-col{border-right:1px solid var(--border)}
+.cal-time-slot{display:flex;align-items:flex-start;justify-content:center;padding-top:4px;border-bottom:1px solid var(--border)}
+.cal-time-slot span{font-size:10px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.cal-week-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));flex:1}
+.cal-week-day-col{position:relative;border-right:1px solid var(--border)}
+.cal-week-day-col:last-child{border-right:0}
+.cal-week-day-col.is-today{background:rgba(27,95,204,.02)}
+.cal-day-slots{position:absolute;inset:0;pointer-events:none}
+.cal-day-slot{border-bottom:1px solid var(--border);opacity:.5}
+.cal-event{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;border:0;background:color-mix(in srgb,var(--event-color) 15%,white);border-left:3px solid var(--event-color);font-size:11px;font-weight:600;color:var(--text);cursor:pointer;overflow:hidden;text-align:left;display:flex;flex-direction:column;gap:1px;transition:filter var(--transition),box-shadow var(--transition)}
+.cal-event:hover{filter:brightness(.96);box-shadow:var(--shadow-sm);z-index:5}
+.cal-event-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-event-time{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ─── MONTH CALENDAR ─────────────────────────────── */
+.cal-month-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:4px}
+.cal-month-header{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid var(--border)}
+.cal-month-dow{text-align:center;padding:10px 4px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.cal-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-month-cell{min-height:80px;padding:6px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.cal-month-cell:nth-child(7n){border-right:0}
+.cal-month-empty{background:var(--bg)}
+.cal-other-month{background:var(--surface-2)}
+.cal-other-month .cal-month-day-num{color:var(--muted)}
+.cal-month-day-num{width:26px;height:26px;border-radius:50%;border:0;background:transparent;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background var(--transition),color var(--transition)}
+.cal-month-day-num:hover{background:var(--blue-50);color:var(--blue)}
+.cal-month-cell.is-today .cal-month-day-num{background:var(--blue);color:#fff}
+.cal-month-event{width:100%;text-align:left;border:0;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600;color:var(--text);background:color-mix(in srgb,var(--event-color) 18%,white);border-left:2px solid var(--event-color);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:filter var(--transition)}
+.cal-month-event:hover{filter:brightness(.94)}
+.cal-month-more{font-size:11px;color:var(--muted);font-weight:600;padding:0 4px}
+
+/* ─── TURN OVERLAP & ENHANCEMENTS ────────────────── */
+.turn-overlap{border-color:var(--amber-100)!important;box-shadow:0 0 0 2px var(--amber-100)!important}
+.agenda-time-end{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:1px}
+
+@media(max-width:780px){
+ .cal-view-toggle{display:none}
+ .turns-filter-row{flex-wrap:wrap}
+}
+@media(max-width:960px){
+ .cal-week-wrap{overflow-x:auto}
+}
 .content{margin-left:var(--sidebar);min-height:100vh;width:calc(100% - var(--sidebar));display:flex;flex-direction:column}
 
 /* ─── HEADER ─────────────────────────────────────── */
@@ -3519,6 +3578,7 @@ body.modal-open{overflow:hidden}
 "use strict";
 /* CONFIGURACIÓN */
 const DATA_VERSION=7;
+const SESSION_FINALIZATION_FIX='2026-06-22';
 const STORAGE_KEY="eter.kinepro.clinical.v2";
 const MIGRATION_KEY="eter.kinepro.migration.v7";
 const DEVICE_KEY="eter.kinepro.device.v1";
@@ -3564,7 +3624,7 @@ const SYNC_WRITE_DELAY=1200;
 const SYNC_INLINE_DELAY=2000;
 const SYNC_RETRY_DELAY=15000;
 const FIRESTORE_BATCH_LIMIT=450;
-const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',routineSearch:'',historyFilters:{patientQuery:'',routineQuery:'',date:''},paymentFilters:{period:'all',from:'',to:''},paymentTab:'movements',turnFilters:{period:'day',anchor:''},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null,confirmReturnFocus:null};
+const ui={view:'inicio',patientTab:'list',routineTab:'routines',profileTab:'anamnesis',selectedPatientId:'',anamnesisEditingId:'',patientSearch:'',patientStateFilter:'Todos',patientTreatmentFilter:'Todos',patientSort:'az',expandedPatientIds:new Set(),routineDraft:null,routineEditingId:'',exerciseEditingId:'',routineSearch:'',historyFilters:{patientQuery:'',routineQuery:'',date:''},paymentFilters:{period:'all',from:'',to:''},paymentTab:'movements',turnFilters:{period:'day',anchor:'',calendarView:'list'},record:createEmptyAnamnesis(),wiz:1,modalReturnFocus:null,confirmReturnFocus:null};
 let data=loadAndMigrateData();
 data.turns=(data.turns||[]).map(normalizeTurn);
 let pendingConfirm=null;
@@ -3638,10 +3698,13 @@ function setSync(state,label,detail=''){const el=$('#syncStatus');if(!el)return;
 function toast(message,type='success',action=null){const t=$('#toast');if(!t)return;t.className=`toast ${type}`;$('#toastIcon').textContent=type==='error'?'✕':type==='warn'?'!':type==='info'?'ℹ':'✓';$('#toastMsg').textContent=message;const actionButton=$('#toastAction');if(actionButton){actionButton.hidden=!(action&&action.label&&typeof action.onClick==='function');actionButton.textContent=action?.label||'';actionButton.onclick=actionButton.hidden?null:()=>{t.classList.remove('show');action.onClick()}}t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),actionButton&&!actionButton.hidden?6500:2800)}
 /* MIGRACIÓN DE DATOS */
 function defaultData(){return{version:DATA_VERSION,patients:[],routines:[],activeSessions:[],history:[],exerciseLibrary:[],turns:[],payments:[],packages:[],pendingDeletes:[],meta:{}}}
-function normalizeTurn(raw={}){const fecha=raw.fecha||raw.date||todayISO(),hora=raw.hora||raw.hour||'',fallback=`${fecha}T${/^\d{2}:\d{2}$/.test(hora)?hora:'12:00'}:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback;const turn={...raw,id:String(raw.id||uid('turn')),patientId:raw.patientId||'',paciente:raw.paciente||raw.patientName||'Sin nombre',hora,fecha,motivo:raw.motivo||'Turno clínico',estado:raw.estado||'Pendiente',price:Number(raw.price??raw.precio??0)||0,rateId:raw.rateId||raw.promoId||'',billingType:raw.billingType||(raw.comboId?'combo':'individual'),comboId:raw.comboId||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true};delete turn.external;return turn}
+function normalizeTurn(raw={}){const fecha=raw.fecha||raw.date||todayISO(),hora=raw.hora||raw.hour||'',fallback=`${fecha}T${/^\d{2}:\d{2}$/.test(hora)?hora:'12:00'}:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback;const turn={...raw,id:String(raw.id||uid('turn')),patientId:raw.patientId||'',paciente:raw.paciente||raw.patientName||'Sin nombre',hora,fecha,motivo:raw.motivo||'Turno clínico',estado:raw.estado||'Pendiente',duracion:Number(raw.duracion||45),price:Number(raw.price??raw.precio??0)||0,rateId:raw.rateId||raw.promoId||'',billingType:raw.billingType||(raw.comboId?'combo':'individual'),comboId:raw.comboId||'',waitlistName:raw.waitlistName||'',waitlistPhone:raw.waitlistPhone||'',waitlistEmail:raw.waitlistEmail||'',reminderSent:raw.reminderSent||false,createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true};delete turn.external;return turn}
 function normalizePayment(raw={}){const date=raw.date||todayISO(),fallback=`${date}T12:00:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback;const legacyType=raw.type==='Pack / combo'?'Pack / combo':raw.type==='Otro'?'Pago sin turno':raw.type;return{...raw,id:String(raw.id||uid('payment')),patientId:raw.patientId||'',patientName:raw.patientName||'',type:legacyType||(raw.turnId?'Turno':raw.comboId?'Pack / combo':'Pago sin turno'),turnId:raw.turnId||'',comboId:raw.comboId||'',amount:Number(raw.amount??raw.monto??0)||0,date,method:raw.method||'Efectivo',status:raw.status||'Cobrado',notes:raw.notes||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true}}
 function normalizePackage(raw={}){const startDate=raw.startDate||raw.fechaInicio||todayISO(),fallback=`${startDate}T12:00:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback,promo=getPromo(raw.promoId||'');return{...raw,id:String(raw.id||uid('combo')),patientId:raw.patientId||'',patientName:raw.patientName||'',name:raw.name||raw.nombre||'Pack personalizado',promoId:raw.promoId||'',serviceType:raw.serviceType||promo?.service||'',frequencyLabel:raw.frequencyLabel||promo?.frequency||'',intervalDays:Number(raw.intervalDays??promo?.intervalDays??0)||0,sameMonth:raw.sameMonth===true||promo?.sameMonth===true,totalSessions:Math.max(1,Number(raw.totalSessions??raw.sesiones??promo?.sessions??4)||4),price:Number(raw.price??raw.precio??promo?.price??0)||0,startDate,endDate:raw.endDate||raw.fechaFin||(raw.sameMonth||promo?.sameMonth?monthEndISO(startDate):addDaysISO(startDate,30)),notes:raw.notes||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true}}
-function normalizeEntityItem(key,item){if(key==='turns')return normalizeTurn(item);if(key==='payments')return normalizePayment(item);if(key==='packages')return normalizePackage(item);return item}
+function normalizeActiveSession(raw={}){const startedAt=raw.startedAt||raw.createdAt||nowIso(),updatedAt=raw.updatedAt||startedAt,executionSource=Array.isArray(raw.executionData)?raw.executionData:(Array.isArray(raw.exercises)?raw.exercises:[]);return{...raw,id:String(raw.id||uid('session')),patientId:raw.patientId||'',patientName:raw.patientName||raw.paciente||'',routineId:raw.routineId||'',routineName:raw.routineName||raw.name||raw.nombre||'Rutina sin nombre',startedAt,createdAt:raw.createdAt||startedAt,executionData:executionSource.map((exercise,index)=>normalizeExercise(exercise,index)),paused:Boolean(raw.paused),pausedAt:raw.pausedAt||raw.pauseStartedAt||'',pausedMs:Number(raw.pausedMs||0),status:raw.status||'Activa',updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw)||Date.now(),_dirty:raw._dirty===true}}
+function normalizeHistoryRecord(raw={}){const finishedAt=raw.finishedAt||raw.updatedAt||raw.createdAt||nowIso(),startedAt=raw.startedAt||raw.createdAt||finishedAt,updatedAt=raw.updatedAt||finishedAt,executionSource=Array.isArray(raw.executionData)?raw.executionData:(Array.isArray(raw.exercises)?raw.exercises:[]);return{...raw,id:String(raw.id||uid('history')),patientId:raw.patientId||'',patientName:raw.patientName||raw.paciente||'',routineId:raw.routineId||'',routineName:raw.routineName||raw.name||raw.nombre||'Rutina sin nombre',startedAt,finishedAt,createdAt:raw.createdAt||finishedAt,executionData:executionSource.map((exercise,index)=>normalizeExercise(exercise,index)),completedCount:Number(raw.completedCount||0),totalCount:Number(raw.totalCount??executionSource.length)||0,progress:Number(raw.progress||0),duration:Number(raw.duration||0),volume:Number(raw.volume||0),status:raw.status||'Incompleta',updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw)||Date.now(),_dirty:raw._dirty===true}}
+function normalizeExerciseLibraryItem(raw={},index=0){const updatedAt=raw.updatedAt||raw.createdAt||nowIso();return{...raw,...normalizeExercise(raw,index),custom:raw.custom!==false,createdAt:raw.createdAt||updatedAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw)||Date.now(),_dirty:raw._dirty===true}}
+function normalizeEntityItem(key,item){if(key==='patients')return normalizePatient(item);if(key==='routines')return normalizeRoutine(item);if(key==='activeSessions')return normalizeActiveSession(item);if(key==='history')return normalizeHistoryRecord(item);if(key==='exerciseLibrary')return normalizeExerciseLibraryItem(item);if(key==='turns')return normalizeTurn(item);if(key==='payments')return normalizePayment(item);if(key==='packages')return normalizePackage(item);return item}
 function normalizePatient(raw={}){const fecha=raw.fechaRegistro||raw.createdAt||raw.fecha||todayISO(),fallbackDate=/^\d{4}-\d{2}-\d{2}$/.test(String(fecha))?`${fecha}T12:00:00`:fecha,createdAt=raw.createdAt||new Date(fallbackDate).toISOString(),updatedAt=raw.updatedAt||createdAt;return {
   ...raw,id:String(raw.id||uid('patient')),nombre:raw.nombre||raw.name||'Sin nombre',edad:raw.edad??raw.age??'',dni:normalizeDni(raw.dni),telefono:raw.telefono||raw.phone||'',email:raw.email||'',ocupacion:raw.ocupacion||'',obraSocial:raw.obraSocial||raw.obra||'',fechaRegistro:fecha,ultimaConsulta:raw.ultimaConsulta||raw.fecha||raw.lastVisit||fecha,diagnostico:raw.diagnostico||raw.diag||raw.diagnosis||raw.motivo||'Sin diagnóstico',tipoTratamiento:raw.tipoTratamiento||raw.treatmentType||'',estadoClinico:raw.estadoClinico||raw.estado||'Activo',faseTratamiento:raw.faseTratamiento||raw.phase||'Evaluación',antecedentesQuirurgicos:raw.antecedentesQuirurgicos||raw.quir||'',antecedentesTraumatologicos:raw.antecedentesTraumatologicos||raw.historyPrivate||raw.history||raw.trauma||'',enfermedadesCronicas:Array.isArray(raw.enfermedadesCronicas)?raw.enfermedadesCronicas:(raw.enf||[]),medicacion:raw.medicacion||raw.med||'',habitos:raw.habitos||raw.tabaco||'',actividadFisica:Array.isArray(raw.actividadFisica)?raw.actividadFisica:(raw.act||[]),zonasAfectadas:Array.isArray(raw.zonasAfectadas)?raw.zonasAfectadas:(raw.zonas||[]),estudiosDisponibles:Array.isArray(raw.estudiosDisponibles)?raw.estudiosDisponibles:(raw.estudios||[]),evaActividad:(raw.evaActividad??raw.evaAct??'')===''?'':Number(raw.evaActividad??raw.evaAct),evaReposo:(raw.evaReposo??raw.evaRep??'')===''?'':Number(raw.evaReposo??raw.evaRep),observacionesPrivadas:raw.observacionesPrivadas||raw.notes||raw.notas||raw.obs||'',observacionesVisibles:raw.observacionesVisibles||raw.visibleNotes||'',planTerapeutico:Array.isArray(raw.planTerapeutico)?raw.planTerapeutico:(raw.plan||[]),evoluciones:Array.isArray(raw.evoluciones)?raw.evoluciones:[],createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true
 }}
@@ -3675,10 +3738,14 @@ function activeCombosForPatient(patientId,date=todayISO(),excludeTurnId=''){retu
 function turnPaymentState(turn){if(turn.comboId){const combo=getCombo(turn.comboId);return combo?{label:'Incluido en combo',className:'b-blue',detail:combo.name}:{label:'Combo no disponible',className:'b-red',detail:''}}const payment=getPaymentByTurn(turn.id);if(payment)return{label:payment.status,className:payment.status==='Cobrado'?'b-ok':'b-warn',detail:money(payment.amount)};return Number(turn.price||0)>0?{label:'Sin cobrar',className:'b-warn',detail:money(turn.price)}:{label:'Sin precio',className:'b-gray',detail:''}}
 function paymentConcept(payment){if(payment.turnId){const turn=getTurnById(payment.turnId);return turn?`Turno ${fmtDate(turn.fecha)} · ${turn.hora}`:'Turno eliminado'}if(payment.comboId){const combo=getCombo(payment.comboId);return combo?.name||'Pack / combo'}return payment.notes||'Pago sin turno'}
 function turnPatientUi(turn){const patient=resolveTurnPatient(turn);return patient?`<button class="btn btn-sm" data-action="profile" data-id="${patient.id}">Ver ficha</button>`:`<button class="btn btn-sm btn-primary" data-action="create-patient-from-turn" data-id="${esc(turn.id)}">+ Crear ficha</button>`}
-function turnItemHtml(turn,{home=false}={}){
+function turnItemHtml(turn,{home=false,overlap=false}={}){
  const patient=resolveTurnPatient(turn),name=patient?.nombre||turn.paciente||'Sin nombre',billing=turnPaymentState(turn),payment=getPaymentByTurn(turn.id),combo=getCombo(turn.comboId);
  const status=turn.estado||'Pendiente',statusTone=({'Confirmado':'is-confirmado','Pendiente':'is-pendiente','Finalizado':'is-finalizado','Cancelado':'is-cancelado'})[status]||'is-neutral';
  const icon=(path)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+ const dur=Number(turn.duracion||45);
+ const endTime=turnEndTime(turn);
+ const durBadge=`<span class="badge b-gray" title="Duración del turno">⏱ ${dur} min${endTime?' → '+endTime:''}</span>`;
+ const overlapBadge=overlap?`<span class="badge b-warn" title="Este turno se superpone con otro en el mismo horario">⚠ Superposición</span>`:'';
  const finance=`<div class="turn-finance agenda-finance"><span class="agenda-money-icon" aria-hidden="true">${icon('<circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.8-2.1-1.2-3.5-1.2-1.9 0-3.2.9-3.2 2.3 0 1.5 1.2 2.1 3.4 2.5 2.1.4 3.1 1 3.1 2.5 0 1.5-1.4 2.5-3.4 2.5-1.6 0-3-.5-4-1.5M12 5.5v13"/>')}</span><span class="turn-price">${combo?'Valor individual '+money(turn.price):money(turn.price)}</span><span class="badge ${billing.className}">${esc(billing.label)}</span>${billing.detail?`<span class="badge b-gray">${esc(billing.detail)}</span>`:''}</div>`;
  const patientAction=patient
   ?`<button type="button" class="btn agenda-action-btn agenda-profile-btn" data-action="profile" data-id="${esc(patient.id)}"><span class="agenda-action-icon" aria-hidden="true">${icon('<circle cx="12" cy="8" r="3.5"/><path d="M5.5 19c.8-4 3-6 6.5-6s5.7 2 6.5 6"/>')}</span><span>Ver ficha</span></button>`
@@ -3686,10 +3753,14 @@ function turnItemHtml(turn,{home=false}={}){
  const payAction=!turn.comboId&&!payment&&Number(turn.price)>0
   ?`<button type="button" class="btn agenda-action-btn agenda-pay-btn" data-action="pay-turn" data-id="${esc(turn.id)}"><span class="agenda-action-icon" aria-hidden="true">${icon('<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M17 14h.01M9 14h6"/>')}</span><span>Cobrar</span></button>`
   :'';
+ const reminderAction=patient&&(patient.telefono||patient.email)&&status!=='Cancelado'&&status!=='Finalizado'
+  ?`<button type="button" class="btn agenda-action-btn" data-action="send-reminder" data-id="${esc(turn.id)}" title="Enviar recordatorio al paciente" style="color:var(--blue)"><span class="agenda-action-icon" aria-hidden="true">${icon('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>')}</span><span>Recordar</span></button>`
+  :'';
  const statusOptions=['Pendiente','Confirmado','Finalizado','Cancelado'].map(option=>`<button type="button" class="turn-status-option ${option===status?'is-current':''}" data-action="set-turn-status" data-id="${esc(turn.id)}" data-status="${option}" ${option===status?'disabled':''}><span class="turn-status-option-icon" aria-hidden="true">${option==='Finalizado'?icon('<path d="m5 12 4 4L19 6"/>'):option==='Cancelado'?icon('<path d="M6 6l12 12M18 6 6 18"/>'):option==='Confirmado'?icon('<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-5"/>'):icon('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/>')}</span><span>${option}</span>${option===status?'<span class="turn-current-mark">Actual</span>':''}</button>`).join('');
  const statusAction=`<details class="context turn-status-context"><summary class="btn agenda-action-btn turn-status-btn ${statusTone}" aria-label="Cambiar estado del turno: ${esc(status)}" aria-haspopup="menu"><span class="agenda-action-icon" aria-hidden="true">${icon(status==='Finalizado'?'<path d="m5 12 4 4L19 6"/>':status==='Cancelado'?'<path d="M6 6l12 12M18 6 6 18"/>':status==='Confirmado'?'<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-5"/>':'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/>')}</span><span>${esc(status)}</span><span class="turn-status-chevron" aria-hidden="true">${icon('<path d="m7 10 5 5 5-5"/>')}</span></summary><div class="context-menu turn-status-menu" role="menu"><span class="turn-menu-title">Cambiar estado</span>${statusOptions}</div></details>`;
  const moreAction=`<details class="context turn-more-context"><summary class="turn-more-btn" aria-label="Más acciones del turno" title="Más acciones" aria-haspopup="menu">${icon('<circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/>')}</summary><div class="context-menu turn-more-menu" role="menu"><button type="button" data-action="edit-turn" data-id="${esc(turn.id)}"><span aria-hidden="true">${icon('<path d="m4 20 4.2-1 10.6-10.6a2 2 0 0 0-2.8-2.8L5.4 16.2 4 20Z"/><path d="m14.8 6.8 2.4 2.4"/>')}</span><span>Editar turno</span></button><button type="button" class="danger" data-action="delete-turn" data-id="${esc(turn.id)}"><span aria-hidden="true">${icon('<path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/>')}</span><span>Eliminar turno</span></button></div></details>`;
- return`<article class="agenda-turn-card turn-agenda-card${home?' is-home-turn':''}"><div class="agenda-time-panel"><span class="agenda-clock-icon" aria-hidden="true">${icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>')}</span><strong class="agenda-time">${esc(turn.hora)}</strong></div><div class="agenda-turn-main"><div class="agenda-patient-name">${esc(name)}</div><div class="agenda-turn-reason">${esc(turn.motivo||'Turno clínico')}</div><div class="agenda-clinical-badges"><span class="badge b-gray">ETER</span>${patient?statusBadge(patient.estadoClinico):'<span class="badge b-warn">Paciente sin ficha clínica</span>'}${combo?`<span class="badge b-blue">${esc(combo.name)}</span>`:''}</div>${finance}</div><div class="agenda-turn-actions"><div class="agenda-action-group">${statusAction}${payAction}${patientAction}${moreAction}</div></div></article>`
+ const waitlistBadge=turn.waitlistName?`<span class="badge b-purple" title="Lista de espera: ${esc(turn.waitlistName)}">📋 ${esc(turn.waitlistName)}</span>`:'';
+ return`<article class="agenda-turn-card turn-agenda-card${home?' is-home-turn':''}${overlap?' turn-overlap':''}"><div class="agenda-time-panel"><span class="agenda-clock-icon" aria-hidden="true">${icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>')}</span><strong class="agenda-time">${esc(turn.hora)}</strong>${endTime?`<span class="agenda-time-end">${esc(endTime)}</span>`:''}</div><div class="agenda-turn-main"><div class="agenda-patient-name">${esc(name)}</div><div class="agenda-turn-reason">${esc(turn.motivo||'Turno clínico')}</div><div class="agenda-clinical-badges"><span class="badge b-gray">ETER</span>${durBadge}${overlapBadge}${waitlistBadge}${patient?statusBadge(patient.estadoClinico):'<span class="badge b-warn">Paciente sin ficha clínica</span>'}${combo?`<span class="badge b-blue">${esc(combo.name)}</span>`:''}</div>${finance}</div><div class="agenda-turn-actions"><div class="agenda-action-group">${statusAction}${payAction}${reminderAction}${patientAction}${moreAction}</div></div></article>`
 }
 function mergeImportedPatient(existing,seed,targetId,stamp){
  const merged={...seed,id:targetId};
@@ -3745,10 +3816,10 @@ function loadAndMigrateData(){
  }
  const ids=new Set(base.patients.map(p=>p.id));
  base.routines=(base.routines||[]).map(r=>{const nr=normalizeRoutine(r);if(!ids.has(nr.patientId)&&nr.patientName){const p=base.patients.find(x=>x.nombre.toLowerCase()===nr.patientName.toLowerCase());if(p)nr.patientId=p.id}return nr});
- base.activeSessions=(base.activeSessions||[]).map(s=>({...s,id:String(s.id||uid('session')),executionData:(s.executionData||s.exercises||[]).map(normalizeExercise),paused:Boolean(s.paused),pausedAt:s.pausedAt||s.pauseStartedAt||'',pausedMs:Number(s.pausedMs||0),status:s.status||'Activa',updatedAt:s.updatedAt||s.startedAt||nowIso(),_updatedAtMs:Number(s._updatedAtMs)||new Date(s.updatedAt||s.startedAt||0).getTime()||Date.now(),_dirty:s._dirty===true}));
- base.history=(base.history||[]).map(h=>({...h,id:String(h.id||uid('history')),executionData:(h.executionData||[]).map(normalizeExercise),updatedAt:h.updatedAt||h.finishedAt||h.createdAt||nowIso(),_updatedAtMs:Number(h._updatedAtMs)||new Date(h.updatedAt||h.finishedAt||h.createdAt||0).getTime()||Date.now(),_dirty:h._dirty===true}));
+ base.activeSessions=(base.activeSessions||[]).map(normalizeActiveSession);
+ base.history=(base.history||[]).map(normalizeHistoryRecord);
  delete base.athletes;
- base.exerciseLibrary=(base.exerciseLibrary||[]).map((e,i)=>({...e,...normalizeExercise(e,i),custom:true,updatedAt:e.updatedAt||e.createdAt||nowIso(),_updatedAtMs:Number(e._updatedAtMs)||new Date(e.updatedAt||e.createdAt||0).getTime()||Date.now(),_dirty:e._dirty===true}));
+ base.exerciseLibrary=(base.exerciseLibrary||[]).map(normalizeExerciseLibraryItem);
  base.turns=(base.turns||[]).map(normalizeTurn);
  base.payments=(base.payments||[]).map(normalizePayment);
  base.packages=(base.packages||[]).map(normalizePackage);
@@ -3829,7 +3900,8 @@ async function reconcileInitialPatients(){
 function buildFirestorePayload(item){const payload={...item};for(const key of ['_dirty','_patch','_seedPending','serverUpdatedAt'])delete payload[key];return payload}
 function normalizeRemoteEntity(key,raw={}){return normalizeEntityItem(key,withNormalizedRevision(raw))}
 function replaceRemoteEntity(key,remote,local){const cleanRemote={...remote,_dirty:false};delete cleanRemote._patch;if(key==='patients'&&local)return normalizePatient({...mergePatientFields(local,cleanRemote),_dirty:false,_patch:undefined});return normalizeRemoteEntity(key,cleanRemote)}
-function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite)return false;const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
+function hasPendingDelete(key,id){return Boolean((data.pendingDeletes||[]).some(item=>item.key===key&&item.id===id))}
+function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(hasPendingDelete(key,remote.id))return false;if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite)return false;const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
 function initClinicalListeners(){
  if(listenersStarted)return;
  listenersStarted=true;
@@ -3880,7 +3952,7 @@ function initClinicalListeners(){
   finally{applyingRemote=false}
  },error=>{console.error('Settings listener failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Modo local','Configuración pendiente');scheduleRetry()})
 }
-function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw),local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;if(entityRevision(incoming)>=entityRevision(local))current.set(incoming.id,replaceRemoteEntity(key,incoming,local))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
+function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw);if(hasPendingDelete(key,incoming.id))continue;const local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;if(entityRevision(incoming)>=entityRevision(local))current.set(incoming.id,replaceRemoteEntity(key,incoming,local))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
 function hasDirtyEntities(){return Boolean(data.meta?._dirty)||Object.values(ENTITY_COLLECTIONS).some(cfg=>(data[cfg.key]||[]).some(item=>item._dirty))}
 function scheduleCloudWrite(delayMs=SYNC_WRITE_DELAY){
  clearTimeout(syncWriteTimer);
@@ -3952,7 +4024,7 @@ window.addEventListener('offline',()=>setSync('offline','Sin conexión','Cambios
 leaderHeartbeat=setInterval(refreshSyncLeadership,3000);
 window.addEventListener('beforeunload',()=>{clearTimeout(syncWriteTimer);clearTimeout(syncRetryTimer);clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)});
 function mergePendingDeletes(incoming=[]){let changed=false;data.pendingDeletes=data.pendingDeletes||[];for(const raw of incoming){const deletion=withNormalizedRevision(raw),cfg=ENTITY_COLLECTIONS[deletion.key];if(!cfg)continue;const local=(data[cfg.key]||[]).find(item=>item.id===deletion.id);if(local?._dirty)continue;if(local){data[cfg.key]=data[cfg.key].filter(item=>item.id!==deletion.id);changed=true}const index=data.pendingDeletes.findIndex(item=>item.key===deletion.key&&item.id===deletion.id);if(index<0){data.pendingDeletes.push(deletion);changed=true}else if(entityRevision(deletion)>=entityRevision(withNormalizedRevision(data.pendingDeletes[index]))){data.pendingDeletes[index]=deletion;changed=true}}return changed}
-function mergeRemoteState(incoming={}){let changed=false;for(const cfg of Object.values(ENTITY_COLLECTIONS)){const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(item=>[item.id,item]));for(const raw of incoming[cfg.key]||[]){const item=normalizeRemoteEntity(cfg.key,raw),local=current.get(item.id);if(!local){current.set(item.id,item);continue}if(local._dirty&&local._writeId!==item._writeId)continue;if(entityRevision(item)>=entityRevision(local))current.set(item.id,normalizeEntityItem(cfg.key,item))}data[cfg.key]=[...current.values()];changed=changed||before!==collectionSignature(data[cfg.key])}const incomingMeta=withNormalizedRevision(incoming.meta||{}),localMeta=withNormalizedRevision(data.meta||{});if((!localMeta._dirty||localMeta._writeId===incomingMeta._writeId)&&entityRevision(incomingMeta)>=entityRevision(localMeta)){const next={...localMeta,...incomingMeta};if(syncComparable(next)!==syncComparable(localMeta)||Boolean(next._dirty)!==Boolean(localMeta._dirty)){data.meta=next;changed=true}}changed=mergePendingDeletes(incoming.pendingDeletes||[])||changed;return changed}
+function mergeRemoteState(incoming={}){let changed=false;for(const cfg of Object.values(ENTITY_COLLECTIONS)){const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(item=>[item.id,item]));for(const raw of incoming[cfg.key]||[]){const item=normalizeRemoteEntity(cfg.key,raw);if(hasPendingDelete(cfg.key,item.id))continue;const local=current.get(item.id);if(!local){current.set(item.id,item);continue}if(local._dirty&&local._writeId!==item._writeId)continue;if(entityRevision(item)>=entityRevision(local))current.set(item.id,normalizeEntityItem(cfg.key,item))}data[cfg.key]=[...current.values()];changed=changed||before!==collectionSignature(data[cfg.key])}const incomingMeta=withNormalizedRevision(incoming.meta||{}),localMeta=withNormalizedRevision(data.meta||{});if((!localMeta._dirty||localMeta._writeId===incomingMeta._writeId)&&entityRevision(incomingMeta)>=entityRevision(localMeta)){const next={...localMeta,...incomingMeta};if(syncComparable(next)!==syncComparable(localMeta)||Boolean(next._dirty)!==Boolean(localMeta._dirty)){data.meta=next;changed=true}}changed=mergePendingDeletes(incoming.pendingDeletes||[])||changed;return changed}
 function applyWriteAcknowledgement(records=[]){let changed=false;for(const record of records){if(record.kind==='meta'||record.key==='meta'){if(data.meta?._dirty&&data.meta._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch;changed=true}continue}const cfg=ENTITY_COLLECTIONS[record.key],item=cfg?(data[cfg.key]||[]).find(entity=>entity.id===record.id):null;if(item?._dirty&&item._writeId===record.writeId){item._dirty=false;delete item._patch;changed=true}}return changed}
 function applyDeleteAcknowledgement(records=[]){const keys=new Set(records.map(record=>`${record.key}:${record.id}:${record.writeId||''}`)),before=(data.pendingDeletes||[]).length;data.pendingDeletes=(data.pendingDeletes||[]).filter(item=>!keys.has(`${item.key}:${item.id}:${item._writeId||''}`));return before!==data.pendingDeletes.length}
 if(broadcast)broadcast.onmessage=event=>{
@@ -4339,13 +4411,13 @@ function sessionExerciseCard(session,e){const prescription=[e.sets?`${e.sets} se
 function startSessionByRoutine(routineId){const routine=getRoutine(routineId);if(!routine||routine.template)return toast('La rutina no está asignada a un paciente','error');const existing=getActiveSessionForPatient(routine.patientId);if(existing)return openSessionConflict(existing,routine);startSessionWithTurnCheck(routine)}
 function startSessionWithTurnCheck(routine){const missingTurn=!hasTurnForPatientOnDate(routine.patientId,todayISO());createSession(routine,!missingTurn);if(missingTurn)toast(`Sesión iniciada sin turno previo para ${livePatientName({patientId:routine.patientId,patientName:routine.patientName})}`,'warn',{label:'Crear turno',onClick:()=>openTurnForm('',{patientId:routine.patientId,fecha:todayISO(),hora:new Date().toTimeString().slice(0,5),motivo:routine.objective||routine.name})})}
 function startSelectedSession(){const patientId=$('#sessionPatient')?.value,routineId=$('#sessionRoutine')?.value;if(!patientId||!routineId)return toast('Seleccioná paciente y rutina','error');startSessionByRoutine(routineId)}
-function createSession(r,notify=true){if(operationLocks.has(`start-${r.patientId}`))return;operationLocks.add(`start-${r.patientId}`);const session=created({id:uid('session'),patientId:r.patientId,patientName:getPatient(r.patientId)?.nombre||r.patientName,routineId:r.id,routineName:r.name,source:'professional',startedAt:nowIso(),paused:false,pausedAt:'',pausedMs:0,status:'Activa',notes:'',executionData:r.exercises.map((e,i)=>normalizeExercise({...e,id:e.id||uid('execution'),order:i,completed:false,actualSets:'',actualReps:'',actualLoad:'',actualSeconds:'',executionNotes:''},i))});upsertEntity('activeSessions',session);operationLocks.delete(`start-${r.patientId}`);ui.routineTab='execution';setView('rutinas');if(notify)toast('Sesión iniciada')}
-function openSessionConflict(existing,nextRoutine){openConfirm('Sesión activa detectada',`${livePatientName(existing)} ya tiene una sesión de ${existing.routineName}.`,()=>{closeConfirm();ui.routineTab='execution';setView('rutinas');setTimeout(()=>document.querySelector(`[data-session-card="${existing.id}"]`)?.scrollIntoView({behavior:'smooth'}),50)},'Continuar sesión');$('#confirmActionButton').insertAdjacentHTML('beforebegin',`<button class="btn btn-warning confirm-extra" id="finishPreviousButton">Finalizar anterior</button>`);$('#finishPreviousButton').onclick=async()=>{await finalizeSession(existing.id,'Incompleta');closeConfirm();startSessionWithTurnCheck(nextRoutine)}}
+function createSession(r,notify=true){const lockKey=`start-${r.patientId}`;if(operationLocks.has(lockKey))return;operationLocks.add(lockKey);try{const exercises=Array.isArray(r.exercises)?r.exercises:[],session=created({id:uid('session'),patientId:r.patientId,patientName:getPatient(r.patientId)?.nombre||r.patientName||'',routineId:r.id,routineName:r.name||'Rutina sin nombre',source:'professional',startedAt:nowIso(),paused:false,pausedAt:'',pausedMs:0,status:'Activa',notes:'',executionData:exercises.map((e,i)=>normalizeExercise({...e,id:e.id||uid('execution'),order:i,completed:false,actualSets:'',actualReps:'',actualLoad:'',actualSeconds:'',executionNotes:''},i))});upsertEntity('activeSessions',session);ui.routineTab='execution';setView('rutinas');if(notify)toast('Sesión iniciada')}finally{operationLocks.delete(lockKey)}}
+function openSessionConflict(existing,nextRoutine){openConfirm('Sesión activa detectada',`${livePatientName(existing)} ya tiene una sesión de ${existing.routineName}.`,()=>{closeConfirm();ui.routineTab='execution';setView('rutinas');setTimeout(()=>document.querySelector(`[data-session-card="${existing.id}"]`)?.scrollIntoView({behavior:'smooth'}),50)},'Continuar sesión');$('#confirmActionButton').insertAdjacentHTML('beforebegin',`<button class="btn btn-warning confirm-extra" id="finishPreviousButton">Finalizar anterior</button>`);const finishButton=$('#finishPreviousButton');finishButton.onclick=async()=>{if(finishButton.disabled)return;finishButton.disabled=true;try{if(await finalizeSession(existing.id,'Incompleta')){closeConfirm();startSessionWithTurnCheck(nextRoutine)}}catch(error){console.error('Previous session finalization failed',error);toast('No se pudo finalizar la sesión anterior','error');finishButton.disabled=false}}}
 function togglePause(id){const s=data.activeSessions.find(x=>x.id===id);if(!s)return;if(s.paused){s.pausedMs=Number(s.pausedMs||0)+(Date.now()-new Date(s.pausedAt).getTime());s.paused=false;s.pausedAt=''}else{s.paused=true;s.pausedAt=nowIso()}upsertEntity('activeSessions',s);renderExecution();toast(s.paused?'Sesión pausada':'Sesión reanudada','info')}
 function updateExecutionField(sessionId,exerciseId,field,value){const s=data.activeSessions.find(x=>x.id===sessionId),e=s?.executionData.find(x=>x.id===exerciseId);if(!e)return;e[field]=value;debounce(`execution-${sessionId}-${exerciseId}`,()=>upsertEntity('activeSessions',s),500)}
 function toggleExercise(sessionId,exerciseId){const s=data.activeSessions.find(x=>x.id===sessionId),e=s?.executionData.find(x=>x.id===exerciseId);if(!e)return;e.completed=!e.completed;upsertEntity('activeSessions',s);renderExecution();toast(e.completed?'Ejercicio completado':'Ejercicio marcado pendiente','info')}
 function cancelSessionDebounces(sessionId){for(const [key,timer] of saveDebouncers.entries()){if(key.startsWith(`execution-${sessionId}-`)){clearTimeout(timer);saveDebouncers.delete(key)}}}
-async function finalizeSession(id,status='Finalizada'){cancelSessionDebounces(id);const s=data.activeSessions.find(x=>x.id===id);if(!s)return;const prog=sessionProgress(s),finishedAt=nowIso(),duration=sessionElapsed(s);const finalStatus=status==='Abandonada'?'Abandonada':prog.completed===prog.total?'Finalizada':'Incompleta';const record=created({id:uid('history'),patientId:s.patientId,patientName:s.patientName,routineId:s.routineId,routineName:s.routineName,source:s.source||'professional',startedAt:s.startedAt,finishedAt,duration,completedCount:prog.completed,totalCount:prog.total,progress:prog.pct,volume:volumeForExecution(s.executionData),status:status==='Abandonada'?'Abandonada':finalStatus,notes:s.notes||'',executionData:s.executionData.map(x=>({...x})),createdAt:finishedAt});upsertEntity('history',record);await removeEntity('activeSessions',id);const p=getPatient(s.patientId);if(p)upsertEntity('patients',{...p,ultimaConsulta:todayISO(),sesionesRealizadas:(p.sesionesRealizadas||0)+1});renderAll();toast(status==='Abandonada'?'Sesión registrada como abandonada':'Sesión finalizada y guardada')}
+async function finalizeSession(id,status='Finalizada'){const lockKey=`finish-${id}`;if(operationLocks.has(lockKey))return false;operationLocks.add(lockKey);try{cancelSessionDebounces(id);const sessionIndex=(data.activeSessions||[]).findIndex(item=>item.id===id);if(sessionIndex<0){renderAll();toast('La sesión ya no está activa','info');return true}const s=normalizeActiveSession(data.activeSessions[sessionIndex]),executionData=Array.isArray(s.executionData)?s.executionData.map((exercise,index)=>normalizeExercise(exercise,index)):[],prog=sessionProgress({...s,executionData}),finishedAt=nowIso(),duration=sessionElapsed(s),requestedStatus=['Finalizada','Incompleta','Abandonada'].includes(status)?status:'Finalizada',finalStatus=requestedStatus==='Abandonada'?'Abandonada':requestedStatus==='Incompleta'?'Incompleta':(prog.total>0&&prog.completed===prog.total?'Finalizada':'Incompleta'),existingRecord=(data.history||[]).find(item=>item.sourceSessionId===id);if(!existingRecord){const record=created({id:uid('history'),sourceSessionId:id,patientId:s.patientId||'',patientName:livePatientName(s),routineId:s.routineId||'',routineName:s.routineName||getRoutine(s.routineId)?.name||'Rutina sin nombre',source:s.source||'professional',startedAt:s.startedAt||finishedAt,finishedAt,duration,completedCount:prog.completed,totalCount:prog.total,progress:prog.pct,volume:volumeForExecution(executionData),status:finalStatus,notes:s.notes||'',executionData,createdAt:finishedAt});data.history=[record,...(data.history||[])];const patient=getPatient(s.patientId);if(patient){const patientIndex=data.patients.findIndex(item=>item.id===patient.id);data.patients[patientIndex]=touch({...patient,ultimaConsulta:todayISO(),sesionesRealizadas:(Number(patient.sesionesRealizadas)||0)+1})}}data.activeSessions=(data.activeSessions||[]).filter(item=>item.id!==id);data.pendingDeletes=data.pendingDeletes||[];const stamp=Date.now(),existingDelete=data.pendingDeletes.find(item=>item.key==='activeSessions'&&item.id===id),deleteRecord={key:'activeSessions',id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`};if(existingDelete)Object.assign(existingDelete,deleteRecord);else data.pendingDeletes.push(deleteRecord);persistLocal();renderAll();setSync(navigator.onLine?'syncing':'offline',navigator.onLine?'Sincronizando':'Sin conexión',navigator.onLine?'Guardando finalización':'Finalización guardada localmente');scheduleCloudWrite(20);toast(finalStatus==='Abandonada'?'Sesión registrada como abandonada':'Sesión finalizada y guardada');return true}catch(error){console.error('Session finalization failed',{id,status,error});throw error}finally{operationLocks.delete(lockKey)}}
 function updateTimerNodes(){$$('[data-timer-session]').forEach(el=>{const s=data.activeSessions.find(x=>x.id===el.dataset.timerSession);if(s)el.textContent=formatDuration(sessionElapsed(s))})}
 function startTimerLoop(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{if(ui.view!=='rutinas'||ui.routineTab!=='execution')return;if(!(data.activeSessions||[]).length)return;(data.activeSessions||[]).forEach(session=>{const el=document.querySelector(`[data-timer-session="${CSS.escape(session.id)}"]`);if(el)el.textContent=formatDuration(sessionElapsed(session))});updateNotifications()},1000)}
 
@@ -4425,15 +4497,201 @@ function deleteHistoryRecord(id){
 function renderExerciseProgressTable(list){const rows=list.flatMap(item=>(item.executionData||[]).filter(exercise=>exercise.completed).map(exercise=>({date:item.finishedAt,patient:livePatientName(item),name:exercise.name,sets:Number(exercise.actualSets||0),reps:Number(exercise.actualReps||0),load:Number(exercise.actualLoad||0)})));return`<div class="table-wrap responsive"><table class="table"><thead><tr><th>Fecha</th><th>Paciente</th><th>Ejercicio</th><th>Series</th><th>Repeticiones</th><th>Carga</th><th>Volumen</th></tr></thead><tbody>${rows.map(row=>`<tr><td><span class="mobile-card-label">Fecha</span>${fmtDate(row.date)}</td><td><span class="mobile-card-label">Paciente</span>${esc(row.patient)}</td><td><span class="mobile-card-label">Ejercicio</span>${esc(row.name)}</td><td><span class="mobile-card-label">Series</span>${row.sets}</td><td><span class="mobile-card-label">Repeticiones</span>${row.reps}</td><td><span class="mobile-card-label">Carga</span>${row.load}</td><td><span class="mobile-card-label">Volumen</span>${Math.round(row.sets*row.reps*row.load)}</td></tr>`).join('')||'<tr><td colspan="7">Sin datos de progreso</td></tr>'}</tbody></table></div>`}
 
 /* TURNOS */
+/* ─── AGENDA PREMIUM ──────────────────────────────── */
+
+function turnEndTime(turn){
+ if(!turn.hora)return '';
+ const [h,m]=turn.hora.split(':').map(Number);
+ const dur=Number(turn.duracion||45);
+ const endMin=(h*60+m+dur);
+ return `${String(Math.floor(endMin/60)%24).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
+}
+
+function turnsOverlap(a,b){
+ if(a.fecha!==b.fecha||!a.hora||!b.hora)return false;
+ const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+ const aStart=toMin(a.hora),aEnd=aStart+Number(a.duracion||45);
+ const bStart=toMin(b.hora),bEnd=bStart+Number(b.duracion||45);
+ return aStart<bEnd&&bStart<aEnd;
+}
+
+function notifyWaitlist(turn){
+ if(!turn.waitlistName&&!turn.waitlistPhone&&!turn.waitlistEmail)return;
+ const name=turn.waitlistName||'Paciente en espera';
+ const date=fmtDate(turn.fecha);
+ const hora=turn.hora||'';
+ const motivo=turn.motivo||'turno clínico';
+ let actions='';
+ if(turn.waitlistPhone){
+  const msg=encodeURIComponent(`Hola ${name}! Se liberó un turno de ${motivo} el ${date} a las ${hora}. ¿Querés agendarte? Respondé este mensaje para confirmarlo.`);
+  actions+=`<a href="https://wa.me/54${turn.waitlistPhone.replace(/\D/g,'')}?text=${msg}" target="_blank" class="btn btn-success" style="gap:6px">📱 WhatsApp a ${esc(name)}</a> `;
+ }
+ if(turn.waitlistEmail){
+  const subject=encodeURIComponent(`Turno disponible – ${date} ${hora}`);
+  const body=encodeURIComponent(`Hola ${name},\n\nSe liberó un turno de ${motivo} el ${date} a las ${hora}.\n\nComunicate para confirmarlo.\n\nSaludos`);
+  actions+=`<a href="mailto:${esc(turn.waitlistEmail)}?subject=${subject}&body=${body}" class="btn" style="gap:6px">✉️ Email a ${esc(name)}</a>`;
+ }
+ if(!actions){
+  toast(`Turno cancelado · ${name} estaba en lista de espera`,'warn');
+  return;
+ }
+ openModal(
+  '📋 Lista de espera — turno cancelado',
+  `<div style="text-align:center;padding:8px 0 20px"><div style="font-size:40px;margin-bottom:12px">🔔</div><p style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">Turno cancelado</p><p style="color:var(--text-2);font-size:13.5px;margin-bottom:20px"><strong>${esc(name)}</strong> estaba en la lista de espera para este horario.<br>${date} ${hora} · ${esc(motivo)}</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${actions}</div></div>`,
+  `<button type="button" class="btn" data-action="close-modal">Cerrar</button>`
+ );
+}
+
+function sendReminder(turn){
+ const patName=livePatientName(turn);
+ const date=fmtDate(turn.fecha);
+ const hora=turn.hora||'';
+ const motivo=turn.motivo||'turno clínico';
+ const patient=getPatient(turn.patientId);
+ const phone=patient?.telefono||'';
+ const email=patient?.email||'';
+ let actions='';
+ if(phone){
+  const msg=encodeURIComponent(`Hola ${patName}! Te recordamos tu turno de ${motivo} mañana ${date} a las ${hora}. Ante cualquier cambio avisanos con anticipación. ¡Hasta mañana!`);
+  actions+=`<a href="https://wa.me/54${phone.replace(/\D/g,'')}?text=${msg}" target="_blank" class="btn btn-success" style="gap:6px">📱 WhatsApp</a> `;
+ }
+ if(email){
+  const subject=encodeURIComponent(`Recordatorio de turno – ${date} ${hora}`);
+  const body=encodeURIComponent(`Hola ${patName},\n\nTe recordamos tu turno de ${motivo} el ${date} a las ${hora}.\n\nAnte cualquier cambio, avisanos con anticipación.\n\n¡Hasta pronto!`);
+  actions+=`<a href="mailto:${esc(email)}?subject=${subject}&body=${body}" class="btn" style="gap:6px">✉️ Email</a>`;
+ }
+ if(!actions){
+  toast(`${patName} no tiene teléfono ni email cargado en su ficha`,'warn');
+  return;
+ }
+ openModal(
+  `📩 Recordatorio para ${esc(patName)}`,
+  `<div style="text-align:center;padding:8px 0 20px"><div style="font-size:40px;margin-bottom:12px">⏰</div><p style="color:var(--text-2);font-size:13.5px;margin-bottom:20px">Turno: <strong>${date} ${hora}</strong> · ${esc(motivo)}</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${actions}</div></div>`,
+  `<button type="button" class="btn" data-action="close-modal">Cerrar</button>`
+ );
+}
+
+function calendarWeekDays(anchor){
+ const d=new Date(`${anchor}T12:00:00`);
+ const dow=d.getDay();
+ const monday=new Date(d);monday.setDate(d.getDate()-(dow===0?6:dow-1));
+ return Array.from({length:7},(_,i)=>{const day=new Date(monday);day.setDate(monday.getDate()+i);return day.toISOString().slice(0,10)});
+}
+
+function calendarMonthDays(anchor){
+ const [y,m]=anchor.split('-').map(Number);
+ const first=new Date(y,m-1,1);
+ const last=new Date(y,m,0);
+ const dow=first.getDay();
+ const startOffset=dow===0?6:dow-1;
+ const days=[];
+ for(let i=startOffset;i>0;i--){const d=new Date(first);d.setDate(1-i);days.push({date:d.toISOString().slice(0,10),otherMonth:true})}
+ for(let i=1;i<=last.getDate();i++){const d=new Date(y,m-1,i);days.push({date:d.toISOString().slice(0,10),otherMonth:false})}
+ while(days.length%7!==0)days.push({date:'',otherMonth:true});
+ return days;
+}
+
+function calendarDayLabel(dateStr){
+ if(!dateStr)return '';
+ return new Intl.DateTimeFormat('es-AR',{weekday:'short',day:'numeric'}).format(new Date(`${dateStr}T12:00:00`));
+}
+
+function turnDurationBar(turn,slotHeight=60){
+ const dur=Number(turn.duracion||45);
+ const height=Math.max(28,Math.round((dur/60)*slotHeight));
+ const colorMap={'Confirmado':'var(--green)','Finalizado':'var(--muted)','Cancelado':'var(--red)','Pendiente':'var(--amber)'};
+ const color=colorMap[turn.estado]||'var(--blue)';
+ return{height,color};
+}
+
+function renderCalendarWeek(anchor,turns){
+ const days=calendarWeekDays(anchor);
+ const today=todayISO();
+ const hours=Array.from({length:13},(_,i)=>i+8); // 8am-20pm
+ const slotH=56;
+ const dayW=`calc((100% - 52px) / 7)`;
+
+ const turnsPerDay=Object.fromEntries(days.map(d=>[d,turns.filter(t=>t.fecha===d).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''))]));
+
+ const dayHeaders=days.map(d=>`<div class="cal-week-day-header${d===today?' is-today':''}"><span class="cal-week-dow">${new Intl.DateTimeFormat('es-AR',{weekday:'short'}).format(new Date(`${d}T12:00:00`))}</span><button class="cal-week-date-btn" data-action="turn-period" data-period="day" data-anchor="${d}">${new Date(`${d}T12:00:00`).getDate()}</button></div>`).join('');
+
+ const timeCol=hours.map(h=>`<div class="cal-time-slot" style="height:${slotH}px"><span>${String(h).padStart(2,'0')}:00</span></div>`).join('');
+
+ const dayCols=days.map(d=>{
+  const dayTurns=turnsPerDay[d]||[];
+  const events=dayTurns.map(turn=>{
+   const [th,tm]=(turn.hora||'08:00').split(':').map(Number);
+   const startMin=(th-8)*60+tm;
+   const dur=Number(turn.duracion||45);
+   const top=Math.round((startMin/60)*slotH);
+   const height=Math.max(24,Math.round((dur/60)*slotH)-3);
+   const colorMap={'Confirmado':'var(--green)','Finalizado':'var(--muted)','Cancelado':'var(--red)','Pendiente':'var(--amber)'};
+   const color=colorMap[turn.estado]||'var(--blue)';
+   const name=livePatientName(turn);
+   return`<button class="cal-event" style="top:${top}px;height:${height}px;--event-color:${color}" data-action="edit-turn" data-id="${esc(turn.id)}" title="${esc(name)} · ${esc(turn.hora)} · ${esc(turn.motivo)}"><span class="cal-event-name">${esc(name)}</span><span class="cal-event-time">${esc(turn.hora)}</span></button>`
+  }).join('');
+  return`<div class="cal-week-day-col${d===today?' is-today':''}" style="min-height:${slotH*hours.length}px">${events}<div class="cal-day-slots">${hours.map(()=>`<div class="cal-day-slot" style="height:${slotH}px"></div>`).join('')}</div></div>`
+ }).join('');
+
+ return`<div class="cal-week-wrap"><div class="cal-week-header"><div class="cal-time-gutter"></div>${dayHeaders}</div><div class="cal-week-body"><div class="cal-time-col">${timeCol}</div><div class="cal-week-days">${dayCols}</div></div></div>`;
+}
+
+function renderCalendarMonth(anchor,turns){
+ const days=calendarMonthDays(anchor);
+ const today=todayISO();
+ const dowNames=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+ const turnsPerDay={};
+ turns.forEach(t=>{if(!turnsPerDay[t.fecha])turnsPerDay[t.fecha]=[];turnsPerDay[t.fecha].push(t)});
+
+ const header=dowNames.map(d=>`<div class="cal-month-dow">${d}</div>`).join('');
+ const cells=days.map(({date,otherMonth})=>{
+  if(!date)return`<div class="cal-month-cell cal-month-empty"></div>`;
+  const dayTurns=(turnsPerDay[date]||[]).slice(0,3);
+  const extra=(turnsPerDay[date]||[]).length-3;
+  const dayNum=new Date(`${date}T12:00:00`).getDate();
+  const events=dayTurns.map(t=>{
+   const colorMap={'Confirmado':'var(--green)','Finalizado':'var(--muted)','Cancelado':'var(--red)','Pendiente':'var(--amber)'};
+   const color=colorMap[t.estado]||'var(--blue)';
+   return`<button class="cal-month-event" style="--event-color:${color}" data-action="edit-turn" data-id="${esc(t.id)}" title="${esc(livePatientName(t))} · ${esc(t.hora)}">${esc(livePatientName(t)||t.hora)}</button>`
+  }).join('');
+  return`<div class="cal-month-cell${otherMonth?' cal-other-month':''}${date===today?' is-today':''}"><button class="cal-month-day-num${date===today?' is-today':''}" data-action="turn-period" data-period="day" data-anchor="${date}">${dayNum}</button>${events}${extra>0?`<span class="cal-month-more">+${extra} más</span>`:''}</div>`
+ }).join('');
+
+ return`<div class="cal-month-wrap"><div class="cal-month-header">${header}</div><div class="cal-month-grid">${cells}</div></div>`;
+}
+
 function renderTurnos(date){
  if(date)ui.turnFilters.anchor=dateOnly(date)||todayISO();
- const selected=ui.turnFilters.anchor||$('#turnosDate')?.value||todayISO(),period=['day','week','month'].includes(ui.turnFilters.period)?ui.turnFilters.period:'day',range=turnRangeForPeriod(selected,period),items=getTurnsForRange(range.from,range.to),grouped=new Map();
+ const selected=ui.turnFilters.anchor||$('#turnosDate')?.value||todayISO();
+ const period=['day','week','month'].includes(ui.turnFilters.period)?ui.turnFilters.period:'day';
+ const calView=ui.turnFilters.calendarView||'list';
+ const range=turnRangeForPeriod(selected,period);
+ const items=getTurnsForRange(range.from,range.to);
+ const grouped=new Map();
  ui.turnFilters.anchor=selected;ui.turnFilters.period=period;
  items.forEach(turn=>{if(!grouped.has(turn.fecha))grouped.set(turn.fecha,[]);grouped.get(turn.fecha).push(turn)});
- const groups=[...grouped.entries()].map(([groupDate,turns])=>`<section class="turn-day-group"><header class="turn-day-head"><div><span class="turn-day-kicker">${groupDate===todayISO()?'Hoy':new Intl.DateTimeFormat('es-AR',{weekday:'long'}).format(new Date(`${groupDate}T12:00:00`))}</span><h3>${fmtDate(groupDate)}</h3></div><span class="turn-day-count">${turns.length} turno${turns.length===1?'':'s'}</span></header><div class="list turn-day-list">${turns.map(turn=>turnItemHtml(turn)).join('')}</div></section>`).join('');
+
+ // Check overlaps for list view indicator
+ const overlapIds=new Set();
+ items.forEach(a=>items.forEach(b=>{if(a.id!==b.id&&turnsOverlap(a,b)){overlapIds.add(a.id);overlapIds.add(b.id)}}));
+
+ const groups=[...grouped.entries()].map(([groupDate,turns])=>`<section class="turn-day-group"><header class="turn-day-head"><div><span class="turn-day-kicker">${groupDate===todayISO()?'Hoy':new Intl.DateTimeFormat('es-AR',{weekday:'long'}).format(new Date(`${groupDate}T12:00:00`))}</span><h3>${fmtDate(groupDate)}</h3></div><span class="turn-day-count">${turns.length} turno${turns.length===1?'':'s'}</span></header><div class="list turn-day-list">${turns.map(turn=>turnItemHtml(turn,{overlap:overlapIds.has(turn.id)})).join('')}</div></section>`).join('');
+
  const calendarIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>';
  const plusIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
- setElementHtml($('#view-turnos'),`<div class="turns-page"><div class="page-header turns-page-header"><div class="page-header-left"><h2>Agenda de turnos</h2><p>Consultá los turnos por día, semana o mes</p></div><button type="button" class="btn btn-primary turns-new-btn" data-action="new-turn">${plusIcon}<span>Agendar turno</span></button></div><section class="turns-filter-card"><div class="turns-filter-row"><div class="turn-period-switch" role="group" aria-label="Período de la agenda">${['day','week','month'].map(value=>`<button type="button" class="turn-period-btn${period===value?' active':''}" data-action="turn-period" data-period="${value}" aria-pressed="${period===value}">${turnPeriodLabel(value)}</button>`).join('')}</div><label class="turn-date-control"><span>Fecha de referencia</span><input class="input" id="turnosDate" type="date" value="${esc(selected)}"></label></div><div class="turns-range-summary"><span class="turns-range-icon">${calendarIcon}</span><div><strong>${esc(range.label)}</strong><span>${items.length} turno${items.length===1?'':'s'} en este período</span></div></div></section><div class="turns-results">${groups||`<div class="empty turns-empty">No hay turnos para ${period==='day'?'esta fecha':'este período'}</div>`}</div></div>`)
+
+ // Calendar body
+ let calBody='';
+ if(calView==='week'){calBody=renderCalendarWeek(selected,items)}
+ else if(calView==='month'){calBody=renderCalendarMonth(selected,items)}
+ else{calBody=`<div class="turns-results">${groups||`<div class="empty turns-empty">No hay turnos para ${period==='day'?'esta fecha':'este período'}</div>`}</div>`}
+
+ const viewToggleBtns=[['list','≡ Lista'],['week','📅 Semana'],['month','🗓 Mes']].map(([v,label])=>`<button type="button" class="cal-view-btn${calView===v?' active':''}" data-action="agenda-view" data-cal-view="${v}">${label}</button>`).join('');
+
+ setElementHtml($('#view-turnos'),`<div class="turns-page"><div class="page-header turns-page-header"><div class="page-header-left"><h2>Agenda de turnos</h2><p>Consultá los turnos por día, semana o mes</p></div><button type="button" class="btn btn-primary turns-new-btn" data-action="new-turn">${plusIcon}<span>Agendar turno</span></button></div><section class="turns-filter-card"><div class="turns-filter-row"><div class="turn-period-switch" role="group" aria-label="Período de la agenda">${['day','week','month'].map(value=>`<button type="button" class="turn-period-btn${period===value?' active':''}" data-action="turn-period" data-period="${value}" aria-pressed="${period===value}">${turnPeriodLabel(value)}</button>`).join('')}</div><label class="turn-date-control"><span>Fecha de referencia</span><input class="input" id="turnosDate" type="date" value="${esc(selected)}"></label><div class="cal-view-toggle" role="group" aria-label="Vista">${viewToggleBtns}</div></div><div class="turns-range-summary"><span class="turns-range-icon">${calendarIcon}</span><div><strong>${esc(range.label)}</strong><span>${items.length} turno${items.length===1?'':'s'} en este período${overlapIds.size?` · <span style="color:var(--amber);font-weight:700">⚠ ${overlapIds.size/2|0} superposición${overlapIds.size/2>1?'es':''}</span>`:''}</span></div></div></section>${calBody}</div>`);
+
+ // Attach anchor clicks for calendar cells
+ $$('[data-action="turn-period"][data-anchor]').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();const anchor=btn.dataset.anchor;if(anchor){ui.turnFilters.anchor=anchor;ui.turnFilters.period='day';ui.turnFilters.calendarView='list';renderTurnos()}})})
 }
 function openTurnForm(id='',prefill={}){
  const existing=data.turns.find(turn=>turn.id===id)||null;
@@ -4491,6 +4749,7 @@ function openTurnForm(id='',prefill={}){
 
     <div class="field"><label>Hora *</label><input class="input" name="hora" type="time" required value="${esc(turn.hora||'09:00')}"></div>
     <div class="field"><label>Fecha *</label><input class="input" name="fecha" id="turnDate" type="date" required value="${esc(turn.fecha||todayISO())}"></div>
+    <div class="field"><label>Duración</label><select class="select" name="duracion" id="turnDuracion">${[30,45,60,90].map(d=>`<option value="${d}" ${Number(turn.duracion||45)===d?'selected':''}>${d} min</option>`).join('')}</select></div>
     <div class="field full"><label>Tarifa predefinida</label><select class="select" name="rateId" id="turnRateSelect"><option value="">Precio personalizado</option>${singlePromos().map(promo=>`<option value="${promo.id}" ${promo.id===turn.rateId?'selected':''}>${esc(promo.name)} · ${money(promo.price)}</option>`).join('')}</select></div>
     <div class="field full"><label>Tratamiento o motivo</label><input class="input" name="motivo" id="turnMotivo" value="${esc(turn.motivo||'')}"></div>
     <div class="field"><label>Estado</label><select class="select" name="estado">${['Confirmado','Pendiente','Finalizado','Cancelado'].map(status=>`<option ${status===(turn.estado||'Confirmado')?'selected':''}>${status}</option>`).join('')}</select></div>
@@ -4498,6 +4757,7 @@ function openTurnForm(id='',prefill={}){
     <div class="field"><label>Modalidad de cobro</label><select class="select" name="billingType" id="turnBillingType"><option value="individual" ${turn.billingType!=='combo'?'selected':''}>Pago individual</option><option value="combo" ${turn.billingType==='combo'?'selected':''}>Incluido en pack / combo</option></select></div>
     <div class="field" id="turnComboField" hidden><label>Pack o combo *</label><select class="select" name="comboId" id="turnComboSelect"></select></div>
     <div class="field full"><div class="billing-note" id="turnBillingNote">Elegí una tarifa predefinida o cargá un precio particular.</div></div>
+    <div class="field full" style="margin-top:4px"><div style="padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:13px;font-weight:700;color:var(--text)">📋 Lista de espera</span><span style="font-size:11.5px;color:var(--muted)">Paciente a notificar si se cancela este turno</span></div><div class="form-grid" style="gap:10px"><div class="field" style="margin:0"><label>Nombre</label><input class="input" name="waitlistName" id="waitlistName" value="${esc(turn.waitlistName||'')}" placeholder="Ej. María López"></div><div class="field" style="margin:0"><label>Teléfono (WhatsApp)</label><input class="input" name="waitlistPhone" id="waitlistPhone" value="${esc(turn.waitlistPhone||'')}" placeholder="Ej. 3415001234" type="tel"></div><div class="field full" style="margin:0"><label>Email</label><input class="input" name="waitlistEmail" id="waitlistEmail" value="${esc(turn.waitlistEmail||'')}" placeholder="Ej. maria@email.com" type="email"></div></div></div></div>
   </form>`,
   `<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn btn-primary" id="saveTurnButton" data-action="save-turn"><span class="turn-save-label">Guardar</span></button>`,
   'wide'
@@ -4700,12 +4960,16 @@ async function saveTurn(){
    paciente:patient?.nombre||freeName,
    hora:values.hora,
    fecha:values.fecha,
+   duracion:Number(values.duracion||45),
    motivo:values.motivo,
    estado:values.estado,
    price:Number(values.price||0),
    rateId:billingType==='individual'&&rate?.kind==='single'?rate.id:'',
    billingType,
-   comboId:billingType==='combo'?combo.id:''
+   comboId:billingType==='combo'?combo.id:'',
+   waitlistName:String(values.waitlistName||'').trim(),
+   waitlistPhone:String(values.waitlistPhone||'').trim(),
+   waitlistEmail:String(values.waitlistEmail||'').trim()
   });
   upsertEntity('turns',payload);
   const savedDate=values.fecha;
@@ -4735,6 +4999,7 @@ function setTurnStatus(id,status){
  if(!turn)return toast('Turno no encontrado','warn');
  if(turn.estado===status)return;
  upsertEntity('turns',normalizeTurn({...turn,estado:status}));
+ if(status==='Cancelado')notifyWaitlist(turn);
  if(ui.view==='turnos')renderTurnos();
  else if(ui.view==='inicio')renderInicio();
  else scheduleCurrentViewRender({force:true,reason:'turn-status'});
@@ -4886,8 +5151,8 @@ async function handleAppClick(e){const target=e.target.closest('[data-action],[d
  else if(a==='edit-history')openHistoryEditor(id);else if(a==='save-history')saveHistoryEdit();else if(a==='delete-history')deleteHistoryRecord(id);
  else if(a==='routine-tab'){ui.routineTab=target.dataset.tab;renderRutinas()}else if(a==='new-routine'){if(patientId||id)handleCreateRoutineForPatient(patientId||id);else openRoutineEditor('')}else if(a==='edit-routine')openRoutineEditor('',id);else if(a==='view-routine')viewRoutine(id);else if(a==='save-routine')saveRoutine(false);else if(a==='save-routine-draft')saveRoutine(true);else if(a==='duplicate-routine')duplicateRoutine(id);else if(a==='delete-routine')deleteRoutineFlow(id);else if(a==='print-routine')printRoutine(id);else if(a==='print-patient')printPatient(id);
  else if(a==='use-library-exercise'){const ex=combinedExerciseLibrary().find(x=>x.id===id);if(ex)addExerciseToDraft(ex)}else if(a==='add-blank-exercise')addExerciseToDraft({name:'Nuevo ejercicio',category:'General',source:'Manual'});else if(a==='move-exercise'){const i=Number(target.dataset.index),j=i+Number(target.dataset.direction);if(j>=0&&j<ui.routineDraft.exercises.length){[ui.routineDraft.exercises[i],ui.routineDraft.exercises[j]]=[ui.routineDraft.exercises[j],ui.routineDraft.exercises[i]];renderExerciseDraftList();persistRoutineEditorDraft()}}else if(a==='duplicate-draft-exercise'){const i=Number(target.dataset.index);ui.routineDraft.exercises.splice(i+1,0,{...ui.routineDraft.exercises[i],id:uid('exercise')});renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='remove-draft-exercise'){ui.routineDraft.exercises.splice(Number(target.dataset.index),1);renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='new-custom-exercise')openCustomExerciseForm();else if(a==='save-custom-exercise')saveCustomExercise();else if(a==='return-routine-editor')renderRoutineEditorModal();else if(a==='delete-custom-exercise')openConfirm('Eliminar ejercicio personalizado','Se quitará de la biblioteca. Las rutinas existentes no se modificarán.',async()=>{await removeEntity('exerciseLibrary',id);closeConfirm();renderRoutineEditorModal()});
- else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session'){const selectedRoutineId=$('#sessionRoutine')?.value;if(!selectedRoutineId)return toast('Seleccioná una rutina primero','warn');startSelectedSession()}else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){if(!(data.activeSessions||[]).length){ui.routineTab='routines';setView('rutinas');toast('Elegí una rutina y tocá Iniciar','info')}else{ui.routineTab='execution';setView('rutinas')}}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{await finalizeSession(id);closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{await finalizeSession(id,'Abandonada');closeConfirm()},'Abandonar');
- else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='payment-tab'){const tab=target.dataset.tab;if(!['movements','packs'].includes(tab))return;ui.paymentTab=tab;renderPagos()}else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+ else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session'){const selectedRoutineId=$('#sessionRoutine')?.value;if(!selectedRoutineId)return toast('Seleccioná una rutina primero','warn');startSelectedSession()}else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){if(!(data.activeSessions||[]).length){ui.routineTab='routines';setView('rutinas');toast('Elegí una rutina y tocá Iniciar','info')}else{ui.routineTab='execution';setView('rutinas')}}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{if(await finalizeSession(id))closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{if(await finalizeSession(id,'Abandonada'))closeConfirm()},'Abandonar');
+ else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='agenda-view'){const v=target.dataset.calView;if(!['list','week','month'].includes(v))return;ui.turnFilters.calendarView=v;if(v==='week'&&ui.turnFilters.period==='day')ui.turnFilters.period='week';if(v==='month')ui.turnFilters.period='month';if(v==='list'&&ui.turnFilters.period!=='day')ui.turnFilters.period='day';renderTurnos()}else if(a==='send-reminder'){const turn=getTurnById(id);if(turn)sendReminder(turn)}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='payment-tab'){const tab=target.dataset.tab;if(!['movements','packs'].includes(tab))return;ui.paymentTab=tab;renderPagos()}else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement)||!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
@@ -4931,12 +5196,14 @@ function handleGlobalSearch(event){
  },220)
 }
 function handleEscapeKey(event){if(event.key!=='Escape')return;if($('#confirmModal')?.classList.contains('open'))closeConfirm();else if($('#appModal')?.classList.contains('open'))closeModal();else closeMenu()}
-function handleConfirmAction(){
+async function handleConfirmAction(){
  const button=$('#confirmActionButton'),action=pendingConfirm;
- if(!button||typeof action!=='function')return;
+ if(!button||typeof action!=='function'||button.disabled)return;
  pendingConfirm=null;
  button.disabled=true;
- Promise.resolve().then(action).catch(error=>{console.error('Confirm action failed',error);toast('No se pudo completar la acción','error')}).finally(()=>{if(document.contains(button))button.disabled=false})
+ try{await action()}
+ catch(error){console.error('Confirm action failed',error);if($('#confirmModal')?.classList.contains('open'))pendingConfirm=action;toast('No se pudo completar la acción. Podés reintentar sin perder los datos','error')}
+ finally{if(document.contains(button))button.disabled=false}
 }
 function handleAppSubmit(event){
  const form=event.target;
