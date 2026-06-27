@@ -431,13 +431,6 @@ body.sidebar-collapsed .sf-info,body.sidebar-collapsed .sf-dot{display:none}
 .followup-alert-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--amber-50);color:var(--amber);border:1px solid var(--amber-100)}
 .followup-alert-icon svg{width:22px;height:22px;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .followup-alert-main{min-width:0}.followup-alert-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.followup-alert-head strong{font-size:14px;color:var(--text)}
-.followup-priority-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;border:1px solid transparent;font-size:10px;font-weight:800;white-space:nowrap}
-.followup-priority-badge.soon{background:var(--blue-50);color:var(--blue);border-color:var(--blue-100)}
-.followup-priority-badge.contact{background:var(--amber-50);color:var(--amber);border-color:var(--amber-100)}
-.followup-priority-badge.review{background:var(--red-50);color:var(--red);border-color:var(--red-100)}
-.followup-alert-card.followup-contact{border-color:var(--amber-100);background:#fffdfa}
-.followup-alert-card.followup-review{border-color:var(--red-100);background:#fffafa}
-.followup-alert-card.followup-review .followup-alert-icon{background:var(--red-50);color:var(--red);border-color:var(--red-100)}
 .followup-alert-main p{margin-top:4px;color:var(--text-2);font-size:12.5px;line-height:1.45}.followup-alert-main small{display:block;margin-top:5px;color:var(--muted);font-size:10.5px}
 .followup-alert-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
 .session-alert-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
@@ -4281,29 +4274,22 @@ function medianNumber(values=[]){const ordered=values.map(Number).filter(Number.
 function patientAttendanceLabel(turn){if(!turn)return'Sin turnos finalizados';const days=Math.max(0,daysBetweenISO(turn.fecha,todayISO()));return`${fmtDate(turn.fecha)}${days===0?' · Hoy':days===1?' · Hace 1 día':` · Hace ${days} días`}`}
 function reactivationCandidates(){
  reconcileLocalTurnPatientLinks();
- const today=todayISO(),windowStart=addDaysISO(today,-180);
+ const today=todayISO();
  return data.patients.filter(patient=>['Activo','Activo parcial'].includes(normalizePatientClinicalStatus(patient.estadoClinico))).map(patient=>{
-  const clinicalStatus=normalizePatientClinicalStatus(patient.estadoClinico);
-  const completed=patientCompletedTurns(patient.id).filter(turn=>turn.fecha>=windowStart&&turn.fecha<=today).sort((a,b)=>`${a.fecha} ${a.hora||''}`.localeCompare(`${b.fecha} ${b.hora||''}`));
+  const completed=patientCompletedTurns(patient.id).slice().sort((a,b)=>`${a.fecha} ${a.hora||''}`.localeCompare(`${b.fecha} ${b.hora||''}`));
   if(completed.length<3)return null;
   const recent=completed.slice(-6),intervals=[];
-  for(let index=1;index<recent.length;index++){
-   const days=daysBetweenISO(recent[index-1].fecha,recent[index].fecha);
-   if(days>=1&&days<=60)intervals.push(days)
-  }
+  for(let index=1;index<recent.length;index++){const days=daysBetweenISO(recent[index-1].fecha,recent[index].fecha);if(days>=1&&days<=45)intervals.push(days)}
   if(intervals.length<2)return null;
   const usualInterval=Math.max(1,Math.round(medianNumber(intervals)));
+  if(usualInterval>31)return null;
   const lastTurn=recent[recent.length-1],daysSince=Math.max(0,daysBetweenISO(lastTurn.fecha,today));
-  const multiplier=clinicalStatus==='Activo parcial'?1.75:1.5;
-  const reminderAfter=Math.max(2,Math.ceil(usualInterval*multiplier));
+  const multiplier=patient.estadoClinico==='Activo parcial'?2.1:1.8;
+  const reminderAfter=Math.min(45,Math.max(14,Math.round(usualInterval*multiplier)));
   const hasFutureTurn=data.turns.some(turn=>turn.patientId===patient.id&&turn.estado!=='Cancelado'&&turn.fecha>=today);
-  if(hasFutureTurn||daysSince<reminderAfter||daysSince>90)return null;
-  const delayRatio=daysSince/usualInterval;
-  const level=daysSince>=60?'review':delayRatio>=2?'contact':'soon';
-  const levelLabel=level==='review'?'Revisar estado':level==='contact'?'Conviene contactar':'Seguimiento próximo';
-  const levelRank=level==='review'?3:level==='contact'?2:1;
-  return{patient,lastTurn,daysSince,usualInterval,completedCount:completed.length,reminderAfter,delay:daysSince-reminderAfter,delayRatio,level,levelLabel,levelRank}
- }).filter(Boolean).sort((a,b)=>b.levelRank-a.levelRank||b.delayRatio-a.delayRatio||b.daysSince-a.daysSince)
+  if(hasFutureTurn||daysSince<=reminderAfter||daysSince>90)return null;
+  return{patient,lastTurn,daysSince,usualInterval,completedCount:completed.length,reminderAfter,delay:daysSince-reminderAfter}
+ }).filter(Boolean).sort((a,b)=>b.delay-a.delay||b.daysSince-a.daysSince)
 }
 function patientStats(patientId){const routines=getPatientRoutines(patientId),history=getPatientHistory(patientId),active=getActiveSessionForPatient(patientId),completedTurns=patientCompletedTurns(patientId),lastTurn=completedTurns[0]||null;return{routines,history,active,last:history[0]||null,completedTurns,lastTurn,compliance:Math.round(avg(history.map(h=>h.progress||0))),duration:Math.round(avg(history.map(h=>h.duration||0))),volume:history.reduce((sum,h)=>sum+Number(h.volume||0),0)}}
 function patientTabsHtml(){return`<div class="routine-tabs" aria-label="Secciones de pacientes"><button class="routine-tab ${ui.patientTab==='list'?'active':''}" data-action="patient-tab" data-tab="list">Listado</button><button class="routine-tab ${ui.patientTab==='anamnesis'?'active':''}" data-action="patient-tab" data-tab="anamnesis">Nueva anamnesis</button></div>`}
@@ -5143,8 +5129,165 @@ function exportCsv(){
   setTimeout(()=>URL.revokeObjectURL(url),1000)
  }
 }
-function renderConfiguracion(){$('#view-configuracion').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div><div class="grid two-col"><div class="card"><div class="card-head"><div class="card-title">Datos del profesional</div></div><form id="settingsForm" class="form-grid"><div class="field"><label>Nombre completo</label><input class="input" name="name" value="${esc(data.meta.professionalName||'Juan Magurno')}"></div><div class="field"><label>Especialidad</label><input class="input" name="specialty" value="${esc(data.meta.specialty||'Kinesiología')}"></div><div class="field"><label>Matrícula</label><input class="input" name="license" value="${esc(data.meta.license||'')}"></div><div class="field"><label>Teléfono</label><input class="input" name="phone" value="${esc(data.meta.professionalPhone||'')}"></div></form><button class="btn btn-primary" style="margin-top:14px" data-action="save-settings">Guardar cambios</button></div><div class="card"><div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div><div class="clinical-grid"><div class="clinical-block"><h4>Base clínica ETER</h4><p>agenda-d3987 · pacientes, rutinas, sesiones e historial</p></div><div class="clinical-block"><h4>Agenda</h4><p>Turnos internos de ETER · sin conexión externa</p></div><div class="clinical-block"><h4>Dispositivo</h4><p>${esc(DEVICE_ID)}</p></div><div class="clinical-block"><h4>Versión de datos</h4><p>${DATA_VERSION}</p></div></div><button class="btn" style="margin-top:14px" data-action="force-sync">Forzar sincronización</button></div></div>`}
-function saveSettings(){const f=$('#settingsForm'),v=Object.fromEntries(new FormData(f)),stamp=Date.now();data.meta={...data.meta,...v,professionalName:v.name,professionalPhone:v.phone,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};persistLocal();scheduleCloudWrite(50);toast('Configuración guardada')}
+function renderConfiguracion(){
+ const meta=data.meta||{};
+ const workDays=Array.isArray(meta.workDays)?meta.workDays:['Lun','Mar','Mié','Jue','Vie','Sáb'];
+ const activeMethods=Array.isArray(meta.activeMethods)?meta.activeMethods:['Efectivo','Transferencia','Mercado Pago','Débito','Crédito'];
+ const uiTheme=['Claro','Oscuro','Sistema'].includes(meta.uiTheme)?meta.uiTheme:'Sistema';
+ const defaultView=SECTIONS.some(([id])=>id===meta.defaultView)?meta.defaultView:'inicio';
+ const chip=(type,name,value,label,checked)=>`<label class="chip" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer"><input type="${type}" name="${name}" value="${esc(value)}" ${checked?'checked':''}><span>${esc(label)}</span></label>`;
+ const workDayChips=['Lun','Mar','Mié','Jue','Vie','Sáb'].map(day=>chip('checkbox','workDays',day,day,workDays.includes(day))).join('');
+ const paymentMethodChips=['Efectivo','Transferencia','Mercado Pago','Débito','Crédito'].map(method=>chip('checkbox','activeMethods',method,method,activeMethods.includes(method))).join('');
+ const themeChips=['Claro','Oscuro','Sistema'].map(theme=>chip('radio','uiTheme',theme,theme,uiTheme===theme)).join('');
+ const viewOptions=SECTIONS.map(([id,label])=>`<option value="${esc(id)}" ${defaultView===id?'selected':''}>${esc(label)}</option>`).join('');
+ $('#view-configuracion').innerHTML=`
+  <div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div>
+  <form id="settingsForm" class="grid two-col">
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Datos del profesional</div><div class="card-sub">Información profesional y del consultorio</div></div></div>
+    <div class="form-grid">
+     <div class="field"><label>Nombre completo</label><input class="input" name="name" value="${esc(meta.professionalName||'Juan Magurno')}"></div>
+     <div class="field"><label>Especialidad</label><input class="input" name="specialty" value="${esc(meta.specialty||'Kinesiología')}"></div>
+     <div class="field"><label>Matrícula</label><input class="input" name="license" value="${esc(meta.license||'')}"></div>
+     <div class="field"><label>Teléfono</label><input class="input" name="phone" value="${esc(meta.professionalPhone||'')}"></div>
+     <div class="field"><label>Email profesional</label><input class="input" name="professionalEmail" type="email" value="${esc(meta.professionalEmail||'')}"></div>
+     <div class="field"><label>Nombre del consultorio</label><input class="input" name="clinicName" value="${esc(meta.clinicName||'')}"></div>
+     <div class="field full"><label>Dirección del consultorio</label><input class="input" name="clinicAddress" value="${esc(meta.clinicAddress||'')}"></div>
+     <div class="field"><label>CUIT</label><input class="input" name="cuit" inputmode="numeric" value="${esc(meta.cuit||'')}"></div>
+    </div>
+   </div>
+
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div>
+    <div class="clinical-grid">
+     <div class="clinical-block"><h4>Base clínica ETER</h4><p>agenda-d3987 · pacientes, rutinas, sesiones e historial</p></div>
+     <div class="clinical-block"><h4>Agenda</h4><p>Turnos internos de ETER · sin conexión externa</p></div>
+     <div class="clinical-block"><h4>Dispositivo</h4><p>${esc(DEVICE_ID)}</p></div>
+     <div class="clinical-block"><h4>Versión de datos</h4><p>${DATA_VERSION}</p></div>
+    </div>
+    <button type="button" class="btn" style="margin-top:14px" data-action="force-sync">Forzar sincronización</button>
+   </div>
+
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Configuración de turnos</div><div class="card-sub">Duración, horarios y estructura de la agenda</div></div></div>
+    <div class="form-grid">
+     <div class="field"><label>Duración predeterminada del turno</label><select class="select" name="defaultTurnDuration">${[30,45,60,90].map(value=>`<option value="${value}" ${Number(meta.defaultTurnDuration??60)===value?'selected':''}>${value} min</option>`).join('')}</select></div>
+     <div class="field"><label>Intervalo de slots en agenda</label><select class="select" name="slotInterval">${[15,30,60].map(value=>`<option value="${value}" ${Number(meta.slotInterval??30)===value?'selected':''}>${value} min</option>`).join('')}</select></div>
+     <div class="field"><label>Horario de inicio de atención</label><input class="input" type="time" name="workdayStart" value="${esc(meta.workdayStart||'08:00')}"></div>
+     <div class="field"><label>Horario de fin de atención</label><input class="input" type="time" name="workdayEnd" value="${esc(meta.workdayEnd||'20:00')}"></div>
+     <div class="field full"><label>Días hábiles</label><div class="chips">${workDayChips}</div></div>
+    </div>
+   </div>
+
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Configuración de pagos</div><div class="card-sub">Valores y métodos disponibles para registrar cobros</div></div></div>
+    <div class="form-grid">
+     <div class="field"><label>Precio predeterminado de sesión</label><input class="input" type="number" min="0" step="1" name="defaultSessionPrice" value="${meta.defaultSessionPrice===undefined||meta.defaultSessionPrice===null?'':esc(meta.defaultSessionPrice)}"></div>
+     <div class="field"><label>Símbolo de moneda</label><input class="input" name="currencySymbol" maxlength="5" value="${esc(meta.currencySymbol||'$')}"></div>
+     <div class="field full"><label>Métodos de pago activos</label><div class="chips">${paymentMethodChips}</div></div>
+    </div>
+   </div>
+
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Alertas de seguimiento</div><div class="card-sub">Criterios para detectar pacientes que conviene contactar</div></div></div>
+    <div class="form-grid">
+     <div class="field"><label>Días sin turno para disparar alerta</label><input class="input" type="number" min="1" step="1" name="followUpDays" value="${esc(meta.followUpDays??30)}"></div>
+     <div class="field"><label>Mínimo de turnos para reconocer frecuencia</label><input class="input" type="number" min="1" step="1" name="minTurnsForFrequency" value="${esc(meta.minTurnsForFrequency??3)}"></div>
+     <div class="field full"><label>Ventana máxima de seguimiento en días</label><input class="input" type="number" min="1" step="1" name="followUpMaxWindow" value="${esc(meta.followUpMaxWindow??90)}"></div>
+    </div>
+   </div>
+
+   <div class="card">
+    <div class="card-head"><div><div class="card-title">Preferencias de interfaz</div><div class="card-sub">Apariencia y sección inicial de la aplicación</div></div></div>
+    <div class="form-grid">
+     <div class="field full"><label>Tema</label><div class="chips">${themeChips}</div></div>
+     <div class="field full"><label>Vista de inicio al abrir la app</label><select class="select" name="defaultView">${viewOptions}</select></div>
+    </div>
+   </div>
+
+   <div class="card" style="grid-column:1/-1;border-color:var(--red-100);background:linear-gradient(180deg,var(--surface),var(--red-50))">
+    <div class="card-head"><div><div class="card-title" style="color:var(--red)">Zona de datos</div><div class="card-sub">Acciones de respaldo y limpieza que modifican información clínica</div></div></div>
+    <div class="clinical-grid">
+     <div class="clinical-block" style="border-color:var(--red-100)"><h4>Backup completo</h4><p>Descarga una copia de todos los datos locales en formato JSON.</p><button type="button" class="btn" style="margin-top:12px" data-action="export-backup-json">Exportar backup JSON</button></div>
+     <div class="clinical-block" style="border-color:var(--red-100)"><h4>Pacientes de demostración</h4><p>Elimina únicamente los pacientes cuyo identificador comienza con “seed-”.</p><button type="button" class="btn btn-danger" style="margin-top:12px" data-action="clear-demo-patients">Limpiar pacientes de demostración</button></div>
+    </div>
+   </div>
+
+   <div style="grid-column:1/-1;display:flex;justify-content:flex-end;padding-bottom:4px"><button type="button" class="btn btn-primary" data-action="save-settings">Guardar todos los cambios</button></div>
+  </form>`
+}
+function saveSettings(){
+ const f=$('#settingsForm');
+ if(!f)return;
+ const v=Object.fromEntries(new FormData(f));
+ const selected=name=>[...f.querySelectorAll(`input[name="${name}"]:checked`)].map(input=>input.value);
+ const numberValue=(name,fallback,{allowEmpty=false}={})=>{const raw=String(v[name]??'').trim();if(allowEmpty&&raw==='')return'';const value=Number(raw);return Number.isFinite(value)?value:fallback};
+ const defaultView=SECTIONS.some(([id])=>id===v.defaultView)?v.defaultView:'inicio';
+ const uiTheme=['Claro','Oscuro','Sistema'].includes(v.uiTheme)?v.uiTheme:'Sistema';
+ const stamp=Date.now();
+ data.meta={
+  ...data.meta,
+  name:String(v.name||'').trim(),
+  phone:String(v.phone||'').trim(),
+  professionalName:String(v.name||'').trim(),
+  specialty:String(v.specialty||'').trim(),
+  license:String(v.license||'').trim(),
+  professionalPhone:String(v.phone||'').trim(),
+  professionalEmail:String(v.professionalEmail||'').trim(),
+  clinicName:String(v.clinicName||'').trim(),
+  clinicAddress:String(v.clinicAddress||'').trim(),
+  cuit:String(v.cuit||'').trim(),
+  defaultTurnDuration:numberValue('defaultTurnDuration',60),
+  workdayStart:String(v.workdayStart||'08:00'),
+  workdayEnd:String(v.workdayEnd||'20:00'),
+  workDays:selected('workDays'),
+  slotInterval:numberValue('slotInterval',30),
+  defaultSessionPrice:numberValue('defaultSessionPrice','',{allowEmpty:true}),
+  activeMethods:selected('activeMethods'),
+  currencySymbol:String(v.currencySymbol||'$').trim()||'$',
+  followUpDays:Math.max(1,numberValue('followUpDays',30)),
+  minTurnsForFrequency:Math.max(1,numberValue('minTurnsForFrequency',3)),
+  followUpMaxWindow:Math.max(1,numberValue('followUpMaxWindow',90)),
+  uiTheme,
+  defaultView,
+  updatedAt:new Date(stamp).toISOString(),
+  _updatedAtMs:stamp,
+  _dirty:true,
+  _writeId:`${TAB_ID}-${stamp}`
+ };
+ persistLocal();
+ scheduleCloudWrite(50);
+ toast('Configuración guardada')
+}
+function exportBackupJson(){
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;
+ link.download=`ETER-KinePro-backup-${todayISO()}.json`;
+ document.body.appendChild(link);
+ link.click();
+ link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),0);
+ toast('Backup JSON exportado')
+}
+function clearDemoPatients(){
+ const demoPatients=(data.patients||[]).filter(patient=>String(patient.id||'').startsWith('seed-'));
+ if(!demoPatients.length){toast('No hay pacientes de demostración para eliminar','info');return}
+ if(!window.confirm(`Se eliminarán ${demoPatients.length} pacientes de demostración. Esta acción no se puede deshacer. ¿Continuar?`))return;
+ const stamp=Date.now();
+ data.patients=(data.patients||[]).filter(patient=>!String(patient.id||'').startsWith('seed-'));
+ data.pendingDeletes=data.pendingDeletes||[];
+ demoPatients.forEach((patient,index)=>{
+  const deletionStamp=stamp+index,existing=data.pendingDeletes.find(item=>item.key==='patients'&&item.id===patient.id),record={key:'patients',id:patient.id,createdAt:new Date(deletionStamp).toISOString(),_updatedAtMs:deletionStamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${deletionStamp}-${Math.random().toString(36).slice(2,7)}`};
+  if(existing)Object.assign(existing,record);else data.pendingDeletes.push(record)
+ });
+ data.meta={...data.meta,patientBase23Imported:true,demoPatientsClearedAt:new Date(stamp).toISOString(),updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
+ localStorage.setItem(PATIENT_LOCAL_IMPORT_KEY,'1');
+ persistLocal();
+ scheduleCloudWrite(20);
+ renderConfiguracion();
+ updateNotifications();
+ toast(`${demoPatients.length} pacientes de demostración eliminados`)
+}
 
 /* IMPRESIÓN */
 function printRoutine(id){const r=getRoutine(id),p=getPatient(r?.patientId);if(!r)return;$('#printArea').innerHTML=`<div class="print-sheet"><h1>ETER KinePro</h1><p>Rutina terapéutica</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p?.nombre||'Plantilla')}</div><div><strong>Fecha:</strong> ${fmtDate(r.date)}</div><div><strong>Diagnóstico:</strong> ${esc(p?.diagnostico||'—')}</div><div><strong>Objetivo:</strong> ${esc(r.objective||'—')}</div></div><table><thead><tr><th>#</th><th>Ejercicio</th><th>Series</th><th>Repeticiones</th><th>Segundos</th><th>Carga</th><th>Observaciones</th></tr></thead><tbody>${r.exercises.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.sets)}</td><td>${esc(e.reps)}</td><td>${esc(e.seconds)}</td><td>${esc(e.load)}</td><td>${esc(e.notes)}</td></tr>`).join('')}</tbody></table><div class="print-note"><strong>Profesional:</strong> ${esc(data.meta.professionalName||'Juan Magurno')} · ${esc(data.meta.specialty||'Kinesiología')} · ${esc(data.meta.license||'')}</div></div>`;window.print()}
@@ -5158,7 +5301,7 @@ async function handleAppClick(e){const target=e.target.closest('[data-action],[d
  else if(a==='routine-tab'){ui.routineTab=target.dataset.tab;renderRutinas()}else if(a==='new-routine'){if(patientId||id)handleCreateRoutineForPatient(patientId||id);else openRoutineEditor('')}else if(a==='edit-routine')openRoutineEditor('',id);else if(a==='view-routine')viewRoutine(id);else if(a==='save-routine')saveRoutine(false);else if(a==='save-routine-draft')saveRoutine(true);else if(a==='duplicate-routine')duplicateRoutine(id);else if(a==='delete-routine')deleteRoutineFlow(id);else if(a==='print-routine')printRoutine(id);else if(a==='print-patient')printPatient(id);
  else if(a==='use-library-exercise'){const ex=combinedExerciseLibrary().find(x=>x.id===id);if(ex)addExerciseToDraft(ex)}else if(a==='add-blank-exercise')addExerciseToDraft({name:'Nuevo ejercicio',category:'General',source:'Manual'});else if(a==='move-exercise'){const i=Number(target.dataset.index),j=i+Number(target.dataset.direction);if(j>=0&&j<ui.routineDraft.exercises.length){[ui.routineDraft.exercises[i],ui.routineDraft.exercises[j]]=[ui.routineDraft.exercises[j],ui.routineDraft.exercises[i]];renderExerciseDraftList();persistRoutineEditorDraft()}}else if(a==='duplicate-draft-exercise'){const i=Number(target.dataset.index);ui.routineDraft.exercises.splice(i+1,0,{...ui.routineDraft.exercises[i],id:uid('exercise')});renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='remove-draft-exercise'){ui.routineDraft.exercises.splice(Number(target.dataset.index),1);renderExerciseDraftList();persistRoutineEditorDraft()}else if(a==='new-custom-exercise')openCustomExerciseForm();else if(a==='save-custom-exercise')saveCustomExercise();else if(a==='return-routine-editor')renderRoutineEditorModal();else if(a==='delete-custom-exercise')openConfirm('Eliminar ejercicio personalizado','Se quitará de la biblioteca. Las rutinas existentes no se modificarán.',async()=>{await removeEntity('exerciseLibrary',id);closeConfirm();renderRoutineEditorModal()});
  else if(a==='start-routine'){if($('#appModal').classList.contains('open'))closeModal();startSessionByRoutine(id)}else if(a==='start-selected-session'){const selectedRoutineId=$('#sessionRoutine')?.value;if(!selectedRoutineId)return toast('Seleccioná una rutina primero','warn');startSelectedSession()}else if(a==='start-patient-session')handleStartPatientSession(patientId||id);else if(a==='continue-session'){ui.routineTab='execution';setView('rutinas')}else if(a==='go-execution'){if(!(data.activeSessions||[]).length){ui.routineTab='routines';setView('rutinas');toast('Elegí una rutina y tocá Iniciar','info')}else{ui.routineTab='execution';setView('rutinas')}}else if(a==='toggle-pause')togglePause(id);else if(a==='toggle-exercise')toggleExercise(target.dataset.sessionId,target.dataset.exerciseId);else if(a==='finish-session')openConfirm('Finalizar sesión','Se guardará el resultado real en el historial.',async()=>{if(await finalizeSession(id))closeConfirm()},'Finalizar');else if(a==='abandon-session')openConfirm('Marcar como abandonada','La sesión se conservará en el historial con estado abandonado.',async()=>{if(await finalizeSession(id,'Abandonada'))closeConfirm()},'Abandonar');
- else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='payment-tab'){const tab=target.dataset.tab;if(!['movements','packs'].includes(tab))return;ui.paymentTab=tab;renderPagos()}else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+ else if(a==='turn-period'){const period=target.dataset.period;if(!['day','week','month'].includes(period))return;ui.turnFilters.period=period;renderTurnos()}else if(a==='new-turn')openTurnForm('',patientId?{patientId}:{});else if(a==='set-turn-status')setTurnStatus(id,target.dataset.status);else if(a==='new-turn-promo'){const promo=getPromo(promoId);openTurnForm('',promo?{patientId:patientId||'',rateId:promo.id,motivo:promo.service,price:promo.price}:{})}else if(a==='edit-turn')openTurnForm(id);else if(a==='save-turn')saveTurn();else if(a==='delete-turn')deleteTurn(id);else if(a==='create-patient-from-turn'){const turn=getTurnById(id);if(turn)startAnamnesis('',{nombre:turn.paciente||''})}else if(a==='pay-turn')openPaymentForm({turnId:id});else if(a==='payment-tab'){const tab=target.dataset.tab;if(!['movements','packs'].includes(tab))return;ui.paymentTab=tab;renderPagos()}else if(a==='new-payment')openPaymentForm({patientId:patientId||''});else if(a==='edit-payment')openPaymentForm({paymentId:id});else if(a==='save-payment')savePayment();else if(a==='delete-payment')deletePayment(id);else if(a==='new-combo')openComboForm('',patientId||'');else if(a==='new-combo-promo')openComboForm('',patientId||'',promoId||'');else if(a==='edit-combo')openComboForm(id);else if(a==='save-combo')saveCombo();else if(a==='delete-combo')deleteCombo(id);else if(a==='pay-combo')openPaymentForm({comboId:id});else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='export-backup-json')exportBackupJson();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement))return;if(card.classList.contains('context')){const summary=card.querySelector(':scope > summary');if(summary)summary.setAttribute('aria-expanded',String(card.open));return}if(!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
@@ -5278,9 +5421,9 @@ function abandonedSessionAlerts(){return data.activeSessions.filter(session=>Dat
 function cadenceLabel(days){if(days<=8)return'semanal';if(days<=17)return'cada dos semanas';if(days<=24)return'cada tres semanas';return`cada ${days} días`}
 function openNotificationCenter(){
  const followUps=reactivationCandidates(),abandoned=abandonedSessionAlerts();
- const followUpHtml=followUps.length?followUps.map(({patient,lastTurn,daysSince,usualInterval,completedCount,reminderAfter,level,levelLabel})=>`<article class="followup-alert-card followup-${level}"><div class="followup-alert-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 11a8 8 0 1 1-2.3-5.7"/><path d="M20 4v7h-7"/><path d="M12 8v4l3 2"/></svg></div><div class="followup-alert-main"><div class="followup-alert-head"><strong>${esc(patient.nombre)}</strong>${statusBadge(patient.estadoClinico)}<span class="followup-priority-badge ${level}">${levelLabel}</span></div><p>Último masaje: <strong>${fmtDate(lastTurn.fecha)}</strong>. Lleva <strong>${daysSince} días</strong> sin asistir y su frecuencia habitual era ${esc(cadenceLabel(usualInterval))}. El aviso se activa desde los ${reminderAfter} días.</p><small>${completedCount} turnos finalizados en los últimos 180 días${patient.telefono?` · Tel. ${esc(patient.telefono)}`:' · Teléfono no registrado'}</small></div><div class="followup-alert-actions"><button type="button" class="btn" data-action="profile" data-id="${esc(patient.id)}" data-patient-id="${esc(patient.id)}">Ver ficha</button><button type="button" class="btn btn-primary" data-action="new-turn" data-patient-id="${esc(patient.id)}">Agendar turno</button></div></article>`).join(''):'<div class="notification-empty"><strong>Sin seguimientos pendientes</strong><p>No se detectaron pacientes activos que hayan superado su intervalo habitual sin tener un turno futuro.</p></div>';
+ const followUpHtml=followUps.length?followUps.map(({patient,lastTurn,daysSince,usualInterval,completedCount})=>`<article class="followup-alert-card"><div class="followup-alert-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 11a8 8 0 1 1-2.3-5.7"/><path d="M20 4v7h-7"/><path d="M12 8v4l3 2"/></svg></div><div class="followup-alert-main"><div class="followup-alert-head"><strong>${esc(patient.nombre)}</strong>${statusBadge(patient.estadoClinico)}</div><p>Último masaje: <strong>${fmtDate(lastTurn.fecha)}</strong>. Lleva <strong>${daysSince} días</strong> sin asistir y su frecuencia habitual era ${esc(cadenceLabel(usualInterval))}.</p><small>${completedCount} turnos finalizados registrados${patient.telefono?` · Tel. ${esc(patient.telefono)}`:' · Teléfono no registrado'}</small></div><div class="followup-alert-actions"><button type="button" class="btn" data-action="profile" data-id="${esc(patient.id)}" data-patient-id="${esc(patient.id)}">Ver ficha</button><button type="button" class="btn btn-primary" data-action="new-turn" data-patient-id="${esc(patient.id)}">Agendar turno</button></div></article>`).join(''):'<div class="notification-empty"><strong>Sin seguimientos pendientes</strong><p>No se detectaron pacientes activos que hayan interrumpido una frecuencia regular.</p></div>';
  const abandonedHtml=abandoned.length?abandoned.map(session=>{const inactiveMinutes=Math.max(1,Math.floor((Date.now()-new Date(session.updatedAt||session.startedAt).getTime())/60000));return`<article class="session-alert-row"><div><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName||'Sesión sin nombre')} · Sin actividad hace ${inactiveMinutes} min</span></div><button type="button" class="btn btn-sm" data-action="review-session-alerts">Revisar</button></article>`}).join(''):'<div class="notification-empty compact"><p>No hay sesiones detenidas o abandonadas.</p></div>';
- openModal('Notificaciones y seguimiento',`<div class="notification-center"><section class="notification-section"><div class="notification-section-head"><div><h3>Pacientes para contactar</h3><p>Analiza pacientes Activos y Activos parciales con al menos 3 masajes finalizados en los últimos 180 días. Avisa al superar el intervalo habitual un 50% en Activos o un 75% en Activos parciales, siempre que no exista un turno futuro. Entre 60 y 90 días indica revisar el estado; después de 90 días deja de aparecer.</p></div><span class="notification-count">${followUps.length}</span></div><div class="followup-alert-list">${followUpHtml}</div></section><section class="notification-section"><div class="notification-section-head"><div><h3>Sesiones sin actividad</h3><p>Sesiones iniciadas que requieren revisión.</p></div><span class="notification-count neutral">${abandoned.length}</span></div><div class="session-alert-list">${abandonedHtml}</div></section></div>`,`<button class="btn" data-action="close-modal">Cerrar</button>`,'wide')
+ openModal('Notificaciones y seguimiento',`<div class="notification-center"><section class="notification-section"><div class="notification-section-head"><div><h3>Pacientes para contactar</h3><p>Solo incluye pacientes Activos o Activos parciales con al menos 3 asistencias, una frecuencia reconocible, sin un turno futuro y con una interrupción de hasta 90 días.</p></div><span class="notification-count">${followUps.length}</span></div><div class="followup-alert-list">${followUpHtml}</div></section><section class="notification-section"><div class="notification-section-head"><div><h3>Sesiones sin actividad</h3><p>Sesiones iniciadas que requieren revisión.</p></div><span class="notification-count neutral">${abandoned.length}</span></div><div class="session-alert-list">${abandonedHtml}</div></section></div>`,`<button class="btn" data-action="close-modal">Cerrar</button>`,'wide')
 }
 function updateNotifications(){const followUps=reactivationCandidates(),abandoned=abandonedSessionAlerts(),count=followUps.length+abandoned.length,dot=$('#notificationDot'),button=$('#notificationButton');if(dot){dot.style.display=count?'flex':'none';dot.textContent=count>99?'99+':String(count)}if(button){const parts=[];if(followUps.length)parts.push(`${followUps.length} paciente(s) para contactar`);if(abandoned.length)parts.push(`${abandoned.length} sesión(es) sin actividad`);button.title=parts.length?parts.join(' · '):'Sin alertas';button.setAttribute('aria-label',parts.length?`Notificaciones: ${parts.join(', ')}`:'Notificaciones: sin alertas')}}
 function runWhenIdle(task,timeout=1400){
