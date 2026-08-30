@@ -1159,6 +1159,43 @@ body.modal-open{overflow:hidden}
   #view-inicio .home-metrics .metric-note{font-size:9.5px}
 }
 
+/* Inicio operativo: prioriza cobros vencidos, agenda y seguimiento */
+#view-inicio .home-dashboard{display:flex;flex-direction:column;gap:26px}
+#view-inicio .home-metrics{display:block;margin:0;order:1}
+#view-inicio .home-metrics .metric-action{min-height:164px;padding:30px 52px 30px 182px;border:1px solid #ffc1c1;border-right:6px solid #c70d16;border-radius:18px;background:radial-gradient(circle at 80% 115%,#fff1f1 0 25%,transparent 26%),linear-gradient(110deg,#fffafa,#fff);box-shadow:0 10px 28px rgba(153,25,30,.08);display:grid;grid-template-columns:300px 1fr auto;align-items:center;column-gap:34px}
+#view-inicio .home-metrics .metric-action::before{content:'$';position:absolute;left:34px;top:31px;width:96px;height:96px;display:grid;place-items:center;border-radius:30px;background:#fff;color:#c70d16;font-size:38px;font-weight:800;box-shadow:0 12px 24px rgba(188,17,25,.14)}
+#view-inicio .home-metrics .metric-action::after{display:none}
+#view-inicio .home-metrics .metric-label{grid-column:1;grid-row:1;font-size:14px;font-weight:800;color:#c70d16;letter-spacing:0}
+#view-inicio .home-metrics .metric-value{grid-column:1;grid-row:2;margin:4px 0 0;font-size:46px;line-height:1;color:#bd0913;letter-spacing:-1.7px}
+#view-inicio .home-metrics .metric-note{grid-column:2;grid-row:1 / span 2;font-size:17px;color:var(--text);font-weight:600}
+#view-inicio .home-metrics .metric-note::before{content:'Cobros vencidos: ';color:#bd0913;font-weight:800}
+#view-inicio .home-metrics .metric-action-hint{grid-column:3;grid-row:1 / span 2;margin:0;color:#bd0913;font-size:15px;white-space:nowrap}
+#view-inicio .home-metrics .metric-action-hint::after{content:' ›';font-size:28px;vertical-align:-2px;margin-left:6px}
+#view-inicio .home-metrics .metric-accent{display:none}
+#view-inicio .home-lower{display:block;order:2;margin:0}
+#view-inicio .home-agenda{min-height:246px;margin:0;padding:28px 30px;border-radius:18px;border:1px solid #d9e3f1;box-shadow:0 8px 26px rgba(26,64,114,.06)}
+#view-inicio .home-agenda .agenda-card-head{margin-bottom:28px}
+#view-inicio .home-agenda .card-title{font-size:20px}.home-agenda .card-sub{font-size:14px}
+#view-inicio [data-eter-dashboard]{order:3;margin:0!important}
+#view-inicio [data-eter-dashboard]>.grid{display:block;margin:0!important}
+#view-inicio [data-eter-dashboard]>.grid>.card:first-child{padding:28px 30px;border-radius:18px;border:1px solid #d9e3f1;box-shadow:0 8px 26px rgba(26,64,114,.06)}
+#view-inicio [data-eter-dashboard]>.grid>.card:first-child .card-title{font-size:19px}
+#view-inicio [data-eter-dashboard]>.grid>.card:nth-child(2){display:none}
+#view-inicio [data-eter-dashboard] .item{padding:18px;border-color:#d7e2f0;border-radius:13px}
+
+@media(max-width:780px){
+ #view-inicio .home-dashboard{gap:14px}
+ #view-inicio .home-metrics{display:block;order:1;margin:0}
+ #view-inicio .home-metrics .metric-action{min-height:144px;padding:22px 18px 22px 104px;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:10px;border-radius:15px}
+ #view-inicio .home-metrics .metric-action::before{left:16px;top:31px;width:70px;height:70px;border-radius:22px;font-size:28px}
+ #view-inicio .home-metrics .metric-label{font-size:11px}.home-metrics .metric-value{font-size:32px}
+ #view-inicio .home-metrics .metric-note{grid-column:1 / span 2;grid-row:3;margin-top:10px;font-size:12px}.home-metrics .metric-note::before{content:''}
+ #view-inicio .home-metrics .metric-action-hint{grid-column:2;grid-row:1 / span 2;font-size:11px;white-space:normal;text-align:right}.home-metrics .metric-action-hint::after{font-size:18px}
+ #view-inicio .home-lower{display:block;order:2}.home-agenda{order:initial!important}
+ #view-inicio .home-agenda{min-height:200px;padding:18px}.home-agenda .card-title{font-size:17px}
+ #view-inicio [data-eter-dashboard]{order:3}.home-active{order:4!important}
+}
+
 
 /* ─── AGENDA PROFESIONAL DEL INICIO ───────────────── */
 #view-inicio .home-agenda{
@@ -4398,6 +4435,7 @@ function getPaymentByTurn(turnId){return data.payments.find(payment=>payment.tur
 function getPaymentByCombo(comboId){return data.payments.find(payment=>payment.comboId===comboId)||null}
 function pendingCollectionItems(){const items=[],linkedPaymentIds=new Set();data.turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0).forEach(turn=>{const payment=getPaymentByTurn(turn.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=resolveTurnPatient(turn);items.push({kind:'turn',id:turn.id,amount:Number(payment?.amount||turn.price||0),patientName:patient?.nombre||turn.paciente||'Paciente sin nombre',detail:`Turno · ${fmtDate(turn.fecha)} · ${turn.hora||'Sin horario'}${turn.motivo?` · ${turn.motivo}`:''}`,date:turn.fecha||'',paymentId:payment?.id||''})});data.packages.forEach(combo=>{const payment=getPaymentByCombo(combo.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=getPatient(combo.patientId);items.push({kind:'combo',id:combo.id,amount:Number(payment?.amount||combo.price||0),patientName:patient?.nombre||'Paciente sin nombre',detail:`Pack · ${combo.name||'Sin nombre'} · ${fmtDate(combo.startDate)}`,date:combo.startDate||'',paymentId:payment?.id||''})});data.payments.filter(payment=>payment.status!=='Cobrado'&&!linkedPaymentIds.has(payment.id)&&!payment.turnId&&!payment.comboId).forEach(payment=>{const patient=getPatient(payment.patientId);items.push({kind:'payment',id:payment.id,amount:Number(payment.amount||0),patientName:patient?.nombre||payment.patientName||'Paciente sin nombre',detail:payment.notes||'Pago pendiente sin turno vinculado',date:payment.date||'',paymentId:payment.id})});return items.sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
 function openPendingCollections(){const items=pendingCollectionItems(),total=items.reduce((sum,item)=>sum+item.amount,0),content=items.length?`<div class="pending-collections">${items.map(item=>`<article class="pending-collection-item"><div class="pending-collection-main"><strong>${esc(item.patientName)}</strong><span>${esc(item.detail)}</span></div><strong class="pending-collection-amount">${money(item.amount)}</strong><div class="pending-collection-actions">${item.kind==='turn'?`<button type="button" class="btn btn-sm btn-primary" data-action="pay-turn" data-id="${esc(item.id)}">Cobrar</button>`:item.kind==='combo'?`<button type="button" class="btn btn-sm btn-primary" data-action="pay-combo" data-id="${esc(item.id)}">Cobrar</button>`:`<button type="button" class="btn btn-sm btn-primary" data-action="edit-payment" data-id="${esc(item.paymentId)}">Registrar cobro</button>`}</div></article>`).join('')}</div>`:'<div class="empty">No hay cobros pendientes.</div>';openModal(`Cobros pendientes · ${money(total)}`,content,`<button type="button" class="btn" data-action="close-modal">Cerrar</button>`,'wide')}
+function pendingCollectionItems(){const items=[],linkedPaymentIds=new Set(),today=todayISO();data.turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&turn.fecha<today&&Number(turn.price)>0).forEach(turn=>{const payment=getPaymentByTurn(turn.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=resolveTurnPatient(turn);items.push({kind:'turn',id:turn.id,amount:Number(payment?.amount||turn.price||0),patientName:patient?.nombre||turn.paciente||'Paciente sin nombre',detail:`Turno vencido · ${fmtDate(turn.fecha)} · ${turn.hora||'Sin horario'}${turn.motivo?` · ${turn.motivo}`:''}`,date:turn.fecha||'',paymentId:payment?.id||''})});data.packages.filter(combo=>combo.endDate&&combo.endDate<today).forEach(combo=>{const payment=getPaymentByCombo(combo.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=getPatient(combo.patientId);items.push({kind:'combo',id:combo.id,amount:Number(payment?.amount||combo.price||0),patientName:patient?.nombre||'Paciente sin nombre',detail:`Pack vencido · ${combo.name||'Sin nombre'} · Finalizó ${fmtDate(combo.endDate)}`,date:combo.endDate||'',paymentId:payment?.id||''})});data.payments.filter(payment=>payment.status!=='Cobrado'&&!linkedPaymentIds.has(payment.id)&&!payment.turnId&&!payment.comboId&&String(payment.date||'')<=today).forEach(payment=>{const patient=getPatient(payment.patientId);items.push({kind:'payment',id:payment.id,amount:Number(payment.amount||0),patientName:patient?.nombre||payment.patientName||'Paciente sin nombre',detail:payment.notes||'Pago pendiente sin turno vinculado',date:payment.date||'',paymentId:payment.id})});return items.sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
 function getCombo(id){return data.packages.find(combo=>combo.id===id)||null}
 function getPatientCombos(patientId){const rank=combo=>['Vigente','Programado'].includes(comboComputedStatus(combo))?0:1;return data.packages.filter(combo=>combo.patientId===patientId).sort((a,b)=>rank(a)-rank(b)||String(b.startDate).localeCompare(String(a.startDate)))}
 function comboUsage(combo,excludeTurnId=''){const related=data.turns.filter(turn=>turn.comboId===combo.id&&turn.id!==excludeTurnId),turns=related.filter(turn=>turn.estado!=='Cancelado'),cancelled=related.filter(turn=>turn.estado==='Cancelado');const used=turns.filter(turn=>turn.estado==='Finalizado').length,reserved=turns.length-used,assigned=turns.length,total=Number(combo.totalSessions||0);return{turns,cancelled,used,reserved,assigned,remaining:Math.max(0,total-assigned),total,pct:total?Math.min(100,Math.round(assigned/total*100)):0}}
