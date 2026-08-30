@@ -492,6 +492,13 @@ body.sidebar-collapsed .sf-info,body.sidebar-collapsed .sf-dot{display:none}
 .metric-value{font-size:28px;font-weight:700;letter-spacing:-.8px;margin:8px 0 6px;color:var(--text)}
 .metric-note{font-size:11.5px;color:var(--muted)}
 .metric-accent{width:3px;height:32px;border-radius:2px;position:absolute;top:18px;right:18px}
+.metric.metric-action{width:100%;border:1px solid #f0caca;background:linear-gradient(135deg,#fff 0%,#fff7f7 100%);text-align:left;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+.metric.metric-action:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(184,50,50,.12)}
+.metric-action-hint{display:block;margin-top:10px;font-size:11px;font-weight:700;color:#b83232}
+.pending-collections{display:grid;gap:10px}
+.pending-collection-item{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.pending-collection-main{display:grid;gap:3px;min-width:0;flex:1}.pending-collection-main strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pending-collection-main span{font-size:12px;color:var(--muted)}
+.pending-collection-amount{font-size:16px;white-space:nowrap}.pending-collection-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 
 /* ─── BADGE ─────────────────────────────────────── */
 .badge{
@@ -3795,12 +3802,15 @@ body.modal-open{overflow:hidden}
   font-size:9px;
 }
 #view-turnos .week-turn-menu-context{
-  position:relative;
+  /* El menú participa de la grilla del turno: al abrirse amplía la tarjeta
+     en vez de cubrir los turnos y días siguientes. */
+  display:contents;
   align-self:start;
-  z-index:2;
 }
-#view-turnos .week-turn-menu-context[open]{z-index:500}
 #view-turnos .week-turn-menu-btn{
+  grid-column:3;
+  grid-row:1;
+  justify-self:end;
   width:32px;
   height:32px;
   display:grid;
@@ -3826,11 +3836,13 @@ body.modal-open{overflow:hidden}
   display:block;
 }
 #view-turnos .week-turn-menu{
-  top:39px;
-  right:0;
-  bottom:auto;
-  min-width:238px;
-  max-width:min(280px,calc(100vw - 28px));
+  position:static;
+  grid-column:1/-1;
+  grid-row:2;
+  width:100%;
+  min-width:0;
+  max-width:none;
+  margin-top:2px;
   padding:7px;
   border-radius:12px;
   box-shadow:0 16px 38px rgba(18,38,70,.18);
@@ -3933,7 +3945,8 @@ body.modal-open{overflow:hidden}
   #view-turnos .week-turn-copy strong{font-size:11.5px}
   #view-turnos .week-turn-copy>span{font-size:9.5px}
   #view-turnos .week-turn-menu-context{grid-column:2/3;grid-row:1;justify-self:end}
-  #view-turnos .week-turn-menu-btn{width:30px;height:30px}
+  #view-turnos .week-turn-menu-btn{grid-column:2/3;grid-row:1;width:30px;height:30px}
+  #view-turnos .week-turn-menu{grid-column:1/-1;grid-row:3}
   #view-turnos .week-turn-meta{margin-top:5px}
   #view-turnos .week-turn-meta .badge{height:18px;font-size:8px;padding:0 5px}
   #view-turnos .week-turn-billing{display:none}
@@ -3950,7 +3963,7 @@ body.modal-open{overflow:hidden}
   #view-turnos .week-turn-copy strong{font-size:10.8px}
   #view-turnos .week-turn-copy>span{font-size:9px}
   #view-turnos .week-turn-meta .badge:not(.week-turn-status){display:none}
-  #view-turnos .week-turn-menu{position:fixed;left:12px;right:12px;top:auto;bottom:18px;min-width:0;max-width:none;max-height:72vh;overflow:auto}
+  #view-turnos .week-turn-menu{position:static;left:auto;right:auto;top:auto;bottom:auto;max-height:none;overflow:visible}
 }
 @media(max-width:350px){
   #view-turnos .turns-results.is-week-grid{grid-template-columns:1fr}
@@ -3958,6 +3971,8 @@ body.modal-open{overflow:hidden}
   #view-turnos .week-turn-time{grid-column:auto;grid-row:auto;display:grid;min-height:42px;border-right:1px solid #dce7f5;text-align:center}
   #view-turnos .week-turn-copy{grid-column:auto;grid-row:auto}
   #view-turnos .week-turn-menu-context{grid-column:auto;grid-row:auto}
+  #view-turnos .week-turn-menu-btn{grid-column:3;grid-row:1}
+  #view-turnos .week-turn-menu{grid-column:1/-1;grid-row:2}
 }
 
 
@@ -4381,6 +4396,8 @@ function addDurationISO(value,amount,unit='days'){const date=new Date(`${value||
 function daysUntil(value){const end=new Date(`${value}T12:00:00`).getTime(),start=new Date(`${todayISO()}T12:00:00`).getTime();return Math.ceil((end-start)/86400000)}
 function getPaymentByTurn(turnId){return data.payments.find(payment=>payment.turnId===turnId)||null}
 function getPaymentByCombo(comboId){return data.payments.find(payment=>payment.comboId===comboId)||null}
+function pendingCollectionItems(){const items=[],linkedPaymentIds=new Set();data.turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0).forEach(turn=>{const payment=getPaymentByTurn(turn.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=resolveTurnPatient(turn);items.push({kind:'turn',id:turn.id,amount:Number(payment?.amount||turn.price||0),patientName:patient?.nombre||turn.paciente||'Paciente sin nombre',detail:`Turno · ${fmtDate(turn.fecha)} · ${turn.hora||'Sin horario'}${turn.motivo?` · ${turn.motivo}`:''}`,date:turn.fecha||'',paymentId:payment?.id||''})});data.packages.forEach(combo=>{const payment=getPaymentByCombo(combo.id);if(payment?.status==='Cobrado')return;if(payment)linkedPaymentIds.add(payment.id);const patient=getPatient(combo.patientId);items.push({kind:'combo',id:combo.id,amount:Number(payment?.amount||combo.price||0),patientName:patient?.nombre||'Paciente sin nombre',detail:`Pack · ${combo.name||'Sin nombre'} · ${fmtDate(combo.startDate)}`,date:combo.startDate||'',paymentId:payment?.id||''})});data.payments.filter(payment=>payment.status!=='Cobrado'&&!linkedPaymentIds.has(payment.id)&&!payment.turnId&&!payment.comboId).forEach(payment=>{const patient=getPatient(payment.patientId);items.push({kind:'payment',id:payment.id,amount:Number(payment.amount||0),patientName:patient?.nombre||payment.patientName||'Paciente sin nombre',detail:payment.notes||'Pago pendiente sin turno vinculado',date:payment.date||'',paymentId:payment.id})});return items.sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
+function openPendingCollections(){const items=pendingCollectionItems(),total=items.reduce((sum,item)=>sum+item.amount,0),content=items.length?`<div class="pending-collections">${items.map(item=>`<article class="pending-collection-item"><div class="pending-collection-main"><strong>${esc(item.patientName)}</strong><span>${esc(item.detail)}</span></div><strong class="pending-collection-amount">${money(item.amount)}</strong><div class="pending-collection-actions">${item.kind==='turn'?`<button type="button" class="btn btn-sm btn-primary" data-action="pay-turn" data-id="${esc(item.id)}">Cobrar</button>`:item.kind==='combo'?`<button type="button" class="btn btn-sm btn-primary" data-action="pay-combo" data-id="${esc(item.id)}">Cobrar</button>`:`<button type="button" class="btn btn-sm btn-primary" data-action="edit-payment" data-id="${esc(item.paymentId)}">Registrar cobro</button>`}</div></article>`).join('')}</div>`:'<div class="empty">No hay cobros pendientes.</div>';openModal(`Cobros pendientes · ${money(total)}`,content,`<button type="button" class="btn" data-action="close-modal">Cerrar</button>`,'wide')}
 function getCombo(id){return data.packages.find(combo=>combo.id===id)||null}
 function getPatientCombos(patientId){const rank=combo=>['Vigente','Programado'].includes(comboComputedStatus(combo))?0:1;return data.packages.filter(combo=>combo.patientId===patientId).sort((a,b)=>rank(a)-rank(b)||String(b.startDate).localeCompare(String(a.startDate)))}
 function comboUsage(combo,excludeTurnId=''){const related=data.turns.filter(turn=>turn.comboId===combo.id&&turn.id!==excludeTurnId),turns=related.filter(turn=>turn.estado!=='Cancelado'),cancelled=related.filter(turn=>turn.estado==='Cancelado');const used=turns.filter(turn=>turn.estado==='Finalizado').length,reserved=turns.length-used,assigned=turns.length,total=Number(combo.totalSessions||0);return{turns,cancelled,used,reserved,assigned,remaining:Math.max(0,total-assigned),total,pct:total?Math.min(100,Math.round(assigned/total*100)):0}}
@@ -4782,8 +4799,7 @@ function closeMenu(){$('#sidebar')?.classList.remove('open');$('#mobileOverlay')
 
 /* INICIO */
 function clinicalMetrics(){const histories=data.history;const activeRoutines=data.routines.filter(r=>r.active&&!r.template).length;const activeSessions=data.activeSessions.length;const compliance=Math.round(avg(histories.map(h=>Number(h.progress)||0)));const inactive=data.patients.filter(p=>{const last=patientLastSession(p.id);return !last||Date.now()-new Date(last.finishedAt||last.createdAt).getTime()>30*86400000}).length;return{activeRoutines,activeSessions,compliance,inactive}}
-function renderInicio(){const m=clinicalMetrics(),allTodayTurns=getTurnsForDate(todayISO()),todayTurns=allTodayTurns.slice(0,5),active=data.activeSessions.slice(0,3),pendingPayments=data.payments.filter(payment=>payment.status!=='Cobrado'),pendingTotal=pendingPayments.reduce((sum,payment)=>sum+Number(payment.amount||0),0);$('#view-inicio').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Panel clínico</h2><p>Resumen operativo del ${fmtDate(todayISO())}</p></div><button class="btn btn-primary" data-action="open-anamnesis">+ Nueva anamnesis</button></div><div class="home-dashboard"><div class="grid metrics home-metrics">${[
- ['Pacientes',data.patients.length,'Base clínica unificada','#1B5FCC'],['Turnos hoy',allTodayTurns.length,`${allTodayTurns.length} agendados en ETER`,'#2D74E7'],['Rutinas activas',m.activeRoutines,'Programas asignados','#0A6650'],['Sesiones activas',m.activeSessions,'En ejecución','#C97C10'],['Cumplimiento',`${m.compliance}%`,'Promedio histórico','#5B21B6'],['Pagos pendientes',pendingPayments.length,pendingTotal?`Pendiente: ${money(pendingTotal)}`:'Sin monto pendiente','#B83232']].map(([label,value,note,color])=>`<article class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-note">${note}</div><span class="metric-accent" style="background:${color}"></span></article>`).join('')}</div>${active.length?`<div class="card home-active" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col home-lower"><div class="card home-agenda"><div class="agenda-card-head"><div class="agenda-heading"><span class="agenda-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><div class="agenda-heading-copy"><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div></div><button type="button" class="btn agenda-view-btn" data-goto="turnos"><span class="agenda-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span>Ver agenda</span></button></div><div class="agenda-turn-list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty agenda-empty">No hay turnos para hoy</div>`}</div></div><div class="card home-quick"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div></div>`;updateTimerNodes()}
+function renderInicio(){const allTodayTurns=getTurnsForDate(todayISO()),todayTurns=allTodayTurns.slice(0,5),active=data.activeSessions.slice(0,3),pendingItems=pendingCollectionItems(),pendingTotal=pendingItems.reduce((sum,item)=>sum+item.amount,0);$('#view-inicio').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Panel clínico</h2><p>Resumen operativo del ${fmtDate(todayISO())}</p></div><button class="btn btn-primary" data-action="open-anamnesis">+ Nueva anamnesis</button></div><div class="home-dashboard"><div class="grid metrics home-metrics"><button type="button" class="card metric metric-action" data-action="view-pending-payments" aria-label="Ver cobros pendientes"><div class="metric-label">Pagos pendientes</div><div class="metric-value">${money(pendingTotal)}</div><div class="metric-note">${pendingItems.length?`${pendingItems.length} cobro${pendingItems.length===1?'':'s'} por realizar`:'No hay cobros pendientes'}</div><span class="metric-action-hint">Ver detalle de cobros</span><span class="metric-accent" style="background:#B83232"></span></button></div>${active.length?`<div class="card home-active" style="margin-bottom:18px"><div class="card-head"><div><div class="card-title">Sesiones activas</div><div class="card-sub">Continuar ejecución sin perder el cronómetro</div></div></div><div class="list">${active.map(session=>`<div class="item"><div class="item-main"><strong>${esc(livePatientName(session))}</strong><span>${esc(session.routineName)}</span></div><div class="item-right"><strong class="session-timer" data-timer-session="${session.id}" style="font-size:16px">${formatDuration(sessionElapsed(session))}</strong><button class="btn btn-sm btn-primary" data-action="continue-session" data-id="${session.id}">Continuar</button></div></div>`).join('')}</div></div>`:''}<div class="grid two-col home-lower"><div class="card home-agenda"><div class="agenda-card-head"><div class="agenda-heading"><span class="agenda-header-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><div class="agenda-heading-copy"><div class="card-title">Agenda del día</div><div class="card-sub">${allTodayTurns.length} turno${allTodayTurns.length===1?'':'s'} registrado${allTodayTurns.length===1?'':'s'} en ETER</div></div></div><button type="button" class="btn agenda-view-btn" data-goto="turnos"><span class="agenda-btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span>Ver agenda</span></button></div><div class="agenda-turn-list">${todayTurns.length?todayTurns.map(turn=>turnItemHtml(turn,{home:true})).join(''):`<div class="empty agenda-empty">No hay turnos para hoy</div>`}</div></div><div class="card home-quick"><div class="card-head"><div><div class="card-title">Acciones rápidas</div><div class="card-sub">Accesos clínicos frecuentes</div></div></div><div class="quick"><button class="quick-btn primary" data-action="new-routine"><span class="quick-icon">💪</span>Crear rutina</button><button class="quick-btn" data-action="open-anamnesis"><span class="quick-icon">📋</span>Nueva anamnesis</button><button class="quick-btn" data-action="new-evolution"><span class="quick-icon">📝</span>Registrar evolución</button><button class="quick-btn" data-action="go-execution"><span class="quick-icon">▶</span>Iniciar sesión</button></div></div></div></div>`;updateTimerNodes()}
 function getTurnsForDate(date){reconcileLocalTurnPatientLinks();return data.turns.filter(turn=>turn.fecha===date).map(linkTurnToPatient).sort((a,b)=>String(a.hora||'').localeCompare(String(b.hora||'')))}
 function turnRangeForPeriod(anchor=todayISO(),period='day'){
  const selected=dateOnly(anchor)||todayISO();
@@ -6121,6 +6137,7 @@ const eterObserver=new MutationObserver(()=>injectEterExtensions());eterObserver
 document.addEventListener('click',event=>{const button=event.target.closest('[data-eter-action]');if(!button)return;event.preventDefault();event.stopPropagation();const action=button.dataset.eterAction,id=button.dataset.patientId;if(action==='open-backups')openBackupCenter();else if(action==='backup-now'){saveAutomaticBackup('Copia manual');toast('Backup automático creado');openBackupCenter()}else if(action==='restore-local-backup'){const backup=eterBackups().find(item=>item.id===button.dataset.backupId);if(backup&&window.confirm('Restaurar esta copia local y reemplazar los datos actuales?')){saveAutomaticBackup('Antes de restaurar copia local');Object.assign(data,normalizeBackupData(backup.data));persistLocalBase();Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20);renderAll();toast('Copia restaurada')}}else if(action==='open-scales')openScaleForm(id);else if(action==='save-scale')saveScale();else if(action==='open-attachments')openAttachmentForm(id);else if(action==='save-attachment')saveAttachment();else if(action==='delete-attachment'){const patient=getPatient(id),ext=patientExtensions(patient);updatePatientExtensions(id,{attachments:ext.attachments.filter(item=>item.id!==button.dataset.attachmentId)});toast('Adjunto eliminado')}else if(action==='open-reminders')openReminderCenter();else if(action==='print-clinical-report')printClinicalReport(id);else if(action==='sync-review'){const conflicts=JSON.parse(localStorage.getItem(ETER_CONFLICT_KEY)||'[]');openModal('Estado de sincronización',`<div class="clinical-grid"><div class="clinical-block"><h4>Estado actual</h4><p>${navigator.onLine?'Con conexión. Los cambios pendientes se sincronizan automáticamente.':'Sin conexión. Los cambios se mantienen guardados localmente.'}</p></div><div class="clinical-block"><h4>Conflictos detectados</h4><p>${conflicts.length} conflicto(s) registrado(s) en este dispositivo.</p></div></div><p class="card-sub" style="margin-top:14px">Al detectar una versión remota más reciente durante una edición local, la app conserva la copia local en los backups automáticos antes de aplicar la actualización remota.</p>`,`<button class="btn" data-action="close-modal">Cerrar</button>`,'wide')}} ,true);
 window.addEventListener('online',()=>{setSync('syncing','Conexión recuperada','Sincronizando cambios pendientes');scheduleCloudWrite(20);toast('Conexión recuperada')});window.addEventListener('offline',()=>{setSync('offline','Sin conexión','Cambios protegidos en este dispositivo');saveAutomaticBackup('Modo sin conexión')});
 setInterval(()=>saveAutomaticBackup('Respaldo periódico'),30*60*1000);
+document.addEventListener('click',event=>{const card=event.target.closest('.metric-action[data-action="view-pending-payments"]');if(!card)return;event.preventDefault();event.stopImmediatePropagation();openPendingCollections()},true);
 init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensions()}).catch(error=>{console.error('ETER init failed',error);toast('La aplicación inició en modo local','warn')});
 </script>
 </body>
