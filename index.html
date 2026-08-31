@@ -4115,6 +4115,65 @@ body.modal-open{overflow:hidden}
   .patient-name{font-size:1.2rem;line-height:1.15}
   .patient-card-summary .whatsapp-btn{width:34px;height:34px;border-radius:9px}
 }
+/* ─── AGENDA SEMANAL · TARJETAS CON FOTO ─────────────── */
+#view-turnos .turns-results.is-week-grid{gap:18px}
+#view-turnos .turn-day-group.is-week-day{padding:18px;border-radius:18px;min-height:238px}
+#view-turnos .turn-day-group.is-week-day .turn-day-head{align-items:flex-start;margin-bottom:15px;padding-bottom:0;border:0}
+#view-turnos .turn-day-group.is-week-day .turn-day-kicker{color:var(--blue);font-size:11px;font-weight:850;letter-spacing:.8px}
+#view-turnos .turn-day-group.is-week-day .turn-day-head h3{margin-top:4px;font-size:20px;font-weight:850;color:var(--text)}
+#view-turnos .turn-day-group.is-week-day .turn-day-count{min-height:36px;padding:0 13px;border:1px solid #d6e4ff;border-radius:999px;color:var(--blue);background:#f3f7ff;font-size:11px;font-weight:800}
+#view-turnos .week-turn-list{gap:12px}
+#view-turnos .week-turn-item{border-radius:13px;box-shadow:0 4px 12px rgba(31,65,112,.06)}
+#view-turnos .week-turn-item::before{display:none}
+#view-turnos .week-turn-summary{grid-template-columns:124px minmax(0,1fr) 38px;min-height:126px;gap:14px;padding:0 13px 0 0}
+#view-turnos .week-turn-avatar{grid-column:1;grid-row:1;width:124px;height:124px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--blue-mid));font-size:16px}
+#view-turnos .week-turn-time{grid-column:2;grid-row:1;align-self:start;min-height:auto;display:block;padding:15px 0 0;border:0;color:#0865e8;font-size:25px;text-align:left}
+#view-turnos .week-turn-copy{grid-column:2;grid-row:1;align-self:stretch;display:flex;min-width:0;flex-direction:column;padding:47px 0 12px}
+#view-turnos .week-turn-copy strong{font-size:15px;line-height:1.25}
+#view-turnos .week-turn-copy>span{margin-top:3px;font-size:12px;line-height:1.35}
+#view-turnos .week-turn-meta{margin-top:auto;gap:6px}
+#view-turnos .week-turn-meta .badge{height:24px;padding:0 9px;border-radius:999px;font-size:10px}
+#view-turnos .week-turn-menu-context{grid-column:3;grid-row:1;align-self:start;margin-top:15px}
+#view-turnos .week-turn-menu-btn{grid-column:auto;grid-row:auto;width:38px;height:38px;border-radius:10px}
+#view-turnos .week-turn-menu{grid-column:1/-1;grid-row:2;margin:0 0 10px 12px}
+#view-turnos .week-day-empty{min-height:120px;border-radius:13px;background:#fbfdff}
+@media(max-width:980px){
+ #view-turnos .turns-results.is-week-grid{gap:13px}
+ #view-turnos .turn-day-group.is-week-day{padding:14px;min-height:0}
+ #view-turnos .week-turn-summary{grid-template-columns:96px minmax(0,1fr) 34px;min-height:98px;gap:11px}
+ #view-turnos .week-turn-avatar{width:96px;height:98px;border-radius:10px}
+ #view-turnos .week-turn-time{padding-top:12px;font-size:21px}
+ #view-turnos .week-turn-copy{padding-top:39px;padding-bottom:9px}
+ #view-turnos .week-turn-copy strong{font-size:13px}
+ #view-turnos .week-turn-copy>span{font-size:10.5px}
+ #view-turnos .week-turn-menu-context{margin-top:11px}
+ #view-turnos .week-turn-menu-btn{width:34px;height:34px}
+}
+@media(max-width:680px){
+ #view-turnos .turns-results.is-week-grid{grid-template-columns:1fr;gap:12px}
+ #view-turnos .turn-day-group.is-week-day{padding:14px;border-radius:16px}
+ #view-turnos .turn-day-group.is-week-day .turn-day-head h3{font-size:18px}
+ #view-turnos .week-turn-summary{grid-template-columns:88px minmax(0,1fr) 36px;min-height:94px;gap:11px}
+ #view-turnos .week-turn-avatar{width:88px;height:94px;border-radius:10px}
+ #view-turnos .week-turn-time{padding-top:11px;font-size:21px}
+ #view-turnos .week-turn-copy{padding-top:38px;padding-bottom:9px}
+ #view-turnos .week-turn-copy strong{font-size:14px}
+ #view-turnos .week-turn-copy>span{font-size:11px}
+ #view-turnos .week-turn-meta .badge{height:22px;padding:0 8px;font-size:9.5px}
+}
+@media(max-width:390px){
+ #view-turnos .turn-day-group.is-week-day{padding:11px}
+ #view-turnos .week-turn-summary{grid-template-columns:72px minmax(0,1fr) 32px;min-height:80px;gap:9px}
+ #view-turnos .week-turn-avatar{width:72px;height:80px;border-radius:9px}
+ #view-turnos .week-turn-time{padding-top:9px;font-size:18px}
+ #view-turnos .week-turn-copy{padding-top:32px;padding-bottom:7px}
+ #view-turnos .week-turn-copy strong{font-size:12.5px}
+ #view-turnos .week-turn-copy>span{font-size:10px}
+ #view-turnos .week-turn-meta{gap:4px}
+ #view-turnos .week-turn-meta .badge{height:20px;padding:0 7px;font-size:8.5px}
+ #view-turnos .week-turn-menu-context{margin-top:9px}
+ #view-turnos .week-turn-menu-btn{width:32px;height:32px}
+}
 </style>
 </head>
 <body>
