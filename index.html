@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ETER KinePro | Panel clínico</title>
+<title>ETER KinePro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
@@ -5870,7 +5870,7 @@ function renderConfiguracion(){
  const whatsappMeta=normalizeWhatsAppMeta(meta);
  const availabilityHtml=weeklyAvailabilitySettingsHtml(whatsappMeta);
  const rates=getRates();
- const rateRow=rate=>`<div class="field full" style="border:1px solid var(--border);border-radius:10px;padding:12px;display:grid;gap:10px" data-rate-row="${esc(rate.id)}"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="font-weight:600">${esc(rate.service)}</span><span class="card-sub" style="margin:0">${rate.kind==='single'?'Sesión suelta':`Pack · ${Number(rate.sessions)||0} sesiones · ${esc(rate.frequency||'')}`}</span></div><div style="display:grid;grid-template-columns:1fr 160px;gap:10px"><div class="field" style="margin:0"><label>Nombre</label><input class="input" name="rateName__${esc(rate.id)}" value="${esc(rate.name)}"></div><div class="field" style="margin:0"><label>Precio</label><input class="input" type="number" min="0" step="1" name="ratePrice__${esc(rate.id)}" value="${Number(rate.price)||0}"></div></div></div>`;
+ const rateRow=rate=>`<div class="field full" style="border:1px solid var(--border);border-radius:10px;padding:12px;display:grid;gap:10px" data-rate-row="${esc(rate.id)}"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="font-weight:600">${esc(rate.service)}</span><div style="display:flex;align-items:center;gap:10px"><span class="card-sub" style="margin:0">${rate.kind==='single'?'Sesión suelta':`Pack · ${Number(rate.sessions)||0} sesiones · ${esc(rate.frequency||'')}`}</span><button type="button" class="btn btn-sm" title="Eliminar tarifa" data-action="delete-rate" data-id="${esc(rate.id)}" style="padding:4px 8px"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div></div><div style="display:grid;grid-template-columns:1fr 160px;gap:10px"><div class="field" style="margin:0"><label>Nombre</label><input class="input" name="rateName__${esc(rate.id)}" value="${esc(rate.name)}"></div><div class="field" style="margin:0"><label>Precio</label><input class="input" type="number" min="0" step="1" name="ratePrice__${esc(rate.id)}" value="${Number(rate.price)||0}"></div></div></div>`;
  const ratesHtml=rates.map(rateRow).join('')||'<p class="card-sub">No hay tarifas configuradas.</p>';
  $('#view-configuracion').innerHTML=`
   <div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div>
@@ -5941,7 +5941,7 @@ function renderConfiguracion(){
    </div>
 
    <div class="card">
-    <div class="card-head"><div><div class="card-title">Tarifas y precios</div><div class="card-sub">Nombre y precio de cada sesión y pack predefinido</div></div></div>
+    <div class="card-head"><div><div class="card-title">Tarifas y precios</div><div class="card-sub">Nombre y precio de cada sesión y pack predefinido</div></div><button type="button" class="btn btn-primary" data-action="new-rate">+ Nueva tarifa</button></div>
     <div class="form-grid">
      ${ratesHtml}
     </div>
@@ -5965,6 +5965,42 @@ function renderConfiguracion(){
 
    <div style="grid-column:1/-1;display:flex;justify-content:flex-end;padding-bottom:4px"><button type="button" class="btn btn-primary" data-action="save-settings">Guardar todos los cambios</button></div>
   </form>`
+}
+function openRateForm(id=''){
+ const existing=id?getRates().find(rate=>rate.id===id):null;
+ const kind=existing?.kind==='package'?'package':'single';
+ const hiddenAttr=kind!=='package'?'hidden':'';
+ openModal(existing?'Editar tarifa':'Nueva tarifa',`<form id="rateForm" class="form-grid"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><div class="field"><label>Tipo *</label><select class="select" name="kind" id="rateKind"><option value="single" ${kind==='single'?'selected':''}>Sesión suelta</option><option value="package" ${kind==='package'?'selected':''}>Pack</option></select></div><div class="field"><label>Servicio *</label><input class="input" name="service" id="rateService" required value="${esc(existing?.service||'')}" placeholder="Ej. Espalda y cuello"></div><div class="field full"><label>Nombre *</label><input class="input" name="name" required value="${esc(existing?.name||'')}" placeholder="Ej. Espalda y cuello · Sesión suelta"></div><div class="field"><label>Precio *</label><input class="input" name="price" type="number" min="0" step="1" required value="${existing?Number(existing.price||0):''}"></div><div class="field" id="rateSessionsField" ${hiddenAttr}><label>Cantidad de sesiones</label><input class="input" name="sessions" type="number" min="1" step="1" value="${existing?.sessions||2}"></div><div class="field" id="rateIntervalField" ${hiddenAttr}><label>Intervalo entre sesiones (días)</label><input class="input" name="intervalDays" type="number" min="0" step="1" value="${existing?.intervalDays??7}"></div><div class="field full" id="rateFrequencyField" ${hiddenAttr}><label>Descripción de frecuencia</label><input class="input" name="frequency" value="${esc(existing?.frequency||'')}" placeholder="Ej. 2 sesiones · una cada 15 días"></div><div class="field full" id="rateSameMonthField" ${hiddenAttr}><label class="chip" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="sameMonth" ${existing?.sameMonth?'checked':''}><span>Vence a fin del mes de inicio</span></label></div></form>`,`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn btn-primary" data-action="save-rate">${existing?'Actualizar':'Crear tarifa'}</button>`,'wide');
+ const kindSelect=$('#rateKind'),packageFields=[$('#rateSessionsField'),$('#rateIntervalField'),$('#rateFrequencyField'),$('#rateSameMonthField')];
+ kindSelect.addEventListener('change',()=>{const isPackage=kindSelect.value==='package';packageFields.forEach(field=>field.hidden=!isPackage)})
+}
+function saveRate(){
+ const form=$('#rateForm');
+ if(!form.reportValidity())return;
+ const v=Object.fromEntries(new FormData(form)),kind=v.kind==='package'?'package':'single',service=String(v.service||'').trim(),name=String(v.name||'').trim(),price=Number(v.price);
+ if(!service||!name)return toast('Completá servicio y nombre','error');
+ if(!Number.isFinite(price)||price<0)return toast('Ingresá un precio válido','error');
+ const rates=getRates(),existing=v.id?rates.find(rate=>rate.id===v.id):null;
+ const rate={id:existing?.id||uid('rate'),kind,service,name,price,sessions:kind==='package'?Math.max(1,Number(v.sessions)||2):1,intervalDays:kind==='package'?Math.max(0,Number(v.intervalDays)||0):0,frequency:kind==='package'?(String(v.frequency||'').trim()||'Pack personalizado'):'Sesión individual',sameMonth:kind==='package'&&v.sameMonth==='on'};
+ const updatedRates=existing?rates.map(item=>item.id===rate.id?rate:item):[...rates,rate];
+ const stamp=Date.now();
+ data.meta={...data.meta,rates:updatedRates,_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
+ persistLocal();scheduleCloudWrite(50);
+ closeModal();
+ renderConfiguracion();
+ toast(existing?'Tarifa actualizada':'Tarifa creada')
+}
+function deleteRateFlow(id){
+ const rate=getRates().find(item=>item.id===id);
+ if(!rate)return;
+ openConfirm('Eliminar tarifa',`Se quitará “${esc(rate.name)}” del catálogo de tarifas. Los turnos y packs que ya la usan conservan su precio y no se modifican.`,()=>{
+  const stamp=Date.now();
+  data.meta={...data.meta,rates:getRates().filter(item=>item.id!==id),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
+  persistLocal();scheduleCloudWrite(50);
+  closeConfirm();
+  renderConfiguracion();
+  toast('Tarifa eliminada','info')
+ })
 }
 function saveSettings(){
  const f=$('#settingsForm');
@@ -6037,7 +6073,7 @@ else if(a==='whatsapp-mark-contacted-direct')markPatientAsContacted(patientId||i
 else if(a==='availability-add-time')addAvailabilityTimeFromSettings(target.dataset.day);
 else if(a==='availability-remove-time'){const card=target.closest('[data-availability-day]');target.closest('.weekly-time-chip')?.remove();if(card)renderAvailabilityChips(card,card.dataset.availabilityDay,availabilityCardTimes(card))}
 else if(a==='availability-copy-times')copyAvailabilityTimes(target.dataset.day);
-else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='export-backup-json')exportBackupJson();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='new-rate')openRateForm();else if(a==='edit-rate')openRateForm(id);else if(a==='save-rate')saveRate();else if(a==='delete-rate')deleteRateFlow(id);else if(a==='export-backup-json')exportBackupJson();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20)}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement))return;if(card.classList.contains('context')){const summary=card.querySelector(':scope > summary');if(summary)summary.setAttribute('aria-expanded',String(card.open));return}if(!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
