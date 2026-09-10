@@ -4258,7 +4258,7 @@ const PROMO_CATALOG=[
   {id:'cuerpo-completo-quincenal',kind:'package',service:'Cuerpo completo',name:'Cuerpo completo · Pack quincenal',sessions:2,price:85500,intervalDays:15,frequency:'2 sesiones · una cada 15 días',sameMonth:true},
   {id:'cuerpo-completo-mensual',kind:'package',service:'Cuerpo completo',name:'Cuerpo completo · Pack mensual',sessions:4,price:160000,intervalDays:7,frequency:'4 sesiones · una por semana',sameMonth:true}
 ];
-function getRates(){if(!Array.isArray(data.meta?.rates)||!data.meta.rates.length){data.meta={...data.meta,rates:PROMO_CATALOG.map(rate=>({...rate}))};persistLocal()}return data.meta.rates}
+function getRates(){try{if(!Array.isArray(data.meta?.rates)||!data.meta.rates.length){data.meta={...data.meta,rates:PROMO_CATALOG.map(rate=>({...rate}))};persistLocal()}return data.meta.rates}catch(_){return PROMO_CATALOG}}
 const getPromo=id=>getRates().find(promo=>promo.id===id)||null;
 const singlePromos=()=>getRates().filter(promo=>promo.kind==='single');
 const packagePromos=()=>getRates().filter(promo=>promo.kind==='package');
