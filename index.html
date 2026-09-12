@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ETER KinePro</title>
+<title>ETER KinePro | Panel clínico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
@@ -4597,6 +4597,7 @@ function refreshSyncLeadership(){if(isSyncLeader()||claimSyncLeadership())localS
 function persistLocal(target=data,{broadcastState=true}={}){localStorage.setItem(STORAGE_KEY,JSON.stringify(target));if(broadcastState&&broadcast&&!applyingRemote)broadcast.postMessage({type:'state',deviceId:DEVICE_ID,tabId:TAB_ID,state:target});return target}
 function markEntityDirty(key,id){const item=data[key]?.find(x=>x.id===id);if(item)Object.assign(item,touch(item));persistLocal();scheduleCloudWrite()}
 function upsertEntity(key,entity){const normalizedEntity=key==='patients'?mapPatientToEter(entity):entity,index=data[key].findIndex(x=>x.id===normalizedEntity.id),existing=index>=0?data[key][index]:null,patch={};if(existing){for(const [k,v] of Object.entries(normalizedEntity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const next=touch({...existing,...normalizedEntity,_patch:{...(existing?._patch||{}),...patch}});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite();return next}
+function safeRefresh(fn){try{fn()}catch(error){console.error('Refresh failed after action',error)}}
 async function removeEntity(key,id){const stamp=Date.now();data[key]=(data[key]||[]).filter(x=>x.id!==id);data.pendingDeletes=data.pendingDeletes||[];const existing=data.pendingDeletes.find(item=>item.key===key&&item.id===id);if(existing){existing.createdAt=new Date(stamp).toISOString();existing._updatedAtMs=stamp;existing._clientId=DEVICE_ID;existing._writeId=`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`}else data.pendingDeletes.push({key,id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`});persistLocal();renderAll();scheduleCloudWrite(SYNC_WRITE_DELAY);return true}
 
 /* FIREBASE Y REPOSITORIOS */
@@ -5603,10 +5604,10 @@ async function saveTurn(){
   const savedDate=values.fecha;
   const wasEditing=Boolean(existing);
   closeModal();
-  if(ui.view==='turnos')renderTurnos(savedDate);
-  else if(ui.view==='inicio')renderInicio();
-  else if(ui.view==='pagos')renderPagos();
-  else scheduleCurrentViewRender({force:true,reason:'turn-saved'});
+  if(ui.view==='turnos')safeRefresh(()=>renderTurnos(savedDate));
+  else if(ui.view==='inicio')safeRefresh(renderInicio);
+  else if(ui.view==='pagos')safeRefresh(renderPagos);
+  else safeRefresh(()=>scheduleCurrentViewRender({force:true,reason:'turn-saved'}));
   toast(wasEditing?'Turno actualizado':'Turno guardado','success')
  }catch(error){
   console.error('No se pudo guardar el turno',error);
@@ -5627,13 +5628,13 @@ function setTurnStatus(id,status){
  if(!turn)return toast('Turno no encontrado','warn');
  if(turn.estado===status)return;
  upsertEntity('turns',normalizeTurn({...turn,estado:status}));
- if(ui.view==='turnos')renderTurnos();
- else if(ui.view==='inicio')renderInicio();
- else scheduleCurrentViewRender({force:true,reason:'turn-status'});
+ if(ui.view==='turnos')safeRefresh(renderTurnos);
+ else if(ui.view==='inicio')safeRefresh(renderInicio);
+ else safeRefresh(()=>scheduleCurrentViewRender({force:true,reason:'turn-status'}));
  updateNotifications();
  toast(`Turno marcado como ${status}`,'success')
 }
-function deleteTurn(id){const turn=getTurnById(id);if(!turn)return;if(getPaymentByTurn(id))return toast('No se puede eliminar un turno que tiene un pago vinculado. Eliminá primero el pago','error');openConfirm('Eliminar turno','El turno será removido de la agenda. Si estaba incluido en un combo, la sesión volverá a quedar disponible.',async()=>{await removeEntity('turns',id);closeConfirm();renderTurnos(turn.fecha);renderInicio();renderPagos();toast('Turno eliminado','info')})}
+function deleteTurn(id){const turn=getTurnById(id);if(!turn)return;if(getPaymentByTurn(id))return toast('No se puede eliminar un turno que tiene un pago vinculado. Eliminá primero el pago','error');openConfirm('Eliminar turno','El turno será removido de la agenda. Si estaba incluido en un combo, la sesión volverá a quedar disponible.',async()=>{await removeEntity('turns',id);closeConfirm();safeRefresh(()=>renderTurnos(turn.fecha));safeRefresh(renderInicio);safeRefresh(renderPagos);toast('Turno eliminado','info')})}
 
 /* PAGOS, REPORTES Y CONFIGURACIÓN */
 function renderPromoCard(promo){
@@ -5771,10 +5772,10 @@ function savePayment(){
   if(paidTurn&&paidTurn.estado!=='Finalizado')upsertEntity('turns',normalizeTurn({...paidTurn,estado:'Finalizado'}))
  }
  closeModal();
- renderPagos();
- renderTurnos(date);
- if(ui.view==='inicio')renderInicio();
- else if(ui.view!=='pagos'&&ui.view!=='turnos')scheduleCurrentViewRender({force:true,reason:'payment-saved'});
+ safeRefresh(renderPagos);
+ safeRefresh(()=>renderTurnos(date));
+ if(ui.view==='inicio')safeRefresh(renderInicio);
+ else if(ui.view!=='pagos'&&ui.view!=='turnos')safeRefresh(()=>scheduleCurrentViewRender({force:true,reason:'payment-saved'}));
  toast(existing?'Pago actualizado':'Pago registrado')
 }
 function renderComboCard(combo){
@@ -5833,13 +5834,13 @@ function saveCombo(){
  const combo=normalizePackage({...existing,id:existing?.id||uid('combo'),patientId:patient.id,patientName:patient.nombre,name:values.name,promoId:promo?.kind==='package'?promo.id:'',serviceType:promo?.kind==='package'?promo.service:existing?.serviceType||'',frequencyLabel:promo?.kind==='package'?promo.frequency:existing?.frequencyLabel||'',intervalDays:promo?.kind==='package'?promo.intervalDays:existing?.intervalDays||0,sameMonth:false,totalSessions,price:Number(values.price||0),startDate:values.startDate,endDate,status,finishedAt:status==='Finalizado'?(existing?.finishedAt||nowIso()):'',notes:values.notes});
  upsertEntity('packages',combo);
  closeModal();
- renderPagos();
+ safeRefresh(renderPagos);
  toast(status==='Finalizado'?'Pack finalizado y archivado':existing?'Pack actualizado':'Pack creado')
 }
-function finishCombo(id){const combo=getCombo(id);if(!combo||combo.status==='Finalizado')return;openConfirm('Finalizar pack',`El pack “${combo.name}” dejará de figurar como vigente y quedará plegado entre los packs anteriores. Los turnos y pagos vinculados se conservarán.`,async()=>{await upsertEntity('packages',normalizePackage({...combo,status:'Finalizado',finishedAt:nowIso()}));closeConfirm();renderPagos();if(ui.selectedPatientId===combo.patientId&&$('#appModal')?.classList.contains('open'))renderPatientProfile();toast('Pack finalizado y archivado','success')})}
-function reopenCombo(id){const combo=getCombo(id);if(!combo)return;upsertEntity('packages',normalizePackage({...combo,status:'Activo',finishedAt:''}));renderPagos();if(ui.selectedPatientId===combo.patientId&&$('#appModal')?.classList.contains('open'))renderPatientProfile();toast(combo.endDate<todayISO()?'Pack reactivado. Ajustá la vigencia para volver a usarlo':'Pack reactivado','success')}
-function deleteCombo(id){const combo=getCombo(id);if(!combo)return;const usage=comboUsage(combo),payment=getPaymentByCombo(id);if(usage.assigned)return toast('No se puede eliminar: el pack tiene turnos asignados','error');if(payment)return toast('No se puede eliminar: el pack tiene un pago vinculado. Eliminá primero el pago','error');openConfirm('Eliminar pack','Se eliminará la vigencia y la cantidad de sesiones configuradas.',async()=>{await removeEntity('packages',id);closeConfirm();renderPagos();toast('Combo eliminado','info')})}
-function deletePayment(id){const payment=data.payments.find(item=>item.id===id);if(!payment)return;openConfirm('Eliminar pago',`Se eliminará el registro de ${money(payment.amount)} y el turno o combo volverá a figurar como pendiente.`,async()=>{await removeEntity('payments',id);closeConfirm();renderPagos();renderTurnos(payment.date);toast('Pago eliminado','info')})}
+function finishCombo(id){const combo=getCombo(id);if(!combo||combo.status==='Finalizado')return;openConfirm('Finalizar pack',`El pack “${combo.name}” dejará de figurar como vigente y quedará plegado entre los packs anteriores. Los turnos y pagos vinculados se conservarán.`,async()=>{await upsertEntity('packages',normalizePackage({...combo,status:'Finalizado',finishedAt:nowIso()}));closeConfirm();safeRefresh(renderPagos);if(ui.selectedPatientId===combo.patientId&&$('#appModal')?.classList.contains('open'))safeRefresh(renderPatientProfile);toast('Pack finalizado y archivado','success')})}
+function reopenCombo(id){const combo=getCombo(id);if(!combo)return;upsertEntity('packages',normalizePackage({...combo,status:'Activo',finishedAt:''}));safeRefresh(renderPagos);if(ui.selectedPatientId===combo.patientId&&$('#appModal')?.classList.contains('open'))safeRefresh(renderPatientProfile);toast(combo.endDate<todayISO()?'Pack reactivado. Ajustá la vigencia para volver a usarlo':'Pack reactivado','success')}
+function deleteCombo(id){const combo=getCombo(id);if(!combo)return;const usage=comboUsage(combo),payment=getPaymentByCombo(id);if(usage.assigned)return toast('No se puede eliminar: el pack tiene turnos asignados','error');if(payment)return toast('No se puede eliminar: el pack tiene un pago vinculado. Eliminá primero el pago','error');openConfirm('Eliminar pack','Se eliminará la vigencia y la cantidad de sesiones configuradas.',async()=>{await removeEntity('packages',id);closeConfirm();safeRefresh(renderPagos);toast('Combo eliminado','info')})}
+function deletePayment(id){const payment=data.payments.find(item=>item.id===id);if(!payment)return;openConfirm('Eliminar pago',`Se eliminará el registro de ${money(payment.amount)} y el turno o combo volverá a figurar como pendiente.`,async()=>{await removeEntity('payments',id);closeConfirm();safeRefresh(renderPagos);safeRefresh(()=>renderTurnos(payment.date));toast('Pago eliminado','info')})}
 function renderPatientFinance(patientId){const combos=getPatientCombos(patientId),turns=data.turns.filter(turn=>turn.patientId===patientId).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`)),payments=data.payments.filter(payment=>payment.patientId===patientId),paid=payments.filter(payment=>payment.status==='Cobrado').reduce((sum,payment)=>sum+Number(payment.amount||0),0),pending=turns.filter(turn=>!turn.comboId&&turn.estado!=='Cancelado'&&Number(turn.price)>0).reduce((sum,turn)=>{const payment=getPaymentByTurn(turn.id);if(payment?.status==='Cobrado')return sum;return sum+Number(payment?.amount??turn.price??0)},0),available=combos.filter(combo=>comboComputedStatus(combo)==='Vigente').reduce((sum,combo)=>sum+comboUsage(combo).remaining,0);return`<div class="routine-toolbar"><div><strong>Pagos, turnos y packs</strong><div class="card-sub">Organización financiera completa del paciente</div></div><div class="finance-actions"><button class="btn" data-action="new-combo" data-patient-id="${patientId}">+ Combo</button><button class="btn btn-primary" data-action="new-payment" data-patient-id="${patientId}">+ Pago</button></div></div><div class="kpi-grid" style="margin-bottom:14px">${[['Total cobrado',money(paid)],['Pendiente',money(pending)],['Packs',combos.length],['Sesiones disponibles',available]].map(([label,value])=>`<div class="kpi"><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`).join('')}</div><div class="finance-section-head"><div><h3>Packs del paciente</h3></div></div><div class="combo-grid" style="margin-bottom:16px">${combos.map(renderComboCard).join('')||'<div class="empty finance-empty">Sin combos registrados</div>'}</div><div class="finance-section-head"><div><h3>Turnos y estado de cobro</h3></div></div><div class="list">${turns.slice(0,20).map(turn=>{const billing=turnPaymentState(turn);return`<div class="item"><div class="item-main"><strong>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)}</strong><span>${turn.comboId?esc(getCombo(turn.comboId)?.name||'Combo eliminado'):money(turn.price)}</span></div><div class="item-right"><span class="badge ${billing.className}">${esc(billing.label)}</span>${!turn.comboId&&!getPaymentByTurn(turn.id)&&Number(turn.price)>0?`<button class="btn btn-sm btn-success" data-action="pay-turn" data-id="${turn.id}">Cobrar</button>`:''}</div></div>`}).join('')||'<div class="empty">Sin turnos registrados</div>'}</div>`}
 function renderReportes(){const m=clinicalMetrics(),rows=allEvolutions();$('#view-reportes').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Reportes</h2><p>Indicadores clínicos reales</p></div><button class="btn" data-action="export-csv">Exportar CSV</button></div><div class="grid three-col" style="margin-bottom:16px"><article class="card metric"><div class="metric-label">Pacientes</div><div class="metric-value">${data.patients.length}</div></article><article class="card metric"><div class="metric-label">Sesiones históricas</div><div class="metric-value">${data.history.length}</div></article><article class="card metric"><div class="metric-label">Cumplimiento</div><div class="metric-value">${m.compliance}%</div></article></div><div class="card"><div class="card-head"><div class="card-title">EVA promedio</div></div><div class="stat-row"><div class="stat-label">Actividad</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaActividad))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaActividad)).toFixed(1)}</div></div><div class="stat-row"><div class="stat-label">Reposo</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${avg(rows.map(e=>e.evaReposo))*10}%"></div></div><div class="stat-val">${avg(rows.map(e=>e.evaReposo)).toFixed(1)}</div></div></div>`}
 function exportCsv(){
