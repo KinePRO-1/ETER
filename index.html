@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <title>ETER KinePro | Panel clínico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -4281,9 +4278,11 @@ const broadcast='BroadcastChannel' in window?new BroadcastChannel('eter-kinepro-
 const TAB_ID=`tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
 const SYNC_LEADER_KEY='eter.kinepro.syncLeader.v1';
 const SYNC_LEADER_TTL=8000;
-const SYNC_WRITE_DELAY=1200;
-const SYNC_INLINE_DELAY=2000;
-const SYNC_RETRY_DELAY=15000;
+// La escritura se confirma por Firestore; este valor solo agrupa cambios que
+// ocurren dentro de la misma interacción. No debe retrasar otra pantalla.
+const SYNC_WRITE_DELAY=80;
+const SYNC_INLINE_DELAY=20;
+const SYNC_RETRY_DELAY=4000;
 const FIRESTORE_BATCH_LIMIT=450;
 const PATIENT_CLINICAL_STATUSES=['Activo','Activo parcial','Inactivo','Reincorporado'];
 function normalizePatientClinicalStatus(value){const status=String(value||'Activo').trim();if(PATIENT_CLINICAL_STATUSES.includes(status))return status;if(status==='Alta parcial')return'Activo parcial';if(status==='Alta médica')return'Inactivo';if(status==='En seguimiento')return'Activo';return'Activo'}
@@ -4380,8 +4379,6 @@ let listenersStarted=false;
 let settingsUnsubscribe=null;
 let leaderHeartbeat=null;
 let lastSyncState='syncing';
-let lastSnapshotAt=Date.now();
-let syncWatchdogTimer=null;
 let timerInterval=null;
 const saveDebouncers=new Map();
 const operationLocks=new Set();
@@ -4603,9 +4600,9 @@ function claimSyncLeadership(){const now=Date.now(),leader=readLeader();if(!lead
 function isSyncLeader(){const leader=readLeader();return Boolean(leader&&leader.tabId===TAB_ID&&leader.expiresAt>Date.now())}
 function refreshSyncLeadership(){if(isSyncLeader()||claimSyncLeadership())localStorage.setItem(SYNC_LEADER_KEY,JSON.stringify({tabId:TAB_ID,expiresAt:Date.now()+SYNC_LEADER_TTL}))}
 function persistLocal(target=data,{broadcastState=true}={}){localStorage.setItem(STORAGE_KEY,JSON.stringify(target));if(broadcastState&&broadcast&&!applyingRemote)broadcast.postMessage({type:'state',deviceId:DEVICE_ID,tabId:TAB_ID,state:target});return target}
-function markEntityDirty(key,id){const item=data[key]?.find(x=>x.id===id);if(item)Object.assign(item,touch(item));persistLocal();scheduleCloudWrite()}
-function upsertEntity(key,entity){const normalizedEntity=key==='patients'?mapPatientToEter(entity):entity,index=data[key].findIndex(x=>x.id===normalizedEntity.id),existing=index>=0?data[key][index]:null,patch={};if(existing){for(const [k,v] of Object.entries(normalizedEntity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const next=touch({...existing,...normalizedEntity,_patch:{...(existing?._patch||{}),...patch}});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite();return next}
-async function removeEntity(key,id){const stamp=Date.now();data[key]=(data[key]||[]).filter(x=>x.id!==id);data.pendingDeletes=data.pendingDeletes||[];const existing=data.pendingDeletes.find(item=>item.key===key&&item.id===id);if(existing){existing.createdAt=new Date(stamp).toISOString();existing._updatedAtMs=stamp;existing._clientId=DEVICE_ID;existing._writeId=`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`}else data.pendingDeletes.push({key,id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`});persistLocal();renderAll();scheduleCloudWrite(SYNC_WRITE_DELAY);return true}
+function markEntityDirty(key,id){const item=data[key]?.find(x=>x.id===id);if(item)Object.assign(item,touch(item));persistLocal();scheduleCloudWrite(SYNC_INLINE_DELAY)}
+function upsertEntity(key,entity){const normalizedEntity=key==='patients'?mapPatientToEter(entity):entity,index=data[key].findIndex(x=>x.id===normalizedEntity.id),existing=index>=0?data[key][index]:null,patch={};if(existing){for(const [k,v] of Object.entries(normalizedEntity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const next=touch({...existing,...normalizedEntity,_patch:{...(existing?._patch||{}),...patch}});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite(SYNC_INLINE_DELAY);return next}
+async function removeEntity(key,id){const stamp=Date.now();data[key]=(data[key]||[]).filter(x=>x.id!==id);data.pendingDeletes=data.pendingDeletes||[];const existing=data.pendingDeletes.find(item=>item.key===key&&item.id===id);if(existing){existing.createdAt=new Date(stamp).toISOString();existing._updatedAtMs=stamp;existing._clientId=DEVICE_ID;existing._writeId=`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`}else data.pendingDeletes.push({key,id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`});persistLocal();renderAll();scheduleCloudWrite(SYNC_INLINE_DELAY);return true}
 
 /* FIREBASE Y REPOSITORIOS */
 async function initFirebase(){
@@ -4627,13 +4624,18 @@ async function initFirebase(){
    });
    clinicalDb=fsMod.getFirestore(kineproApp);
    cloudReady=true;
-   await reconcileInitialPatients();
-   await seedEmptyClinicalCollections();
+   // Los listeners y los cambios del usuario se priorizan. La migración de
+   // datos iniciales no puede bloquear la conexión en tiempo real.
    initClinicalListeners();
    refreshSyncLeadership();
    await flushDeletes();
    await writeDirtyEntities();
    setSync('online','Conectado','Tiempo real');
+   Promise.resolve().then(async()=>{
+    await reconcileInitialPatients();
+    await seedEmptyClinicalCollections();
+    if(hasDirtyEntities()||(data.pendingDeletes||[]).length)scheduleCloudWrite(SYNC_INLINE_DELAY);
+   }).catch(error=>console.error('Initial clinical data reconciliation failed',error));
   }catch(error){
    console.error('Firebase initialization failed',{code:error?.code,message:error?.message,error});
    cloudReady=false;
@@ -4697,7 +4699,6 @@ function initClinicalListeners(){
   collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snapshot=>{
    if(applyingRemote)return;
    applyingRemote=true;
-   lastSnapshotAt=Date.now();
    let changed=false;
    try{
     for(const change of snapshot.docChanges()){
@@ -6255,12 +6256,12 @@ function runWhenIdle(task,timeout=1400){
  return window.setTimeout(task,Math.min(timeout,350))
 }
 function initFirebaseDeferred(){
- runWhenIdle(()=>{
-  initFirebase().catch(error=>{
-   console.error('ETER Firebase deferred init failed',error);
-   toast('La aplicación continúa en modo local','warn')
-  })
- },1200)
+ // La conexión se abre al iniciar la app. Diferirla hasta que el navegador
+ // quede libre hacía que un cambio temprano esperara toda la inicialización.
+ initFirebase().catch(error=>{
+  console.error('ETER Firebase initialization failed',error);
+  toast('La aplicación continúa en modo local','warn')
+ })
 }
 function installPerformanceAuditLoop(){
  const report={longTasks:0,slowFrames:0,lastAudit:0};
@@ -6285,32 +6286,17 @@ function installPerformanceAuditLoop(){
   console.info('[ETER] Auditoría de rendimiento',window.ETER_PERFORMANCE_AUDIT)
  },2600)
 }
-function quickResync(){
- if(!navigator.onLine)return;
- if(!cloudReady){initFirebase();return}
- if(!listenersStarted){restartClinicalListeners();return}
- refreshSyncLeadership();
- flushDeletes();
- writeDirtyEntities()
-}
-function startSyncWatchdog(){
- clearInterval(syncWatchdogTimer);
- syncWatchdogTimer=setInterval(()=>{
-  if(document.hidden||!navigator.onLine)return;
-  if(cloudReady&&listenersStarted&&Date.now()-lastSnapshotAt>45000){
-   console.warn('Sync watchdog: canal en tiempo real sin novedades hace más de 45s, reiniciando listeners');
-   restartClinicalListeners()
-  }
- },20000)
-}
 function handleVisibilityPerformance(){
  if(document.hidden){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
  }else{
   startTimerLoop();
   updateNotifications();
-  lastSnapshotAt=Date.now();
-  quickResync()
+  // Los navegadores móviles suspenden sockets en segundo plano. Al volver a
+  // primer plano se reactiva el listener y se vacía cualquier cola local.
+  if(navigator.onLine){
+   initFirebase().then(()=>scheduleCloudWrite(SYNC_INLINE_DELAY)).catch(()=>scheduleRetry())
+  }
  }
 }
 async function init(){
@@ -6324,9 +6310,6 @@ async function init(){
  startTimerLoop();
  attachListeners();
  document.addEventListener('visibilitychange',handleVisibilityPerformance,{passive:true});
- window.addEventListener('pageshow',event=>{if(event.persisted){lastSnapshotAt=Date.now();quickResync()}});
- window.addEventListener('focus',()=>quickResync());
- startSyncWatchdog();
  installPerformanceAuditLoop();
  initFirebaseDeferred()
 }
