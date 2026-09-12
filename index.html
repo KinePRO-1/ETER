@@ -4366,7 +4366,6 @@ let syncWriteTimer=null;
 let syncRetryTimer=null;
 let clinicalDb=null;
 let firebaseApi=null;
-let firebaseAuthUser=null;
 let cloudReady=false;
 let applyingRemote=false;
 let firebaseInitPromise=null;
@@ -4374,6 +4373,8 @@ let listenerUnsubscribers=[];
 let writeInProgress=false;
 let writeQueued=false;
 let listenersStarted=false;
+let remoteListenerHealth=new Set();
+let lastSyncError=null;
 let settingsUnsubscribe=null;
 let leaderHeartbeat=null;
 let timerInterval=null;
@@ -4432,6 +4433,9 @@ function sessionProgress(session){const total=session.executionData?.length||0;c
 function volumeForExecution(items){return (items||[]).reduce((sum,e)=>sum+(Number(e.actualSets)||0)*(Number(e.actualReps)||0)*(Number(e.actualLoad)||0),0)}
 function statusBadge(status){const map={'Activo':'b-ok','Activo parcial':'b-warn','Inactivo':'b-red','Reincorporado':'b-blue','Finalizada':'b-ok','Incompleta':'b-warn','Abandonada':'b-red','Borrador':'b-gray','Pausada':'b-warn','Confirmado':'b-ok','Pendiente':'b-warn','Finalizado':'b-gray','Cancelado':'b-red','Cobrado':'b-ok','Sin cobrar':'b-warn','Incluido en combo':'b-blue','Vigente':'b-ok','Vencido':'b-red','Completo':'b-blue','Programado':'b-gray'};return `<span class="badge ${map[status]||'b-gray'}">${esc(status||'Sin estado')}</span>`}
 function setSync(state,label,detail=''){const el=$('#syncStatus');if(!el)return;el.className=`sync-status ${state}`;$('#syncLabel').textContent=label;$('#syncDetail').textContent=detail}
+function syncErrorMessage(error){const code=String(error?.code||'');if(code.includes('permission-denied'))return'Firebase bloqueó el acceso. Revisá las reglas de Firestore.';if(code.includes('unauthenticated'))return'Firebase exige autenticación.';if(code.includes('unavailable')||code.includes('network'))return'No se pudo alcanzar Firebase.';return String(error?.message||'Error de sincronización').replace(/^FirebaseError:\s*/,'')}
+function recordSyncError(error,context=''){lastSyncError={code:String(error?.code||''),message:syncErrorMessage(error),context,at:nowIso()};console.error(`ETER sync error${context?` [${context}]`:''}`,error)}
+function markRemoteListenerHealthy(name,snapshot){if(snapshot?.metadata?.fromCache)return;remoteListenerHealth.add(name);if(remoteListenerHealth.size===Object.keys(ENTITY_COLLECTIONS).length+1&&!hasDirtyEntities()&&!(data.pendingDeletes||[]).length){lastSyncError=null;setSync('online','Conectado','Tiempo real')}}
 function toast(message,type='success',action=null){const t=$('#toast');if(!t)return;t.className=`toast ${type}`;$('#toastIcon').textContent=type==='error'?'✕':type==='warn'?'!':type==='info'?'ℹ':'✓';$('#toastMsg').textContent=message;const actionButton=$('#toastAction');if(actionButton){actionButton.hidden=!(action&&action.label&&typeof action.onClick==='function');actionButton.textContent=action?.label||'';actionButton.onclick=actionButton.hidden?null:()=>{t.classList.remove('show');action.onClick()}}t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),actionButton&&!actionButton.hidden?6500:2800)}
 /* MIGRACIÓN DE DATOS */
 function defaultData(){return{version:DATA_VERSION,patients:[],routines:[],activeSessions:[],history:[],exerciseLibrary:[],turns:[],payments:[],packages:[],pendingDeletes:[],meta:{}}}
@@ -4606,18 +4610,10 @@ async function initFirebase(){
  firebaseInitPromise=(async()=>{
   setSync('syncing','Conectando','Firebase');
   try{
-   const [appMod,fsMod,authMod]=await Promise.all([import(`${CDN}/firebase-app.js`),import(`${CDN}/firebase-firestore.js`),import(`${CDN}/firebase-auth.js`)]);
-   firebaseApi={...appMod,...fsMod,...authMod};
+   const [appMod,fsMod]=await Promise.all([import(`${CDN}/firebase-app.js`),import(`${CDN}/firebase-firestore.js`)]);
+   firebaseApi={...appMod,...fsMod};
    const apps=appMod.getApps();
    const kineproApp=apps.find(a=>a.name==='kineproApp')||appMod.initializeApp(KINEPRO_CONFIG,'kineproApp');
-   setSync('syncing','Autenticando','Firebase');
-   const auth=authMod.getAuth(kineproApp);
-   if(!auth.currentUser){
-    await authMod.signInAnonymously(auth);
-   }
-   await new Promise((resolve,reject)=>{
-    const unsub=authMod.onAuthStateChanged(auth,user=>{if(user){firebaseAuthUser=user;unsub();resolve(user)}},error=>{unsub();reject(error)});
-   });
    clinicalDb=fsMod.getFirestore(kineproApp);
    cloudReady=true;
    await reconcileInitialPatients();
@@ -4626,12 +4622,11 @@ async function initFirebase(){
    refreshSyncLeadership();
    await flushDeletes();
    await writeDirtyEntities();
-   setSync('online','Conectado','Tiempo real');
+   setSync('syncing','Verificando','Conexión remota');
   }catch(error){
-   console.error('Firebase initialization failed',{code:error?.code,message:error?.message,error});
+   recordSyncError(error,'initialization');
    cloudReady=false;
-   const authIssue=String(error?.code||'').startsWith('auth/');
-   setSync('offline',navigator.onLine?'Modo local':'Sin conexión',authIssue?'Revisar autenticación en Firebase':'La edición permanece guardada');
+   setSync('offline',navigator.onLine?'Modo local':'Sin conexión',lastSyncError?.message||'La edición permanece guardada');
    scheduleRetry();
   }finally{firebaseInitPromise=null}
  })();
@@ -4669,11 +4664,11 @@ async function reconcileInitialPatients(){
  }catch(error){console.error('No se pudo sincronizar la base inicial de pacientes',error);persistLocal(data,{broadcastState:false});scheduleCurrentViewRender({reason:'initial-patients-error'})}
 }
 function buildFirestorePayload(item){const payload={...item};for(const key of ['_dirty','_patch','_seedPending','serverUpdatedAt'])delete payload[key];return payload}
-function normalizeRemoteEntity(key,raw={}){return normalizeEntityItem(key,withNormalizedRevision(raw))}
-function replaceRemoteEntity(key,remote,local){const cleanRemote={...remote,_dirty:false};delete cleanRemote._patch;if(key==='patients'&&local)return normalizePatient({...mergePatientFields(local,cleanRemote),_dirty:false,_patch:undefined});return normalizeRemoteEntity(key,cleanRemote)}
+function normalizeRemoteEntity(key,raw={}){const remote=normalizeEntityItem(key,withNormalizedRevision(raw)),serverMs=firestoreTimestampMs(raw.serverUpdatedAt);return serverMs?{...remote,_updatedAtMs:serverMs,updatedAt:new Date(serverMs).toISOString()}:remote}
+function replaceRemoteEntity(key,remote){const cleanRemote={...remote,_dirty:false};delete cleanRemote._patch;return normalizeRemoteEntity(key,cleanRemote)}
 function hasPendingDelete(key,id){return Boolean((data.pendingDeletes||[]).some(item=>item.key===key&&item.id===id))}
 function registerSyncConflict(key,local,remote){try{const stored=safelyParse(localStorage.getItem('eter.kinepro.syncConflicts.v1'),'[]');const signature=`${key}:${local.id}:${entityRevision(remote)}`;if(stored.some(item=>item.signature===signature))return;stored.unshift({signature,key,id:local.id,localUpdatedAt:local.updatedAt||'',remoteUpdatedAt:remote.updatedAt||'',detectedAt:nowIso(),local:syncComparable(local),remote:syncComparable(remote)});localStorage.setItem('eter.kinepro.syncConflicts.v1',JSON.stringify(stored.slice(0,30)));saveAutomaticBackup?.('Conflicto de sincronización detectado')}catch(error){console.warn('No se pudo registrar conflicto de sincronización',error)}}
-function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(hasPendingDelete(key,remote.id))return false;if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite){if(syncComparable(local)!==syncComparable(remote))registerSyncConflict(key,local,remote);return false}const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
+function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(hasPendingDelete(key,remote.id))return false;if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite){if(syncComparable(local)!==syncComparable(remote))registerSyncConflict(key,local,remote);return false}const next=replaceRemoteEntity(key,remote);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty)&&entityRevision(next)===entityRevision(local))return false;items[index]=next;data[key]=items;return true}
 function initClinicalListeners(){
  if(listenersStarted)return;
  listenersStarted=true;
@@ -4696,35 +4691,37 @@ function initClinicalListeners(){
     }
     persistLocal(data,{broadcastState:false});
     if(changed)scheduleCurrentViewRender({reason:`firestore:${cfg.key}`})
+    markRemoteListenerHealthy(cfg.key,snapshot);
    }catch(error){
-    console.error(`Remote merge failed [${cfg.collection}]`,{error,cloudReady,leader:isSyncLeader()});
-    setSync('offline','Modo local','La edición permanece guardada');
+    recordSyncError(error,`merge:${cfg.collection}`);
+    setSync('offline','Modo local',lastSyncError.message);
     toast('Error remoto. Los cambios siguen guardados localmente','warn');
     scheduleRetry()
    }finally{applyingRemote=false}
    const pending=snapshot.metadata.hasPendingWrites||hasDirtyEntities()||(data.pendingDeletes||[]).length||data.meta?._dirty;
-   if(pending)setSync('syncing','Sincronizando','Cambios pendientes');else if(snapshot.metadata.fromCache)setSync('syncing','Caché','Esperando conexión');else setSync('online','Conectado','Tiempo real')
+   if(pending)setSync('syncing','Sincronizando','Cambios pendientes');else if(snapshot.metadata.fromCache)setSync('syncing','Caché','Esperando conexión');else if(remoteListenerHealth.size===Object.keys(ENTITY_COLLECTIONS).length+1)setSync('online','Conectado','Tiempo real');else setSync('syncing','Verificando','Cargando datos remotos')
   },error=>{
-   console.error(`Listener error [${cfg.collection}]`,{error,cloudReady,leader:isSyncLeader()});
-   setSync('offline','Error de listener','La edición permanece guardada');
-   toast('Sin conexión con Firebase. Se mantiene el modo local','warn');
+   recordSyncError(error,`listener:${cfg.collection}`);
+   setSync('offline','Modo local',lastSyncError.message);
+   toast(lastSyncError.message,'warn');
    scheduleRetry()
   }
  ));
  if(!settingsUnsubscribe)settingsUnsubscribe=onSnapshot(firebaseApi.doc(firebaseApi.collection(clinicalDb,'app_meta'),'settings'),{includeMetadataChanges:true},snapshot=>{
+  markRemoteListenerHealthy('settings',snapshot);
   if(!snapshot.exists()||applyingRemote)return;
   applyingRemote=true;
   let changed=false;
   try{
    const remote=withNormalizedRevision(snapshot.data()||{}),local=withNormalizedRevision(data.meta||{}),confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!snapshot.metadata.hasPendingWrites);
-   if((!local._dirty||confirmedOwnWrite)&&entityRevision(remote)>=entityRevision(local)){data.meta={...local,...remote,_dirty:false};delete data.meta._patch;changed=syncComparable(data.meta)!==syncComparable(local)||Boolean(local._dirty)}
+   if(!local._dirty||confirmedOwnWrite){data.meta={...remote,_dirty:false};delete data.meta._patch;changed=syncComparable(data.meta)!==syncComparable(local)||Boolean(local._dirty);markRemoteListenerHealthy('settings',snapshot)}
    persistLocal(data,{broadcastState:false});
    if(changed)scheduleCurrentViewRender({reason:'firestore:settings'})
-  }catch(error){console.error('Settings remote merge failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Modo local','Configuración pendiente');scheduleRetry()}
+ }catch(error){recordSyncError(error,'merge:settings');setSync('offline','Modo local',lastSyncError.message);scheduleRetry()}
   finally{applyingRemote=false}
- },error=>{console.error('Settings listener failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Modo local','Configuración pendiente');scheduleRetry()})
+ },error=>{recordSyncError(error,'listener:settings');setSync('offline','Modo local',lastSyncError.message);scheduleRetry()})
 }
-function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw);if(hasPendingDelete(key,incoming.id))continue;const local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;if(entityRevision(incoming)>=entityRevision(local))current.set(incoming.id,replaceRemoteEntity(key,incoming,local))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
+function mergeRemoteCollection(key,remote=[]){const before=collectionSignature(data[key]||[]),current=new Map((data[key]||[]).map(item=>[item.id,item]));for(const raw of remote){const incoming=normalizeRemoteEntity(key,raw);if(hasPendingDelete(key,incoming.id))continue;const local=current.get(incoming.id);if(!local){current.set(incoming.id,incoming);continue}if(local._dirty)continue;current.set(incoming.id,replaceRemoteEntity(key,incoming))}data[key]=[...current.values()];return before!==collectionSignature(data[key])}
 function hasDirtyEntities(){return Boolean(data.meta?._dirty)||Object.values(ENTITY_COLLECTIONS).some(cfg=>(data[cfg.key]||[]).some(item=>item._dirty))}
 function scheduleCloudWrite(delayMs=SYNC_WRITE_DELAY){
  clearTimeout(syncWriteTimer);
