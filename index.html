@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ETER KinePro</title>
+<title>ETER KinePro | Panel clínico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
@@ -4672,20 +4672,26 @@ function initClinicalListeners(){
   collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snapshot=>{
    if(applyingRemote)return;
    applyingRemote=true;
-   let changed=false;
+   let changed=false,failedCount=0;
    try{
     for(const change of snapshot.docChanges()){
      if(cfg.key==='patients'&&change.doc.id.startsWith('__meta_'))continue;
-     changed=applyRemoteDocumentChange(cfg.key,change)||changed
+     try{
+      changed=applyRemoteDocumentChange(cfg.key,change)||changed
+     }catch(itemError){
+      failedCount++;
+      console.error(`Remote item merge failed [${cfg.collection}/${change.doc.id}]`,itemError)
+     }
     }
     if(cfg.key==='patients'){
      const before=collectionSignature(data.patients);
-     data.patients=dedupePatients((data.patients||[]).map(normalizePatient));
+     data.patients=dedupePatients((data.patients||[]).map(patient=>{try{return normalizePatient(patient)}catch(itemError){failedCount++;console.error('normalizePatient failed',patient?.id,itemError);return patient}}));
      changed=changed||before!==collectionSignature(data.patients);
      reconcileLocalTurnPatientLinks()
     }
     persistLocal(data,{broadcastState:false});
     if(changed)scheduleCurrentViewRender({reason:`firestore:${cfg.key}`})
+    if(failedCount)toast(`${failedCount} registro(s) de ${cfg.collection} no se pudieron sincronizar (revisá la consola)`,'warn')
    }catch(error){
     console.error(`Remote merge failed [${cfg.collection}]`,{error,cloudReady,leader:isSyncLeader()});
     setSync('offline','Modo local','La edición permanece guardada');
