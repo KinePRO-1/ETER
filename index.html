@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>ETER KinePro | Panel clínico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -4377,6 +4380,8 @@ let listenersStarted=false;
 let settingsUnsubscribe=null;
 let leaderHeartbeat=null;
 let lastSyncState='syncing';
+let lastSnapshotAt=Date.now();
+let syncWatchdogTimer=null;
 let timerInterval=null;
 const saveDebouncers=new Map();
 const operationLocks=new Set();
@@ -4692,6 +4697,7 @@ function initClinicalListeners(){
   collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snapshot=>{
    if(applyingRemote)return;
    applyingRemote=true;
+   lastSnapshotAt=Date.now();
    let changed=false;
    try{
     for(const change of snapshot.docChanges()){
@@ -6279,12 +6285,32 @@ function installPerformanceAuditLoop(){
   console.info('[ETER] Auditoría de rendimiento',window.ETER_PERFORMANCE_AUDIT)
  },2600)
 }
+function quickResync(){
+ if(!navigator.onLine)return;
+ if(!cloudReady){initFirebase();return}
+ if(!listenersStarted){restartClinicalListeners();return}
+ refreshSyncLeadership();
+ flushDeletes();
+ writeDirtyEntities()
+}
+function startSyncWatchdog(){
+ clearInterval(syncWatchdogTimer);
+ syncWatchdogTimer=setInterval(()=>{
+  if(document.hidden||!navigator.onLine)return;
+  if(cloudReady&&listenersStarted&&Date.now()-lastSnapshotAt>45000){
+   console.warn('Sync watchdog: canal en tiempo real sin novedades hace más de 45s, reiniciando listeners');
+   restartClinicalListeners()
+  }
+ },20000)
+}
 function handleVisibilityPerformance(){
  if(document.hidden){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
  }else{
   startTimerLoop();
-  updateNotifications()
+  updateNotifications();
+  lastSnapshotAt=Date.now();
+  quickResync()
  }
 }
 async function init(){
@@ -6298,6 +6324,9 @@ async function init(){
  startTimerLoop();
  attachListeners();
  document.addEventListener('visibilitychange',handleVisibilityPerformance,{passive:true});
+ window.addEventListener('pageshow',event=>{if(event.persisted){lastSnapshotAt=Date.now();quickResync()}});
+ window.addEventListener('focus',()=>quickResync());
+ startSyncWatchdog();
  installPerformanceAuditLoop();
  initFirebaseDeferred()
 }
