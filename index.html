@@ -4027,6 +4027,19 @@ body.modal-open{overflow:hidden}
 .phone-composite{display:grid;grid-template-columns:145px minmax(0,1fr);gap:8px}
 .field-help{display:block;margin-top:6px;color:var(--muted);font-size:11px;line-height:1.45}
 .weekly-availability-card{grid-column:1/-1}
+.settings-section{padding:0;overflow:hidden}
+.settings-section>summary{display:block;list-style:none;cursor:pointer;user-select:none;padding:18px 20px}
+.settings-section>summary::-webkit-details-marker{display:none}
+.settings-section-summary{position:relative;padding-right:44px!important;margin:0!important}
+.settings-section-summary .card-head{margin:0}
+.settings-section-summary::after{content:'⌄';position:absolute;right:20px;top:50%;width:24px;height:24px;transform:translateY(-50%);display:grid;place-items:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:17px;font-weight:700;line-height:1;transition:transform var(--transition),background var(--transition)}
+.settings-section[open]>.settings-section-summary{border-bottom:1px solid var(--border);background:var(--surface-2)}
+.settings-section[open]>.settings-section-summary::after{transform:translateY(-50%) rotate(180deg);background:var(--surface)}
+.settings-section-content{padding:18px 20px 20px}
+.settings-section-content>.card-head:first-child{margin-top:0}
+.settings-section .clinical-grid,.settings-section .form-grid{margin:0}
+.settings-section-content>.btn{margin-bottom:14px}
+@media(max-width:780px){.settings-section>summary{padding:15px}.settings-section-content{padding:15px}.settings-section-summary::after{right:15px}}
 .weekly-availability-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .weekly-day-card{border:1px solid var(--border);border-radius:12px;background:var(--surface-2);padding:14px;transition:opacity var(--transition),border-color var(--transition),background var(--transition)}
 .weekly-day-card.is-disabled{opacity:.68;background:#f7f8fa}
@@ -4403,8 +4416,36 @@ function firestoreTimestampMs(server){if(!server)return 0;if(typeof server.toMil
 function deriveRevisionMs(item={}){const explicit=Number(item._updatedAtMs);if(Number.isFinite(explicit)&&explicit>0)return explicit;const isoMs=new Date(item.updatedAt||item.createdAt||0).getTime();if(Number.isFinite(isoMs)&&isoMs>0)return isoMs;return firestoreTimestampMs(item.serverUpdatedAt)}
 function entityRevision(item={}){const value=Number(item._updatedAtMs);return Number.isFinite(value)&&value>0?value:0}
 function withNormalizedRevision(item={}){const revision=deriveRevisionMs(item);return revision?{...item,_updatedAtMs:revision}:{...item,_updatedAtMs:0}}
-function syncComparable(item={}){const clean={};for(const key of Object.keys(item).sort()){if(['_dirty','_patch','_writeId','_clientId','_seedPending','serverUpdatedAt'].includes(key))continue;clean[key]=item[key]}return JSON.stringify(clean)}
+function syncComparable(item={}){const clean={};for(const key of Object.keys(item).sort()){if(['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending','serverUpdatedAt'].includes(key))continue;clean[key]=item[key]}return JSON.stringify(clean)}
 function collectionSignature(items=[]){return items.map(item=>{const revision=entityRevision(item);return`${item.id}:${revision||syncComparable(item)}`}).sort().join('|')}
+function fieldsEqual(a,b){return JSON.stringify(a??null)===JSON.stringify(b??null)}
+function cloneEntitySnapshot(item={}){const clone={};for(const key of Object.keys(item))if(!['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending','serverUpdatedAt'].includes(key))clone[key]=item[key];return clone}
+/* Combina un registro local no sincronizado con la versión remota campo por campo:
+   los campos que el usuario está editando localmente (presentes en _patch) se conservan,
+   todos los demás adoptan el valor remoto más reciente. Solo se marca "conflicto" un campo
+   cuando el valor remoto cambió respecto de la última base conocida Y además difiere del
+   valor local (es decir, otro dispositivo tocó exactamente ese mismo campo mientras editábamos). */
+function mergeDirtyWithRemote(local,remote){
+ const patchKeys=Object.keys(local._patch||{});
+ const baseline=local._baseline||local;
+ const merged={...remote};
+ const conflicts=[];
+ for(const key of patchKeys){
+  const remoteChangedField=!fieldsEqual(remote[key],baseline[key]);
+  const differsFromLocal=!fieldsEqual(remote[key],local[key]);
+  if(remoteChangedField&&differsFromLocal)conflicts.push(key);
+  merged[key]=local[key]
+ }
+ merged._dirty=true;
+ merged._patch=local._patch;
+ merged._baseline=baseline;
+ merged._writeId=local._writeId;
+ merged._clientId=local._clientId;
+ merged._neverSynced=local._neverSynced;
+ return{merged,conflicts}
+}
+const FIELD_LABELS={nombre:'Nombre',dni:'DNI',telefono:'Teléfono',email:'Email',diagnostico:'Diagnóstico',motivo:'Motivo de consulta',estadoClinico:'Estado clínico',faseTratamiento:'Fase de tratamiento',observacionesPrivadas:'Observaciones privadas',observacionesVisibles:'Observaciones',amount:'Monto',status:'Estado',method:'Método',notes:'Observación',fecha:'Fecha',hora:'Hora',estado:'Estado',price:'Precio',name:'Nombre',startDate:'Inicio de vigencia',endDate:'Fin de vigencia',totalSessions:'Sesiones totales'};
+function fieldLabel(key){return FIELD_LABELS[key]||key}
 function htmlToElement(html){const template=document.createElement('template');template.innerHTML=html.trim();return template.content.firstElementChild}
 function setElementHtml(element,html){if(!element)return;const template=document.createElement('template');template.innerHTML=String(html??'');element.replaceChildren(template.content.cloneNode(true))}
 function nowIso(){return new Date().toISOString()}
@@ -4600,8 +4641,9 @@ function claimSyncLeadership(){const now=Date.now(),leader=readLeader();if(!lead
 function isSyncLeader(){const leader=readLeader();return Boolean(leader&&leader.tabId===TAB_ID&&leader.expiresAt>Date.now())}
 function refreshSyncLeadership(){if(isSyncLeader()||claimSyncLeadership())localStorage.setItem(SYNC_LEADER_KEY,JSON.stringify({tabId:TAB_ID,expiresAt:Date.now()+SYNC_LEADER_TTL}))}
 function persistLocal(target=data,{broadcastState=true}={}){localStorage.setItem(STORAGE_KEY,JSON.stringify(target));if(broadcastState&&broadcast&&!applyingRemote)broadcast.postMessage({type:'state',deviceId:DEVICE_ID,tabId:TAB_ID,state:target});return target}
+function commitMetaPatch(fields){const existing=data.meta||{},startingEditStreak=!existing._dirty,baseline=startingEditStreak?cloneEntitySnapshot(existing):(existing._baseline||cloneEntitySnapshot(existing)),stamp=Date.now(),patch={...(existing._patch||{}),...fields};data.meta={...existing,...fields,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`,_clientId:DEVICE_ID,_baseline:baseline,_patch:patch,_neverSynced:Boolean(existing._neverSynced)};persistLocal();scheduleCloudWrite(50);return data.meta}
 function markEntityDirty(key,id){const item=data[key]?.find(x=>x.id===id);if(item)Object.assign(item,touch(item));persistLocal();scheduleCloudWrite(SYNC_INLINE_DELAY)}
-function upsertEntity(key,entity){const normalizedEntity=key==='patients'?mapPatientToEter(entity):entity,index=data[key].findIndex(x=>x.id===normalizedEntity.id),existing=index>=0?data[key][index]:null,patch={};if(existing){for(const [k,v] of Object.entries(normalizedEntity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const next=touch({...existing,...normalizedEntity,_patch:{...(existing?._patch||{}),...patch}});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite(SYNC_INLINE_DELAY);return next}
+function upsertEntity(key,entity){const normalizedEntity=key==='patients'?mapPatientToEter(entity):entity,index=data[key].findIndex(x=>x.id===normalizedEntity.id),existing=index>=0?data[key][index]:null,patch={};if(existing){for(const [k,v] of Object.entries(normalizedEntity)){if(k.startsWith('_'))continue;if(JSON.stringify(existing[k])!==JSON.stringify(v))patch[k]=v}}const startingEditStreak=Boolean(existing)&&!existing._dirty,baseline=existing?(startingEditStreak?cloneEntitySnapshot(existing):(existing._baseline||cloneEntitySnapshot(existing))):null;const next=touch({...existing,...normalizedEntity,_patch:{...(existing?._patch||{}),...patch},_baseline:baseline,_neverSynced:existing?Boolean(existing._neverSynced):true});if(index>=0)data[key][index]=next;else data[key].unshift(next);persistLocal();scheduleCloudWrite(SYNC_INLINE_DELAY);return next}
 async function removeEntity(key,id){const stamp=Date.now();data[key]=(data[key]||[]).filter(x=>x.id!==id);data.pendingDeletes=data.pendingDeletes||[];const existing=data.pendingDeletes.find(item=>item.key===key&&item.id===id);if(existing){existing.createdAt=new Date(stamp).toISOString();existing._updatedAtMs=stamp;existing._clientId=DEVICE_ID;existing._writeId=`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`}else data.pendingDeletes.push({key,id,createdAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${stamp}-${Math.random().toString(36).slice(2,7)}`});persistLocal();renderAll();scheduleCloudWrite(SYNC_INLINE_DELAY);return true}
 
 /* FIREBASE Y REPOSITORIOS */
@@ -4677,12 +4719,13 @@ async function reconcileInitialPatients(){
   localStorage.setItem(PATIENT_LOCAL_IMPORT_KEY,'1');persistLocal(data,{broadcastState:false});scheduleCurrentViewRender({reason:'initial-patients'})
  }catch(error){console.error('No se pudo sincronizar la base inicial de pacientes',error);persistLocal(data,{broadcastState:false});scheduleCurrentViewRender({reason:'initial-patients-error'})}
 }
-function buildFirestorePayload(item){const payload={...item};for(const key of ['_dirty','_patch','_seedPending','serverUpdatedAt'])delete payload[key];return payload}
+function buildFirestorePayload(item,fields=null){let payload;if(fields&&fields.length){payload={};fields.forEach(key=>{payload[key]=item[key]})}else{payload={...item}}for(const key of ['_dirty','_patch','_baseline','_neverSynced','_seedPending','serverUpdatedAt'])delete payload[key];if(item.id!==undefined)payload.id=item.id;if(item.updatedAt!==undefined)payload.updatedAt=item.updatedAt;if(item._updatedAtMs!==undefined)payload._updatedAtMs=item._updatedAtMs;if(item._writeId!==undefined)payload._writeId=item._writeId;if(item._clientId!==undefined)payload._clientId=item._clientId;return payload}
 function normalizeRemoteEntity(key,raw={}){return normalizeEntityItem(key,withNormalizedRevision(raw))}
 function replaceRemoteEntity(key,remote,local){const cleanRemote={...remote,_dirty:false};delete cleanRemote._patch;if(key==='patients'&&local)return normalizePatient({...mergePatientFields(local,cleanRemote),_dirty:false,_patch:undefined});return normalizeRemoteEntity(key,cleanRemote)}
 function hasPendingDelete(key,id){return Boolean((data.pendingDeletes||[]).some(item=>item.key===key&&item.id===id))}
-function registerSyncConflict(key,local,remote){try{const stored=safelyParse(localStorage.getItem('eter.kinepro.syncConflicts.v1'),'[]');const signature=`${key}:${local.id}:${entityRevision(remote)}`;if(stored.some(item=>item.signature===signature))return;stored.unshift({signature,key,id:local.id,localUpdatedAt:local.updatedAt||'',remoteUpdatedAt:remote.updatedAt||'',detectedAt:nowIso(),local:syncComparable(local),remote:syncComparable(remote)});localStorage.setItem('eter.kinepro.syncConflicts.v1',JSON.stringify(stored.slice(0,30)));saveAutomaticBackup?.('Conflicto de sincronización detectado')}catch(error){console.warn('No se pudo registrar conflicto de sincronización',error)}}
-function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(hasPendingDelete(key,remote.id))return false;if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite){if(syncComparable(local)!==syncComparable(remote))registerSyncConflict(key,local,remote);return false}const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
+function conflictEntityLabel(key,local){if(key==='patients')return local.nombre||'Paciente';if(key==='turns')return `Turno · ${local.paciente||''} ${local.fecha||''}`.trim();if(key==='payments')return `Pago · ${local.patientName||''} ${money(local.amount||0)}`.trim();if(key==='packages')return `Pack · ${local.name||''}`.trim();if(key==='routines')return `Rutina · ${local.name||''}`.trim();return local.name||local.nombre||local.id||'Registro'}
+function registerSyncConflict(key,local,remote,fields=[]){try{const stored=safelyParse(localStorage.getItem('eter.kinepro.syncConflicts.v1'),'[]');const signature=`${key}:${local.id}:${entityRevision(remote)}:${fields.join(',')}`;if(stored.some(item=>item.signature===signature))return;stored.unshift({signature,key,id:local.id,label:conflictEntityLabel(key,local),fields,localUpdatedAt:local.updatedAt||'',remoteUpdatedAt:remote.updatedAt||'',detectedAt:nowIso(),local:syncComparable(local),remote:syncComparable(remote)});localStorage.setItem('eter.kinepro.syncConflicts.v1',JSON.stringify(stored.slice(0,30)));if(fields.length)toast(`Se detectó edición simultánea en "${conflictEntityLabel(key,local)}" (${fields.map(fieldLabel).join(', ')}). Se conservó tu edición local; revisalo en Configuración`,'warn');saveAutomaticBackup?.('Conflicto de sincronización detectado')}catch(error){console.warn('No se pudo registrar conflicto de sincronización',error)}}
+function applyRemoteDocumentChange(key,change){const remote=normalizeRemoteEntity(key,{id:change.doc.id,...change.doc.data()}),items=data[key]||[],index=items.findIndex(item=>item.id===remote.id),local=index>=0?items[index]:null;if(change.type==='removed'){if(local?._dirty)return false;if(index>=0){items.splice(index,1);data[key]=items;return true}return false}if(hasPendingDelete(key,remote.id))return false;if(!local){data[key]=[remote,...items];return true}const confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!change.doc.metadata.hasPendingWrites);if(local._dirty&&!confirmedOwnWrite){const {merged,conflicts}=mergeDirtyWithRemote(local,remote);if(conflicts.length)registerSyncConflict(key,local,remote,conflicts);const next=key==='patients'?normalizePatient(merged):normalizeRemoteEntity(key,merged);if(syncComparable(next)===syncComparable(local))return false;items[index]=next;data[key]=items;return true}const remoteMs=entityRevision(remote),localMs=entityRevision(local);if(!confirmedOwnWrite&&remoteMs<localMs)return false;const next=replaceRemoteEntity(key,remote,local);if(syncComparable(next)===syncComparable(local)&&Boolean(local._dirty)===Boolean(next._dirty))return false;items[index]=next;data[key]=items;return true}
 function restartClinicalListeners(){
  try{(listenerUnsubscribers||[]).forEach(unsub=>{try{typeof unsub==='function'&&unsub()}catch(e){}})}catch(e){}
  try{typeof settingsUnsubscribe==='function'&&settingsUnsubscribe()}catch(e){}
@@ -4735,7 +4778,8 @@ function initClinicalListeners(){
   let changed=false;
   try{
    const remote=withNormalizedRevision(snapshot.data()||{}),local=withNormalizedRevision(data.meta||{}),confirmedOwnWrite=Boolean(local._dirty&&remote._writeId&&remote._writeId===local._writeId&&!snapshot.metadata.hasPendingWrites);
-   if((!local._dirty||confirmedOwnWrite)&&entityRevision(remote)>=entityRevision(local)){data.meta={...local,...remote,_dirty:false};delete data.meta._patch;changed=syncComparable(data.meta)!==syncComparable(local)||Boolean(local._dirty)}
+   if((!local._dirty||confirmedOwnWrite)&&entityRevision(remote)>=entityRevision(local)){data.meta={...local,...remote,_dirty:false,_neverSynced:false};delete data.meta._patch;delete data.meta._baseline;changed=syncComparable(data.meta)!==syncComparable(local)||Boolean(local._dirty)}
+   else if(local._dirty&&!confirmedOwnWrite){const {merged,conflicts}=mergeDirtyWithRemote(local,remote);if(conflicts.length)registerSyncConflict('meta',{...local,id:'settings',name:'Configuración'},remote,conflicts);if(syncComparable(merged)!==syncComparable(local)){data.meta=merged;changed=true}}
    persistLocal(data,{broadcastState:false});
    if(changed)scheduleCurrentViewRender({reason:'firestore:settings'})
   }catch(error){console.error('Settings remote merge failed',{error,cloudReady,leader:isSyncLeader()});setSync('offline','Sin conexión con Firebase','Configuración pendiente');scheduleRetry()}
@@ -4767,7 +4811,7 @@ function scheduleCloudWrite(delayMs=SYNC_WRITE_DELAY){
   await writeDirtyEntities()
  },Math.max(20,Number(delayMs)||SYNC_WRITE_DELAY))
 }
-async function commitWriteChunk(records){const {collection,doc,writeBatch,serverTimestamp}=firebaseApi,batch=writeBatch(clinicalDb);for(const record of records){if(record.kind==='meta')batch.set(doc(collection(clinicalDb,'app_meta'),'settings'),{...buildFirestorePayload(record.item),serverUpdatedAt:serverTimestamp()},{merge:true});else{const writeItem=record.cfg.key==='patients'?mapPatientToEter(record.item):record.item;batch.set(doc(collection(clinicalDb,record.cfg.collection),record.item.id),{...buildFirestorePayload(writeItem),serverUpdatedAt:serverTimestamp()},{merge:true})}}await batch.commit();for(const record of records){if(record.kind==='meta'){if(data.meta?._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch}}else{const current=(data[record.cfg.key]||[]).find(item=>item.id===record.item.id);if(current&&current._writeId===record.writeId){if(record.cfg.key==='patients')Object.assign(current,mapPatientToEter(current));current._dirty=false;delete current._patch}}}broadcast?.postMessage({type:'write-ack',deviceId:DEVICE_ID,tabId:TAB_ID,records:records.map(record=>({kind:record.kind,key:record.cfg?.key||'meta',id:record.item.id||'settings',writeId:record.writeId}))})}
+async function commitWriteChunk(records){const {collection,doc,writeBatch,serverTimestamp}=firebaseApi,batch=writeBatch(clinicalDb);for(const record of records){if(record.kind==='meta'){const patchFields=record.item._neverSynced?null:Object.keys(record.item._patch||{});batch.set(doc(collection(clinicalDb,'app_meta'),'settings'),{...buildFirestorePayload(record.item,patchFields&&patchFields.length?patchFields:null),serverUpdatedAt:serverTimestamp()},{merge:true})}else{const writeItem=record.cfg.key==='patients'?mapPatientToEter(record.item):record.item,patchFields=writeItem._neverSynced?null:Object.keys(writeItem._patch||{});batch.set(doc(collection(clinicalDb,record.cfg.collection),record.item.id),{...buildFirestorePayload(writeItem,patchFields&&patchFields.length?patchFields:null),serverUpdatedAt:serverTimestamp()},{merge:true})}}await batch.commit();for(const record of records){if(record.kind==='meta'){if(data.meta?._writeId===record.writeId){data.meta._dirty=false;data.meta._neverSynced=false;delete data.meta._patch;delete data.meta._baseline}}else{const current=(data[record.cfg.key]||[]).find(item=>item.id===record.item.id);if(current&&current._writeId===record.writeId){if(record.cfg.key==='patients')Object.assign(current,mapPatientToEter(current));current._dirty=false;current._neverSynced=false;delete current._patch;delete current._baseline}}}broadcast?.postMessage({type:'write-ack',deviceId:DEVICE_ID,tabId:TAB_ID,records:records.map(record=>({kind:record.kind,key:record.cfg?.key||'meta',id:record.item.id||'settings',writeId:record.writeId}))})}
 async function writeDirtyEntities(){
  if(!cloudReady||writeInProgress){if(writeInProgress)writeQueued=true;return}
  if(!navigator.onLine){setSync('offline','Sin conexión','Cambios guardados localmente');return}
@@ -4840,7 +4884,7 @@ leaderHeartbeat=setInterval(refreshSyncLeadership,3000);
 window.addEventListener('beforeunload',()=>{clearTimeout(syncWriteTimer);clearTimeout(syncRetryTimer);clearInterval(leaderHeartbeat);const leader=readLeader();if(leader?.tabId===TAB_ID)localStorage.removeItem(SYNC_LEADER_KEY)});
 function mergePendingDeletes(incoming=[]){let changed=false;data.pendingDeletes=data.pendingDeletes||[];for(const raw of incoming){const deletion=withNormalizedRevision(raw),cfg=ENTITY_COLLECTIONS[deletion.key];if(!cfg)continue;const local=(data[cfg.key]||[]).find(item=>item.id===deletion.id);if(local?._dirty)continue;if(local){data[cfg.key]=data[cfg.key].filter(item=>item.id!==deletion.id);changed=true}const index=data.pendingDeletes.findIndex(item=>item.key===deletion.key&&item.id===deletion.id);if(index<0){data.pendingDeletes.push(deletion);changed=true}else if(entityRevision(deletion)>=entityRevision(withNormalizedRevision(data.pendingDeletes[index]))){data.pendingDeletes[index]=deletion;changed=true}}return changed}
 function mergeRemoteState(incoming={}){let changed=false;for(const cfg of Object.values(ENTITY_COLLECTIONS)){const before=collectionSignature(data[cfg.key]||[]),current=new Map((data[cfg.key]||[]).map(item=>[item.id,item]));for(const raw of incoming[cfg.key]||[]){const item=normalizeRemoteEntity(cfg.key,raw);if(hasPendingDelete(cfg.key,item.id))continue;const local=current.get(item.id);if(!local){current.set(item.id,item);continue}if(local._dirty&&local._writeId!==item._writeId)continue;if(entityRevision(item)>=entityRevision(local))current.set(item.id,normalizeEntityItem(cfg.key,item))}data[cfg.key]=[...current.values()];changed=changed||before!==collectionSignature(data[cfg.key])}const incomingMeta=withNormalizedRevision(incoming.meta||{}),localMeta=withNormalizedRevision(data.meta||{});if((!localMeta._dirty||localMeta._writeId===incomingMeta._writeId)&&entityRevision(incomingMeta)>=entityRevision(localMeta)){const next={...localMeta,...incomingMeta};if(syncComparable(next)!==syncComparable(localMeta)||Boolean(next._dirty)!==Boolean(localMeta._dirty)){data.meta=next;changed=true}}changed=mergePendingDeletes(incoming.pendingDeletes||[])||changed;return changed}
-function applyWriteAcknowledgement(records=[]){let changed=false;for(const record of records){if(record.kind==='meta'||record.key==='meta'){if(data.meta?._dirty&&data.meta._writeId===record.writeId){data.meta._dirty=false;delete data.meta._patch;changed=true}continue}const cfg=ENTITY_COLLECTIONS[record.key],item=cfg?(data[cfg.key]||[]).find(entity=>entity.id===record.id):null;if(item?._dirty&&item._writeId===record.writeId){item._dirty=false;delete item._patch;changed=true}}return changed}
+function applyWriteAcknowledgement(records=[]){let changed=false;for(const record of records){if(record.kind==='meta'||record.key==='meta'){if(data.meta?._dirty&&data.meta._writeId===record.writeId){data.meta._dirty=false;data.meta._neverSynced=false;delete data.meta._patch;delete data.meta._baseline;changed=true}continue}const cfg=ENTITY_COLLECTIONS[record.key],item=cfg?(data[cfg.key]||[]).find(entity=>entity.id===record.id):null;if(item?._dirty&&item._writeId===record.writeId){item._dirty=false;item._neverSynced=false;delete item._patch;delete item._baseline;changed=true}}return changed}
 function applyDeleteAcknowledgement(records=[]){const keys=new Set(records.map(record=>`${record.key}:${record.id}:${record.writeId||''}`)),before=(data.pendingDeletes||[]).length;data.pendingDeletes=(data.pendingDeletes||[]).filter(item=>!keys.has(`${item.key}:${item.id}:${item._writeId||''}`));return before!==data.pendingDeletes.length}
 if(broadcast)broadcast.onmessage=event=>{
  const message=event.data||{};
@@ -5928,8 +5972,9 @@ function renderConfiguracion(){
  $('#view-configuracion').innerHTML=`
   <div class="page-header"><div class="page-header-left"><h2>Configuración</h2><p>Preferencias y estado del sistema</p></div></div>
   <form id="settingsForm" class="grid two-col">
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Datos del profesional</div><div class="card-sub">Información profesional y del consultorio</div></div></div>
+   <details class="card settings-section" open>
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Datos del profesional</div><div class="card-sub">Información profesional y del consultorio</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="form-grid">
      <div class="field"><label>Nombre completo</label><input class="input" name="name" value="${esc(meta.professionalName||'Juan Magurno')}"></div>
      <div class="field"><label>Especialidad</label><input class="input" name="specialty" value="${esc(meta.specialty||'Kinesiología')}"></div>
@@ -5940,10 +5985,12 @@ function renderConfiguracion(){
      <div class="field full"><label>Dirección del consultorio</label><input class="input" name="clinicAddress" value="${esc(meta.clinicAddress||'')}"></div>
      <div class="field"><label>CUIT</label><input class="input" name="cuit" inputmode="numeric" value="${esc(meta.cuit||'')}"></div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Sincronización</div><div class="card-sub">Firebase exclusivo de ETER</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="clinical-grid">
      <div class="clinical-block"><h4>Base clínica ETER</h4><p>agenda-d3987 · pacientes, rutinas, sesiones e historial</p></div>
      <div class="clinical-block"><h4>Agenda</h4><p>Turnos internos de ETER · sin conexión externa</p></div>
@@ -5956,10 +6003,12 @@ function renderConfiguracion(){
       <button type="button" id="forceSyncBtn" class="btn" data-action="force-sync">Forzar sincronización ahora</button>
      </div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Configuración de turnos</div><div class="card-sub">Duración, horarios y estructura de la agenda</div></div></div>
+   <details class="card settings-section" open>
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Configuración de turnos</div><div class="card-sub">Duración, horarios y estructura de la agenda</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="form-grid">
      <div class="field"><label>Duración predeterminada del turno</label><select class="select" name="defaultTurnDuration">${[30,45,60,90].map(value=>`<option value="${value}" ${Number(meta.defaultTurnDuration??60)===value?'selected':''}>${value} min</option>`).join('')}</select></div>
      <div class="field"><label>Intervalo de slots en agenda</label><select class="select" name="slotInterval">${[15,30,60].map(value=>`<option value="${value}" ${Number(meta.slotInterval??30)===value?'selected':''}>${value} min</option>`).join('')}</select></div>
@@ -5967,59 +6016,86 @@ function renderConfiguracion(){
      <div class="field"><label>Horario de fin de atención</label><input class="input" type="time" name="workdayEnd" value="${esc(meta.workdayEnd||'20:00')}"></div>
      <div class="field full"><label>Días hábiles</label><div class="chips">${workDayChips}</div></div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Configuración de pagos</div><div class="card-sub">Valores y métodos disponibles para registrar cobros</div></div></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Configuración de pagos</div><div class="card-sub">Valores y métodos disponibles para registrar cobros</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="form-grid">
      <div class="field"><label>Precio predeterminado de sesión</label><input class="input" type="number" min="0" step="1" name="defaultSessionPrice" value="${meta.defaultSessionPrice===undefined||meta.defaultSessionPrice===null?'':esc(meta.defaultSessionPrice)}"></div>
      <div class="field"><label>Símbolo de moneda</label><input class="input" name="currencySymbol" maxlength="5" value="${esc(meta.currencySymbol||'$')}"></div>
      <div class="field full"><label>Métodos de pago activos</label><div class="chips">${paymentMethodChips}</div></div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Alertas de seguimiento</div><div class="card-sub">Criterios para detectar pacientes que conviene contactar</div></div></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Alertas de seguimiento</div><div class="card-sub">Criterios para detectar pacientes que conviene contactar</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="form-grid">
      <div class="field"><label>Días sin turno para disparar alerta</label><input class="input" type="number" min="1" step="1" name="followUpDays" value="${esc(meta.followUpDays??30)}"></div>
      <div class="field"><label>Mínimo de turnos para reconocer frecuencia</label><input class="input" type="number" min="1" step="1" name="minTurnsForFrequency" value="${esc(meta.minTurnsForFrequency??3)}"></div>
      <div class="field full"><label>Ventana máxima de seguimiento en días</label><input class="input" type="number" min="1" step="1" name="followUpMaxWindow" value="${esc(meta.followUpMaxWindow??90)}"></div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card weekly-availability-card">
-    <div class="card-head"><div><div class="card-title">Disponibilidad semanal</div><div class="card-sub">Definí los horarios que pueden incluirse en los mensajes de WhatsApp.</div></div></div>
+   <details class="card weekly-availability-card settings-section" open>
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Disponibilidad semanal</div><div class="card-sub">Definí los horarios que pueden incluirse en los mensajes de WhatsApp.</div></div></div></summary>
+    <div class="settings-section-content">
     ${availabilityHtml}
-   </div>
+    </div>
+   </details>
 
-   <div class="card weekly-availability-card">
-    <div class="card-head"><div><div class="card-title">Mensaje de seguimiento por WhatsApp</div><div class="card-sub">Plantilla editable para contactar pacientes desde las alertas y sus fichas.</div></div></div>
+   <details class="card weekly-availability-card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Mensaje de seguimiento por WhatsApp</div><div class="card-sub">Plantilla editable para contactar pacientes desde las alertas y sus fichas.</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="field"><label>Plantilla de seguimiento</label><textarea class="textarea" name="whatsappFollowUpTemplate" rows="7">${esc(whatsappMeta.whatsappFollowUpTemplate)}</textarea><span class="field-help">Variables disponibles: {nombreCompleto}, {primerNombre}, {horariosDisponibles}, {fechaInicioSemana}, {fechaFinSemana}, {nombreProfesional}, {nombreConsultorio}.</span></div>
     <div class="field" style="margin-top:16px"><label>Plantilla de recordatorio de turno</label><textarea class="textarea" name="appointmentReminderTemplate" rows="5">${esc(whatsappMeta.appointmentReminderTemplate)}</textarea><span class="field-help">Variables disponibles: {nombreCompleto}, {primerNombre}, {fecha}, {hora}, {motivo}, {nombreProfesional}, {nombreConsultorio}.</span></div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Tarifas y precios</div><div class="card-sub">Nombre y precio de cada sesión y pack predefinido</div></div><button type="button" class="btn btn-primary" data-action="new-rate">+ Nueva tarifa</button></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Tarifas y precios</div><div class="card-sub">Nombre y precio de cada sesión y pack predefinido</div></div></div></summary>
+    <div class="settings-section-content">
+     <button type="button" class="btn btn-primary" data-action="new-rate">+ Nueva tarifa</button>
     <div class="form-grid">
      ${ratesHtml}
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card">
-    <div class="card-head"><div><div class="card-title">Preferencias de interfaz</div><div class="card-sub">Apariencia y sección inicial de la aplicación</div></div></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Preferencias de interfaz</div><div class="card-sub">Apariencia y sección inicial de la aplicación</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="form-grid">
      <div class="field full"><label>Tema</label><div class="chips">${themeChips}</div></div>
      <div class="field full"><label>Vista de inicio al abrir la app</label><select class="select" name="defaultView">${viewOptions}</select></div>
     </div>
-   </div>
+    </div>
+   </details>
 
-   <div class="card" style="grid-column:1/-1;border-color:var(--red-100);background:linear-gradient(180deg,var(--surface),var(--red-50))">
-    <div class="card-head"><div><div class="card-title" style="color:var(--red)">Zona de datos</div><div class="card-sub">Acciones de respaldo y limpieza que modifican información clínica</div></div></div>
+   <details class="card settings-section">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Exportar datos</div><div class="card-sub">Descargá toda la información clínica y administrativa en una planilla de Excel</div></div></div></summary>
+    <div class="settings-section-content">
+    <div class="clinical-block">
+     <h4>Excel completo (.xlsx)</h4>
+     <p>Genera un archivo con varias pestañas: Pacientes (con diagnóstico/motivo de consulta y una columna de Dato extra), Pagos, Pagos por mes, Turnos, Packs y combos, y Evoluciones.</p>
+     <button type="button" id="exportExcelBtn" class="btn btn-primary" style="margin-top:12px" data-action="export-excel">⬇ Exportar Excel</button>
+    </div>
+    </div>
+   </details>
+
+   <details class="card settings-section" style="grid-column:1/-1;border-color:var(--red-100);background:linear-gradient(180deg,var(--surface),var(--red-50))">
+    <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title" style="color:var(--red)">Zona de datos</div><div class="card-sub">Acciones de respaldo y limpieza que modifican información clínica</div></div></div></summary>
+    <div class="settings-section-content">
     <div class="clinical-grid">
      <div class="clinical-block" style="border-color:var(--red-100)"><h4>Backup completo</h4><p>Descarga una copia de todos los datos locales en formato JSON.</p><button type="button" class="btn" style="margin-top:12px" data-action="export-backup-json">Exportar backup JSON</button></div>
      <div class="clinical-block" style="border-color:var(--red-100)"><h4>Pacientes de demostración</h4><p>Elimina únicamente los pacientes cuyo identificador comienza con “seed-”.</p><button type="button" class="btn btn-danger" style="margin-top:12px" data-action="clear-demo-patients">Limpiar pacientes de demostración</button></div>
     </div>
-   </div>
+    </div>
+   </details>
 
    <div style="grid-column:1/-1;display:flex;justify-content:flex-end;padding-bottom:4px"><button type="button" class="btn btn-primary" data-action="save-settings">Guardar todos los cambios</button></div>
   </form>`
@@ -6041,9 +6117,7 @@ function saveRate(){
  const rates=getRates(),existing=v.id?rates.find(rate=>rate.id===v.id):null;
  const rate={id:existing?.id||uid('rate'),kind,service,name,price,sessions:kind==='package'?Math.max(1,Number(v.sessions)||2):1,intervalDays:kind==='package'?Math.max(0,Number(v.intervalDays)||0):0,frequency:kind==='package'?(String(v.frequency||'').trim()||'Pack personalizado'):'Sesión individual',sameMonth:kind==='package'&&v.sameMonth==='on'};
  const updatedRates=existing?rates.map(item=>item.id===rate.id?rate:item):[...rates,rate];
- const stamp=Date.now();
- data.meta={...data.meta,rates:updatedRates,_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
- persistLocal();scheduleCloudWrite(50);
+ commitMetaPatch({rates:updatedRates});
  closeModal();
  renderConfiguracion();
  toast(existing?'Tarifa actualizada':'Tarifa creada')
@@ -6052,9 +6126,7 @@ function deleteRateFlow(id){
  const rate=getRates().find(item=>item.id===id);
  if(!rate)return;
  openConfirm('Eliminar tarifa',`Se quitará “${esc(rate.name)}” del catálogo de tarifas. Los turnos y packs que ya la usan conservan su precio y no se modifican.`,()=>{
-  const stamp=Date.now();
-  data.meta={...data.meta,rates:getRates().filter(item=>item.id!==id),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
-  persistLocal();scheduleCloudWrite(50);
+  commitMetaPatch({rates:getRates().filter(item=>item.id!==id)});
   closeConfirm();
   renderConfiguracion();
   toast('Tarifa eliminada','info')
@@ -6070,12 +6142,11 @@ function saveSettings(){
  const uiTheme=['Claro','Oscuro','Sistema'].includes(v.uiTheme)?v.uiTheme:'Sistema';
  const stamp=Date.now(),weeklyAvailability=readWeeklyAvailabilityFromSettings(),template=String(v.whatsappFollowUpTemplate||'').trim()||WHATSAPP_FOLLOW_UP_TEMPLATE,appointmentTemplate=String(v.appointmentReminderTemplate||'').trim()||'Hola {primerNombre}, te recordamos tu turno en {nombreConsultorio} el {fecha} a las {hora} hs. Si necesitás reprogramarlo, respondé a este mensaje.';
  const updatedRates=getRates().map(rate=>{const name=String(v[`rateName__${rate.id}`]??'').trim(),price=Number(v[`ratePrice__${rate.id}`]);return{...rate,name:name||rate.name,price:Number.isFinite(price)&&price>=0?price:rate.price}});
- data.meta={
-  ...data.meta,
+ commitMetaPatch({
   rates:updatedRates,
-  name:String(v.name||'').trim(),phone:String(v.phone||'').trim(),professionalName:String(v.name||'').trim(),specialty:String(v.specialty||'').trim(),license:String(v.license||'').trim(),professionalPhone:String(v.phone||'').trim(),professionalEmail:String(v.professionalEmail||'').trim(),clinicName:String(v.clinicName||'').trim(),clinicAddress:String(v.clinicAddress||'').trim(),cuit:String(v.cuit||'').trim(),defaultTurnDuration:numberValue('defaultTurnDuration',60),workdayStart:String(v.workdayStart||'08:00'),workdayEnd:String(v.workdayEnd||'20:00'),workDays:selected('workDays'),slotInterval:numberValue('slotInterval',30),defaultSessionPrice:numberValue('defaultSessionPrice','',{allowEmpty:true}),activeMethods:selected('activeMethods'),currencySymbol:String(v.currencySymbol||'$').trim()||'$',followUpDays:Math.max(1,numberValue('followUpDays',30)),minTurnsForFrequency:Math.max(1,numberValue('minTurnsForFrequency',3)),followUpMaxWindow:Math.min(90,Math.max(1,numberValue('followUpMaxWindow',90))),weeklyAvailability,whatsappFollowUpTemplate:template,appointmentReminderTemplate:appointmentTemplate,followUpContactCooldownDays:Math.max(1,Number(data.meta?.followUpContactCooldownDays)||7),uiTheme,defaultView,updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`
- };
- persistLocal();scheduleCloudWrite(50);toast('Configuración guardada')
+  name:String(v.name||'').trim(),phone:String(v.phone||'').trim(),professionalName:String(v.name||'').trim(),specialty:String(v.specialty||'').trim(),license:String(v.license||'').trim(),professionalPhone:String(v.phone||'').trim(),professionalEmail:String(v.professionalEmail||'').trim(),clinicName:String(v.clinicName||'').trim(),clinicAddress:String(v.clinicAddress||'').trim(),cuit:String(v.cuit||'').trim(),defaultTurnDuration:numberValue('defaultTurnDuration',60),workdayStart:String(v.workdayStart||'08:00'),workdayEnd:String(v.workdayEnd||'20:00'),workDays:selected('workDays'),slotInterval:numberValue('slotInterval',30),defaultSessionPrice:numberValue('defaultSessionPrice','',{allowEmpty:true}),activeMethods:selected('activeMethods'),currencySymbol:String(v.currencySymbol||'$').trim()||'$',followUpDays:Math.max(1,numberValue('followUpDays',30)),minTurnsForFrequency:Math.max(1,numberValue('minTurnsForFrequency',3)),followUpMaxWindow:Math.min(90,Math.max(1,numberValue('followUpMaxWindow',90))),weeklyAvailability,whatsappFollowUpTemplate:template,appointmentReminderTemplate:appointmentTemplate,followUpContactCooldownDays:Math.max(1,Number(data.meta?.followUpContactCooldownDays)||7),uiTheme,defaultView
+ });
+ toast('Configuración guardada')
 }
 function exportBackupJson(){
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
@@ -6086,6 +6157,136 @@ function exportBackupJson(){
  link.remove();
  setTimeout(()=>URL.revokeObjectURL(url),0);
  toast('Backup JSON exportado')
+}
+async function exportExcelWorkbook(){
+ const btn=$('#exportExcelBtn');
+ if(btn){btn.disabled=true;btn.dataset.originalText=btn.dataset.originalText||btn.textContent;btn.textContent='Generando…'}
+ try{
+  toast('Generando archivo Excel…','info');
+  const XLSX=await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+  const wb=XLSX.utils.book_new();
+  const monthKey=value=>{const raw=String(value||'').slice(0,7);return /^\d{4}-\d{2}$/.test(raw)?raw:''};
+  const monthLabel=key=>{if(!key)return'Sin fecha';const [y,m]=key.split('-');return `${['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][Number(m)]} ${y}`};
+
+  /* 1) PACIENTES */
+  const patientRows=data.patients.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'})).map(p=>({
+   'Nombre':p.nombre||'',
+   'DNI':p.dni||'',
+   'Edad':p.edad??'',
+   'Teléfono':p.telefono||'',
+   'WhatsApp':p.whatsappPhone?`+${p.whatsappPhone}`:'',
+   'Email':p.email||'',
+   'Ocupación':p.ocupacion||'',
+   'Obra social / prepaga':p.obraSocial||'',
+   'Estado clínico':p.estadoClinico||'',
+   'Fase de tratamiento':p.faseTratamiento||'',
+   'Tipo de tratamiento':patientTreatmentType(p),
+   'Diagnóstico o motivo de consulta':p.diagnostico||p.motivo||'',
+   'Zonas afectadas':(p.zonasAfectadas||[]).join(', '),
+   'Fecha de registro':p.fechaRegistro?fmtDate(p.fechaRegistro):'',
+   'Última consulta':p.ultimaConsulta?fmtDate(p.ultimaConsulta):'',
+   'Dato extra':''
+  }));
+  const wsPatients=XLSX.utils.json_to_sheet(patientRows);
+  wsPatients['!cols']=[{wch:24},{wch:12},{wch:7},{wch:15},{wch:15},{wch:22},{wch:18},{wch:18},{wch:14},{wch:16},{wch:18},{wch:34},{wch:24},{wch:14},{wch:14},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,wsPatients,'Pacientes');
+
+  /* 2) PAGOS (movimientos) */
+  const paymentRows=data.payments.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(pay=>({
+   'Fecha':pay.date?fmtDate(pay.date):'',
+   'Paciente':getPatient(pay.patientId)?.nombre||pay.patientName||'Paciente eliminado',
+   'Concepto':pay.type||'',
+   'Referencia':paymentConcept(pay),
+   'Monto':Number(pay.amount||0),
+   'Método':pay.method||'',
+   'Estado':pay.status||'',
+   'Observación':pay.notes||''
+  }));
+  const wsPayments=XLSX.utils.json_to_sheet(paymentRows);
+  wsPayments['!cols']=[{wch:12},{wch:24},{wch:16},{wch:28},{wch:12},{wch:14},{wch:12},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,wsPayments,'Pagos');
+
+  /* 3) PAGOS MES A MES (pivote por paciente) */
+  const months=[...new Set(data.payments.map(pay=>monthKey(pay.date)).filter(Boolean))].sort();
+  const patientsWithPayments=[...new Set(data.payments.map(pay=>pay.patientId).filter(Boolean))];
+  const monthlyRows=patientsWithPayments.map(pid=>{
+   const patient=getPatient(pid);
+   const row={'Paciente':patient?.nombre||data.payments.find(pay=>pay.patientId===pid)?.patientName||'Paciente eliminado'};
+   let total=0;
+   months.forEach(m=>{
+    const sum=data.payments.filter(pay=>pay.patientId===pid&&monthKey(pay.date)===m&&pay.status==='Cobrado').reduce((s,pay)=>s+Number(pay.amount||0),0);
+    row[monthLabel(m)]=sum;
+    total+=sum
+   });
+   row['Total']=total;
+   return row
+  }).sort((a,b)=>String(a['Paciente']).localeCompare(String(b['Paciente']),'es',{sensitivity:'base'}));
+  const totalsRow={'Paciente':'TOTAL'};
+  months.forEach(m=>{totalsRow[monthLabel(m)]=monthlyRows.reduce((s,row)=>s+Number(row[monthLabel(m)]||0),0)});
+  totalsRow['Total']=monthlyRows.reduce((s,row)=>s+Number(row['Total']||0),0);
+  const wsMonthly=XLSX.utils.json_to_sheet(monthlyRows.length?[...monthlyRows,totalsRow]:[]);
+  wsMonthly['!cols']=[{wch:24},...months.map(()=>({wch:12})),{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsMonthly,'Pagos por mes');
+
+  /* 4) TURNOS */
+  const turnRows=data.turns.slice().sort((a,b)=>`${a.fecha} ${a.hora||''}`.localeCompare(`${b.fecha} ${b.hora||''}`)).map(turn=>({
+   'Fecha':turn.fecha?fmtDate(turn.fecha):'',
+   'Hora':turn.hora||'',
+   'Paciente':resolveTurnPatient(turn)?.nombre||turn.paciente||'',
+   'Motivo':turn.motivo||'',
+   'Estado':turn.estado||'',
+   'Precio':Number(turn.price||0),
+   'Pack vinculado':turn.comboId?(getCombo(turn.comboId)?.name||'Pack eliminado'):'',
+   'Pago registrado':getPaymentByTurn(turn.id)?'Sí':'No'
+  }));
+  const wsTurns=XLSX.utils.json_to_sheet(turnRows);
+  wsTurns['!cols']=[{wch:12},{wch:8},{wch:24},{wch:26},{wch:14},{wch:12},{wch:24},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsTurns,'Turnos');
+
+  /* 5) PACKS Y COMBOS */
+  const comboRows=data.packages.slice().sort((a,b)=>String(b.startDate||'').localeCompare(String(a.startDate||''))).map(combo=>{
+   const usage=comboUsage(combo);
+   return{
+    'Paciente':getPatient(combo.patientId)?.nombre||'Paciente eliminado',
+    'Nombre del pack':combo.name||'',
+    'Sesiones totales':Number(combo.totalSessions||0),
+    'Sesiones usadas':usage.used??'',
+    'Sesiones disponibles':usage.remaining??'',
+    'Precio':Number(combo.price||0),
+    'Inicio de vigencia':combo.startDate?fmtDate(combo.startDate):'',
+    'Fin de vigencia':combo.endDate?fmtDate(combo.endDate):'',
+    'Estado':comboComputedStatus(combo),
+    'Pago registrado':getPaymentByCombo(combo.id)?'Sí':'No'
+   }
+  });
+  const wsCombos=XLSX.utils.json_to_sheet(comboRows);
+  wsCombos['!cols']=[{wch:24},{wch:28},{wch:14},{wch:14},{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsCombos,'Packs y combos');
+
+  /* 6) EVOLUCIONES CLÍNICAS */
+  const evolutionRows=[];
+  data.patients.forEach(p=>(p.evoluciones||[]).forEach(ev=>{
+   evolutionRows.push({
+    'Paciente':p.nombre||'',
+    'Fecha':ev.fecha?fmtDate(ev.fecha):(ev.fechaTexto||''),
+    'EVA en actividad':ev.evaActividad??'',
+    'EVA en reposo':ev.evaReposo??'',
+    'Plan aplicado':ev.planAplicado||'',
+    'Observaciones':ev.observaciones||''
+   })
+  }));
+  const wsEvolutions=XLSX.utils.json_to_sheet(evolutionRows);
+  wsEvolutions['!cols']=[{wch:24},{wch:14},{wch:14},{wch:14},{wch:26},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,wsEvolutions,'Evoluciones');
+
+  XLSX.writeFile(wb,`ETER-KinePro-export-${todayISO()}.xlsx`);
+  toast('Excel exportado con éxito','success')
+ }catch(error){
+  console.error('Excel export failed',error);
+  toast('No se pudo generar el Excel. Revisá tu conexión a internet','error')
+ }finally{
+  if(btn){btn.disabled=false;btn.textContent=btn.dataset.originalText||'Exportar Excel'}
+ }
 }
 function clearDemoPatients(){
  const demoPatients=(data.patients||[]).filter(patient=>String(patient.id||'').startsWith('seed-'));
@@ -6098,10 +6299,8 @@ function clearDemoPatients(){
   const deletionStamp=stamp+index,existing=data.pendingDeletes.find(item=>item.key==='patients'&&item.id===patient.id),record={key:'patients',id:patient.id,createdAt:new Date(deletionStamp).toISOString(),_updatedAtMs:deletionStamp,_clientId:DEVICE_ID,_writeId:`${DEVICE_ID}-${deletionStamp}-${Math.random().toString(36).slice(2,7)}`};
   if(existing)Object.assign(existing,record);else data.pendingDeletes.push(record)
  });
- data.meta={...data.meta,patientBase23Imported:true,demoPatientsClearedAt:new Date(stamp).toISOString(),updatedAt:new Date(stamp).toISOString(),_updatedAtMs:stamp,_dirty:true,_writeId:`${TAB_ID}-${stamp}`};
+ commitMetaPatch({patientBase23Imported:true,demoPatientsClearedAt:new Date(stamp).toISOString()});
  localStorage.setItem(PATIENT_LOCAL_IMPORT_KEY,'1');
- persistLocal();
- scheduleCloudWrite(20);
  renderConfiguracion();
  updateNotifications();
  toast(`${demoPatients.length} pacientes de demostración eliminados`)
@@ -6131,7 +6330,7 @@ else if(a==='whatsapp-mark-contacted-direct')markPatientAsContacted(patientId||i
 else if(a==='availability-add-time')addAvailabilityTimeFromSettings(target.dataset.day);
 else if(a==='availability-remove-time'){const card=target.closest('[data-availability-day]');target.closest('.weekly-time-chip')?.remove();if(card)renderAvailabilityChips(card,card.dataset.availabilityDay,availabilityCardTimes(card))}
 else if(a==='availability-copy-times')copyAvailabilityTimes(target.dataset.day);
-else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='new-rate')openRateForm();else if(a==='edit-rate')openRateForm(id);else if(a==='save-rate')saveRate();else if(a==='delete-rate')deleteRateFlow(id);else if(a==='export-backup-json')exportBackupJson();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){forceSyncNow()}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='new-rate')openRateForm();else if(a==='edit-rate')openRateForm(id);else if(a==='save-rate')saveRate();else if(a==='delete-rate')deleteRateFlow(id);else if(a==='export-backup-json')exportBackupJson();else if(a==='export-excel')exportExcelWorkbook();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){forceSyncNow()}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement))return;if(card.classList.contains('context')){const summary=card.querySelector(':scope > summary');if(summary)summary.setAttribute('aria-expanded',String(card.open));return}if(!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
@@ -6359,10 +6558,141 @@ function injectEterExtensions(){
  const modal=$('#appModal');if(modal?.classList.contains('open')&&ui.selectedPatientId&&!modal.querySelector('[data-eter-patient-tools]')){const actions=modal.querySelector('.action-btns');if(actions){const tools=document.createElement('div');tools.dataset.eterPatientTools='1';tools.className='action-btns';tools.innerHTML=`<button class="btn btn-sm" type="button" data-eter-action="open-scales" data-patient-id="${ui.selectedPatientId}">Escalas</button><button class="btn btn-sm" type="button" data-eter-action="open-attachments" data-patient-id="${ui.selectedPatientId}">Adjuntos</button><button class="btn btn-sm btn-primary" type="button" data-eter-action="print-clinical-report" data-patient-id="${ui.selectedPatientId}">Informe PDF</button>`;actions.after(tools)}}
 }
 const eterObserver=new MutationObserver(()=>injectEterExtensions());eterObserver.observe(document.body,{childList:true,subtree:true});
-document.addEventListener('click',event=>{const button=event.target.closest('[data-eter-action]');if(!button)return;event.preventDefault();event.stopPropagation();const action=button.dataset.eterAction,id=button.dataset.patientId;if(action==='open-backups')openBackupCenter();else if(action==='backup-now'){saveAutomaticBackup('Copia manual');toast('Backup automático creado');openBackupCenter()}else if(action==='restore-local-backup'){const backup=eterBackups().find(item=>item.id===button.dataset.backupId);if(backup&&window.confirm('Restaurar esta copia local y reemplazar los datos actuales?')){saveAutomaticBackup('Antes de restaurar copia local');Object.assign(data,normalizeBackupData(backup.data));persistLocalBase();Object.values(ENTITY_COLLECTIONS).forEach(cfg=>(data[cfg.key]||[]).forEach(item=>item._dirty=true));scheduleCloudWrite(20);renderAll();toast('Copia restaurada')}}else if(action==='open-scales')openScaleForm(id);else if(action==='save-scale')saveScale();else if(action==='open-attachments')openAttachmentForm(id);else if(action==='save-attachment')saveAttachment();else if(action==='delete-attachment'){const patient=getPatient(id),ext=patientExtensions(patient);updatePatientExtensions(id,{attachments:ext.attachments.filter(item=>item.id!==button.dataset.attachmentId)});toast('Adjunto eliminado')}else if(action==='open-reminders')openReminderCenter();else if(action==='print-clinical-report')printClinicalReport(id);else if(action==='sync-review'){const conflicts=JSON.parse(localStorage.getItem(ETER_CONFLICT_KEY)||'[]');openModal('Estado de sincronización',`<div class="clinical-grid"><div class="clinical-block"><h4>Estado actual</h4><p>${navigator.onLine?'Con conexión. Los cambios pendientes se sincronizan automáticamente.':'Sin conexión. Los cambios se mantienen guardados localmente.'}</p></div><div class="clinical-block"><h4>Conflictos detectados</h4><p>${conflicts.length} conflicto(s) registrado(s) en este dispositivo.</p></div></div><p class="card-sub" style="margin-top:14px">Al detectar una versión remota más reciente durante una edición local, la app conserva la copia local en los backups automáticos antes de aplicar la actualización remota.</p>`,`<button class="btn" data-action="close-modal">Cerrar</button>`,'wide')}} ,true);
+document.addEventListener('click',event=>{const button=event.target.closest('[data-eter-action]');if(!button)return;event.preventDefault();event.stopPropagation();const action=button.dataset.eterAction,id=button.dataset.patientId;if(action==='open-backups')openBackupCenter();else if(action==='backup-now'){saveAutomaticBackup('Copia manual');toast('Backup creado')}else if(action==='open-scales')openScaleForm(id);else if(action==='save-scale')saveScale();else if(action==='open-attachments')openAttachmentForm(id);else if(action==='save-attachment')saveAttachment();else if(action==='delete-attachment'){const patient=getPatient(id),ext=patientExtensions(patient),attachments=ext.attachments.map(item=>item.id===button.dataset.attachmentId?touch({...item,deletedAt:new Date().toISOString()}):item);updatePatientExtensions(id,{attachments});toast('Adjunto enviado a la papelera')}else if(action==='open-reminders')openReminderCenter();else if(action==='print-clinical-report')printClinicalReport(id);else if(action==='sync-review'){const pending=[...nativePendingRecords.values()].map(item=>{const entity=item.key==='meta'?data.meta:(data[item.key]||[]).find(row=>row.id===item.id);return`<div class="item"><div class="item-main"><strong>${esc(conflictEntityLabel(item.key,entity||{id:item.id}))}</strong><span>${esc(item.key)}</span></div><span class="badge b-warn">Pendiente</span></div>`}).join('');openModal('Estado de sincronización',`<div class="clinical-grid"><div class="clinical-block"><h4>${esc($('#syncLabel')?.textContent||'Sincronización')}</h4><p>${nativePendingRecords.size?'Cambios pendientes de confirmación por Firestore.':'No hay cambios pendientes.'}</p></div></div>${pending?`<div class="list" style="margin-top:12px">${pending}</div>`:''}`,`<button class="btn" data-action="close-modal">Cerrar</button>`,'wide')}} ,true);
 window.addEventListener('online',()=>{setSync('syncing','Conexión recuperada','Sincronizando cambios pendientes');scheduleCloudWrite(20);toast('Conexión recuperada')});window.addEventListener('offline',()=>{setSync('offline','Sin conexión','Cambios protegidos en este dispositivo');saveAutomaticBackup('Sin conexión a internet')});
 setInterval(()=>saveAutomaticBackup('Respaldo periódico'),30*60*1000);
 document.addEventListener('click',event=>{const card=event.target.closest('.metric-action[data-action="view-pending-payments"]');if(!card)return;event.preventDefault();event.stopImmediatePropagation();openPendingCollections()},true);
+
+/* SINCRONIZACIÓN NATIVA FIRESTORE · 2026-09
+   Esta capa sustituye el líder de pestaña, BroadcastChannel, _dirty y la cola
+   manual. Firestore mantiene IndexedDB, reintentos y estado pendiente. */
+const nativePendingRecords=new Map();
+const nativeDeletedRecords=new Map();
+const nativeConflictPatches=new Map();
+const nativeOutboundBuffer=new Map();
+let nativeClockOffset=0;
+let nativeServerOnline=false;
+const ARRAY_FIELDS_BY_ENTITY={
+ patients:['evoluciones','planTerapeutico','testsFuncionales','attachments','standardizedScales'],
+ routines:['exercises'],activeSessions:['executionData'],history:['executionData']
+};
+function nativeDocKey(key,id){return `${key}:${id}`}
+function nativeTimestamp(item){return firestoreTimestampMs(item?.serverUpdatedAt)||Number(item?.updatedAtLocal)||0}
+function nativeItemId(value,index,prefix='item'){
+ if(value&&typeof value==='object'&&value.id)return String(value.id);
+ const raw=typeof value==='object'?JSON.stringify(value):String(value??'');
+ let hash=2166136261;for(let i=0;i<raw.length;i++){hash^=raw.charCodeAt(i);hash=Math.imul(hash,16777619)}
+ return `${prefix}-${(hash>>>0).toString(36)}-${index}`
+}
+function normalizeMergeArray(values=[],prefix='item'){
+ return (Array.isArray(values)?values:[]).map((value,index)=>{
+  if(value&&typeof value==='object'&&!Array.isArray(value))return {...value,id:nativeItemId(value,index,prefix),updatedAt:value.updatedAt||value.createdAt||nowIso()};
+  return {id:nativeItemId(value,index,prefix),value,updatedAt:nowIso()};
+ })
+}
+function newerArrayItem(a,b){
+ const aServer=firestoreTimestampMs(a?.serverUpdatedAt),bServer=firestoreTimestampMs(b?.serverUpdatedAt);
+ if(aServer||bServer)return aServer>=bServer?a:b;
+ return new Date(a?.updatedAt||a?.createdAt||0).getTime()>=new Date(b?.updatedAt||b?.createdAt||0).getTime()?a:b
+}
+function mergeArrayById(local=[],remote=[],prefix='item'){
+ if([...(Array.isArray(local)?local:[]),...(Array.isArray(remote)?remote:[])].some(item=>item===null||typeof item!=='object'||Array.isArray(item))){const values=new Map();for(const item of [...(Array.isArray(remote)?remote:[]),...(Array.isArray(local)?local:[])])values.set(String(item),item);return [...values.values()]}
+ const merged=new Map();
+ for(const item of normalizeMergeArray(remote,prefix))merged.set(item.id,item);
+ for(const item of normalizeMergeArray(local,prefix)){const previous=merged.get(item.id);merged.set(item.id,previous?newerArrayItem(item,previous):item)}
+ return [...merged.values()]
+}
+function mergeEntityArrays(key,local={},remote={}){
+ const merged={...remote};
+ for(const field of ARRAY_FIELDS_BY_ENTITY[key]||[])if(Array.isArray(local[field])||Array.isArray(remote[field]))merged[field]=mergeArrayById(local[field],remote[field],field);
+ return merged
+}
+function nativeSanitize(item={}){const clean={...item};for(const key of ['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending'])delete clean[key];return clean}
+function normalizeRemoteEntity(key,raw={}){return normalizeEntityItem(key,nativeSanitize(raw))}
+function nativeDiff(before={},after={}){
+ const patch={};for(const [key,value] of Object.entries(after)){if(['id','createdAt','updatedAt','_updatedAtMs','serverUpdatedAt','deletedAt'].includes(key)||key.startsWith('_'))continue;if(!fieldsEqual(before[key],value))patch[key]=value}return patch
+}
+function nativeUpdateSyncStatus(){
+ const count=nativePendingRecords.size;
+ if(!navigator.onLine){setSync('offline',`Sin conexión · ${count} cambio${count===1?'':'s'} guardado${count===1?'':'s'}`,count?'Pendiente de envío':'Sin conexión');return}
+ if(count){setSync('syncing',`Guardando (${count})`,'Firestore está confirmando los cambios');return}
+ setSync(nativeServerOnline?'online':'syncing',nativeServerOnline?'Al día':'Conectando',nativeServerOnline?'Tiempo real':'Esperando al servidor')
+}
+function nativeMarkPending(key,id,metadata){const mapKey=nativeDocKey(key,id);if(metadata?.hasPendingWrites)nativePendingRecords.set(mapKey,{key,id});else nativePendingRecords.delete(mapKey);nativeUpdateSyncStatus()}
+function nativeCollectionRef(key){const cfg=ENTITY_COLLECTIONS[key];return cfg?firebaseApi.collection(clinicalDb,cfg.collection):null}
+function nativeApplyDocument(key,change){
+ const id=change.doc.id,mapKey=nativeDocKey(key,id),raw={id,...change.doc.data()};
+ nativeMarkPending(key,id,change.doc.metadata);
+ if(change.type==='removed'||raw.deletedAt){nativeDeletedRecords.set(mapKey,{key,id,raw});data[key]=(data[key]||[]).filter(item=>item.id!==id);return true}
+ const remote=normalizeRemoteEntity(key,raw),items=data[key]||[],index=items.findIndex(item=>item.id===id),local=index>=0?items[index]:null;
+ const merged=local?normalizeRemoteEntity(key,mergeEntityArrays(key,local,remote)):remote;
+ if(local&&nativeConflictPatches.has(mapKey)&&!change.doc.metadata.hasPendingWrites){
+  const intent=nativeConflictPatches.get(mapKey),overwritten=Object.keys(intent.patch).filter(field=>!fieldsEqual(merged[field],intent.patch[field]));
+  if(overwritten.length)registerSyncConflict(key,local,merged,overwritten);
+  nativeConflictPatches.delete(mapKey)
+ }
+ if(index>=0)items[index]=merged;else items.unshift(merged);data[key]=items;return true
+}
+function nativeWrite(key,id,patch,{create=false}={}){
+ if(!cloudReady||!firebaseApi){nativeOutboundBuffer.set(nativeDocKey(key,id),{key,id,patch:{...(nativeOutboundBuffer.get(nativeDocKey(key,id))?.patch||{}),...patch},create});nativePendingRecords.set(nativeDocKey(key,id),{key,id});nativeUpdateSyncStatus();return Promise.resolve()}
+ const ref=key==='meta'?firebaseApi.doc(firebaseApi.collection(clinicalDb,'app_meta'),'settings'):firebaseApi.doc(nativeCollectionRef(key),id);
+ const payload={...nativeSanitize(patch),updatedAt:new Date(Date.now()+nativeClockOffset).toISOString(),updatedAtLocal:Date.now()+nativeClockOffset,updatedByDevice:DEVICE_ID,serverUpdatedAt:firebaseApi.serverTimestamp()};
+ if(create)payload.createdAt=patch.createdAt||payload.updatedAt;
+ const request=create?firebaseApi.setDoc(ref,payload,{merge:true}):firebaseApi.updateDoc(ref,payload);
+ request.catch(error=>{console.error('Firestore native write failed',error);toast('No se pudo enviar el cambio. Firestore lo reintentará al recuperar conexión','warn')});
+ return request
+}
+function flushNativeOutboundBuffer(){const pending=[...nativeOutboundBuffer.values()];nativeOutboundBuffer.clear();for(const item of pending)nativeWrite(item.key,item.id,item.patch,{create:item.create})}
+function touch(entity){const stamp=Date.now()+nativeClockOffset;return {...entity,updatedAt:new Date(stamp).toISOString(),updatedAtLocal:stamp,updatedByDevice:DEVICE_ID}}
+function created(entity){const result=touch(entity);return {...result,createdAt:entity.createdAt||result.updatedAt}}
+function persistLocal(target=data){return target}
+function scheduleCloudWrite(){return}
+function scheduleRetry(){return}
+function hasDirtyEntities(){return nativePendingRecords.size>0}
+function commitMetaPatch(fields){const previous=data.meta||{},next=touch({...previous,...fields});data.meta=next;nativeConflictPatches.set(nativeDocKey('meta','settings'),{patch:fields});nativeWrite('meta','settings',fields,{create:!previous.id});return next}
+function upsertEntity(key,entity,explicitPatch=null){
+ const normalized=key==='patients'?mapPatientToEter(entity):normalizeEntityItem(key,entity),items=data[key]||[],index=items.findIndex(item=>item.id===normalized.id),existing=index>=0?items[index]:null;
+ const next=touch({...existing,...normalized});if(index>=0)items[index]=next;else items.unshift(next);data[key]=items;
+ const patch=explicitPatch||nativeDiff(existing||{},normalized);
+ if(!existing){Object.assign(patch,nativeSanitize(next));}
+ const mapKey=nativeDocKey(key,next.id);nativeConflictPatches.set(mapKey,{patch});nativeWrite(key,next.id,patch,{create:!existing});return next
+}
+async function removeEntity(key,id){
+ const item=(data[key]||[]).find(entry=>entry.id===id);if(!item)return false;
+ data[key]=data[key].filter(entry=>entry.id!==id);nativeDeletedRecords.set(nativeDocKey(key,id),{key,id,raw:item});
+ nativeWrite(key,id,{deletedAt:firebaseApi?.serverTimestamp?.()||null});
+ toast('Registro enviado a la papelera','info',{label:'Deshacer',onClick:()=>restoreEntity(key,id)});return true
+}
+function restoreEntity(key,id){const deleted=nativeDeletedRecords.get(nativeDocKey(key,id));if(!deleted)return;nativeDeletedRecords.delete(nativeDocKey(key,id));const item=normalizeRemoteEntity(key,{...deleted.raw,deletedAt:null});data[key]=[item,...(data[key]||[])];nativeWrite(key,id,{deletedAt:null});renderAll();toast('Registro restaurado')}
+async function calibrateClockOffset(){
+ try{const ref=firebaseApi.doc(firebaseApi.collection(clinicalDb,'app_meta'),`__clock_${DEVICE_ID}`),before=Date.now();await firebaseApi.setDoc(ref,{at:firebaseApi.serverTimestamp()});const snap=await firebaseApi.getDocFromServer(ref),server=firestoreTimestampMs(snap.data()?.at);nativeClockOffset=server?server-before:0;await firebaseApi.deleteDoc(ref);if(Math.abs(nativeClockOffset)>120000)toast('El reloj de este dispositivo está desfasado más de 2 minutos','warn')}catch(error){console.warn('Clock calibration unavailable',error)}
+}
+function initClinicalListeners(){
+ if(listenersStarted)return;listenersStarted=true;
+ const {collection,onSnapshot,doc}=firebaseApi;
+ listenerUnsubscribers=Object.values(ENTITY_COLLECTIONS).map(cfg=>onSnapshot(collection(clinicalDb,cfg.collection),{includeMetadataChanges:true},snapshot=>{
+  nativeServerOnline=!snapshot.metadata.fromCache;let changed=false;for(const change of snapshot.docChanges()){if(cfg.key==='patients'&&change.doc.id.startsWith('__meta_'))continue;changed=nativeApplyDocument(cfg.key,change)||changed}if(cfg.key==='patients')data.patients=dedupePatients(data.patients||[]);nativeUpdateSyncStatus();if(changed)scheduleCurrentViewRender({reason:`firestore:${cfg.key}`})
+ },error=>{console.error('Firestore listener failed',error);nativeServerOnline=false;nativeUpdateSyncStatus()}));
+ settingsUnsubscribe=onSnapshot(doc(collection(clinicalDb,'app_meta'),'settings'),{includeMetadataChanges:true},snapshot=>{if(!snapshot.exists())return;nativeServerOnline=!snapshot.metadata.fromCache;nativeMarkPending('meta','settings',snapshot.metadata);const remote=normalizeWhatsAppMeta(snapshot.data()||{});data.meta={...data.meta,...remote};nativeUpdateSyncStatus();scheduleCurrentViewRender({reason:'firestore:settings'})},error=>{console.error('Firestore settings listener failed',error);nativeServerOnline=false;nativeUpdateSyncStatus()})
+}
+async function initFirebase(){
+ if(firebaseInitPromise)return firebaseInitPromise;firebaseInitPromise=(async()=>{try{
+  const [appMod,fsMod,authMod]=await Promise.all([import(`${CDN}/firebase-app.js`),import(`${CDN}/firebase-firestore.js`),import(`${CDN}/firebase-auth.js`)]);firebaseApi={...appMod,...fsMod,...authMod};const app=appMod.getApps().find(item=>item.name==='kineproApp')||appMod.initializeApp(KINEPRO_CONFIG,'kineproApp');clinicalDb=fsMod.initializeFirestore(app,{localCache:fsMod.persistentLocalCache({tabManager:fsMod.persistentMultipleTabManager()})});const auth=authMod.getAuth(app);if(!auth.currentUser)await authMod.signInAnonymously(auth);cloudReady=true;clearInterval(leaderHeartbeat);for(const cfg of Object.values(ENTITY_COLLECTIONS))for(const item of data[cfg.key]||[])for(const legacy of ['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending'])delete item[legacy];delete data.pendingDeletes;calibrateClockOffset();initClinicalListeners();flushNativeOutboundBuffer();nativeUpdateSyncStatus()
+ }catch(error){cloudReady=false;console.error('Firebase initialization failed',error);nativeUpdateSyncStatus();throw error}finally{firebaseInitPromise=null}})();return firebaseInitPromise
+}
+function writeDirtyEntities(){return Promise.resolve()}
+function flushDeletes(){return Promise.resolve()}
+function forceSyncNow(){return initFirebase()}
+let nativeLastBackupAt=0;
+function saveAutomaticBackup(reason='Respaldo periódico'){
+ const now=Date.now();if(now-nativeLastBackupAt<15*60*1000&&reason!=='Copia manual')return;nativeLastBackupAt=now;
+ try{const request=indexedDB.open('eter-kinepro-backups',1);request.onupgradeneeded=()=>request.result.createObjectStore('backups',{keyPath:'id'});request.onsuccess=()=>{const db=request.result,tx=db.transaction('backups','readwrite'),store=tx.objectStore('backups');store.put({id:now,stamp:new Date(now).toISOString(),reason,data:structuredClone(data)});tx.oncomplete=()=>db.close()}}catch(error){console.warn('No se pudo programar backup',error)}
+}
+const nativeRenderEvolutionList=renderEvolutionList;
+function visibleArray(items=[]){return (Array.isArray(items)?items:[]).filter(item=>!item?.deletedAt)}
+function allEvolutions(){return data.patients.flatMap(patient=>visibleArray(patient.evoluciones).map(item=>({...item,patientId:patient.id,patientName:patient.nombre}))).sort((a,b)=>evolutionTime(b)-evolutionTime(a))}
+function renderEvolutionList(items,patientId=''){return nativeRenderEvolutionList(visibleArray(items),patientId)}
+function deleteEvolution(patientId,id){const patient=getPatient(patientId);if(!patient)return;openConfirm('Eliminar evolución','La evolución se enviará a la papelera.',()=>{const evoluciones=(patient.evoluciones||[]).map(item=>item.id===id?touch({...item,deletedAt:new Date().toISOString()}):item);upsertEntity('patients',{...patient,evoluciones},{evoluciones});closeConfirm();if(ui.selectedPatientId===patientId)renderPatientProfile();else renderEvoluciones();toast('Evolución eliminada','info')})}
 init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensions()}).catch(error=>{console.error('ETER init failed',error);toast('La aplicación inició en modo local','warn')});
 </script>
 <script>
