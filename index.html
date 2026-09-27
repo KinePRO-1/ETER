@@ -4340,6 +4340,8 @@ function weekRange(referenceDate=todayISO()){const start=weekStartDate(reference
 function minutesFromTime(value){if(!validTimeValue(value))return null;const[h,m]=value.split(':').map(Number);return h*60+m}
 function turnDurationMinutes(turn){const raw=turn?.durationMinutes??turn?.duracionMinutos??turn?.duration??turn?.duracion??data.meta?.defaultTurnDuration??60;const value=Number(raw);return Number.isFinite(value)&&value>0?value:Math.max(1,Number(data.meta?.defaultTurnDuration)||60)}
 function turnDateInterval(turn){if(!turn?.fecha||!validTimeValue(turn.hora))return null;const start=new Date(`${turn.fecha}T${turn.hora}:00`);if(Number.isNaN(start.getTime()))return null;return{start,end:new Date(start.getTime()+turnDurationMinutes(turn)*60000)}}
+function findTurnScheduleConflict(candidate,excludedId=''){const interval=turnDateInterval(candidate);if(!interval)return null;const conflict=(data.turns||[]).find(turn=>{if(turn.id===excludedId||String(turn.estado||'').toLowerCase()==='cancelado')return false;const other=turnDateInterval(turn);return other&&interval.start<other.end&&interval.end>other.start});if(!conflict)return null;return{turn:conflict,exactSlot:conflict.fecha===candidate.fecha&&conflict.hora===candidate.hora}}
+function findDuplicatePayment(candidate,excludedId=''){const patientId=String(candidate?.patientId||'');const date=paymentDateValue(candidate);if(!patientId||!date)return null;return(data.payments||[]).find(payment=>{if(payment.id===excludedId||payment.patientId!==patientId||paymentDateValue(payment)!==date)return false;if(candidate.turnId||candidate.comboId)return payment.turnId===candidate.turnId&&payment.comboId===candidate.comboId;return!payment.turnId&&!payment.comboId&&payment.type===candidate.type&&Number(payment.amount||0)===Number(candidate.amount||0)&&paymentMethodKey(payment)===paymentMethodKey(candidate)&&payment.status===candidate.status})||null}
 function getAvailableSlotsForWeek(referenceDate=todayISO()){
  const availability=normalizeWeeklyAvailability(data.meta?.weeklyAvailability),range=weekRange(referenceDate),now=new Date(),slotDuration=Math.max(1,Number(data.meta?.defaultTurnDuration)||60);
  const occupied=(data.turns||[]).filter(turn=>String(turn.estado||'').toLowerCase()!=='cancelado').map(turnDateInterval).filter(Boolean);
@@ -5664,6 +5666,12 @@ async function saveTurn(){
    search?.focus();
    return
   }
+  const scheduleConflict=findTurnScheduleConflict(normalizeTurn({...existing,fecha:values.fecha,hora:values.hora}),existing?.id||'');
+  if(scheduleConflict){
+   const conflictName=livePatientName(scheduleConflict.turn)||'otro paciente';
+   const conflictTime=`${fmtDate(scheduleConflict.turn.fecha)} · ${scheduleConflict.turn.hora||'sin horario'}`;
+   return toast(scheduleConflict.exactSlot?`Ya existe un turno para ${conflictName} en ${conflictTime}`:`El turno se superpone con ${conflictName} en ${conflictTime}`,'error')
+  }
   const billingType=values.billingType==='combo'?'combo':'individual';
   const combo=billingType==='combo'?getCombo(values.comboId):null;
   const linkedPayment=existing?getPaymentByTurn(existing.id):null;
@@ -5857,6 +5865,8 @@ function savePayment(){
   date=values.date||combo.startDate
  }else type='Pago sin turno';
  const payment=normalizePayment({...existing,id:existing?.id||uid('payment'),patientId:patient.id,patientName:patient.nombre,type,turnId,comboId,amount:Number(values.amount||0),date,method:values.method,methodDetail:values.methodDetail,status:values.status,notes:values.notes});
+ const duplicate=findDuplicatePayment(payment,existing?.id||'');
+ if(duplicate)return toast(`Ya existe un pago idéntico para ${patient.nombre} el ${fmtDate(payment.date)}`,'error');
  upsertEntity('payments',payment);
  if(turnId&&payment.status==='Cobrado'){
   const paidTurn=getTurnById(turnId);
