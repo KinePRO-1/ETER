@@ -4481,7 +4481,7 @@ function toast(message,type='success',action=null){const t=$('#toast');if(!t)ret
 /* MIGRACIÓN DE DATOS */
 function defaultData(){return{version:DATA_VERSION,patients:[],routines:[],activeSessions:[],history:[],exerciseLibrary:[],turns:[],payments:[],packages:[],pendingDeletes:[],meta:{}}}
 function normalizeTurn(raw={}){const fecha=raw.fecha||raw.date||todayISO(),hora=raw.hora||raw.hour||'',fallback=`${fecha}T${/^\d{2}:\d{2}$/.test(hora)?hora:'12:00'}:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback,ownDuration=Number(raw.durationMinutes??raw.duracionMinutos??raw.duration??raw.duracion);const turn={...raw,id:String(raw.id||uid('turn')),patientId:raw.patientId||'',paciente:raw.paciente||raw.patientName||'Sin nombre',hora,fecha,motivo:raw.motivo||'Turno clínico',estado:raw.estado||'Pendiente',price:Number(raw.price??raw.precio??0)||0,rateId:raw.rateId||raw.promoId||'',billingType:raw.billingType||(raw.comboId?'combo':'individual'),comboId:raw.comboId||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true};if(Number.isFinite(ownDuration)&&ownDuration>0)turn.durationMinutes=ownDuration;else delete turn.durationMinutes;delete turn.external;return turn}
-function normalizePayment(raw={}){const date=raw.date||todayISO(),fallback=`${date}T12:00:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback;const legacyType=raw.type==='Pack / combo'?'Pack / combo':raw.type==='Otro'?'Pago sin turno':raw.type;return{...raw,id:String(raw.id||uid('payment')),patientId:raw.patientId||'',patientName:raw.patientName||'',type:legacyType||(raw.turnId?'Turno':raw.comboId?'Pack / combo':'Pago sin turno'),turnId:raw.turnId||'',comboId:raw.comboId||'',amount:Number(raw.amount??raw.monto??0)||0,date,method:raw.method||'Efectivo',status:raw.status||'Cobrado',notes:raw.notes||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true}}
+function normalizePayment(raw={}){const date=raw.date||todayISO(),fallback=`${date}T12:00:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback;const legacyType=raw.type==='Pack / combo'?'Pack / combo':raw.type==='Otro'?'Pago sin turno':raw.type;return{...raw,id:String(raw.id||uid('payment')),patientId:raw.patientId||'',patientName:raw.patientName||'',type:legacyType||(raw.turnId?'Turno':raw.comboId?'Pack / combo':'Pago sin turno'),turnId:raw.turnId||'',comboId:raw.comboId||'',amount:Number(raw.amount??raw.monto??0)||0,date,method:raw.method||'Efectivo',methodDetail:raw.methodDetail||raw.paymentDetail||'',status:raw.status||'Cobrado',notes:raw.notes||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true}}
 function normalizePackage(raw={}){const startDate=raw.startDate||raw.fechaInicio||todayISO(),fallback=`${startDate}T12:00:00`,createdAt=raw.createdAt||fallback,updatedAt=raw.updatedAt||raw.createdAt||fallback,promo=getPromo(raw.promoId||''),status=raw.status==='Finalizado'||raw.finished===true?'Finalizado':'Activo';return{...raw,id:String(raw.id||uid('combo')),patientId:raw.patientId||'',patientName:raw.patientName||'',name:raw.name||raw.nombre||'Pack personalizado',promoId:raw.promoId||'',serviceType:raw.serviceType||promo?.service||'',frequencyLabel:raw.frequencyLabel||promo?.frequency||'',intervalDays:Number(raw.intervalDays??promo?.intervalDays??0)||0,sameMonth:raw.sameMonth===true||promo?.sameMonth===true,totalSessions:Math.max(1,Number(raw.totalSessions??raw.sesiones??promo?.sessions??4)||4),price:Number(raw.price??raw.precio??promo?.price??0)||0,startDate,endDate:raw.endDate||raw.fechaFin||(raw.sameMonth||promo?.sameMonth?monthEndISO(startDate):addDaysISO(startDate,30)),status,finishedAt:status==='Finalizado'?(raw.finishedAt||raw.endedAt||updatedAt):'',notes:raw.notes||'',createdAt,updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw),_dirty:raw._dirty===true}}
 function normalizeActiveSession(raw={}){const startedAt=raw.startedAt||raw.createdAt||nowIso(),updatedAt=raw.updatedAt||startedAt,executionSource=Array.isArray(raw.executionData)?raw.executionData:(Array.isArray(raw.exercises)?raw.exercises:[]);return{...raw,id:String(raw.id||uid('session')),patientId:raw.patientId||'',patientName:raw.patientName||raw.paciente||'',routineId:raw.routineId||'',routineName:raw.routineName||raw.name||raw.nombre||'Rutina sin nombre',startedAt,createdAt:raw.createdAt||startedAt,executionData:executionSource.map((exercise,index)=>normalizeExercise(exercise,index)),paused:Boolean(raw.paused),pausedAt:raw.pausedAt||raw.pauseStartedAt||'',pausedMs:Number(raw.pausedMs||0),status:raw.status||'Activa',updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw)||Date.now(),_dirty:raw._dirty===true}}
 function normalizeHistoryRecord(raw={}){const finishedAt=raw.finishedAt||raw.updatedAt||raw.createdAt||nowIso(),startedAt=raw.startedAt||raw.createdAt||finishedAt,updatedAt=raw.updatedAt||finishedAt,executionSource=Array.isArray(raw.executionData)?raw.executionData:(Array.isArray(raw.exercises)?raw.exercises:[]);return{...raw,id:String(raw.id||uid('history')),patientId:raw.patientId||'',patientName:raw.patientName||raw.paciente||'',routineId:raw.routineId||'',routineName:raw.routineName||raw.name||raw.nombre||'Rutina sin nombre',startedAt,finishedAt,createdAt:raw.createdAt||finishedAt,executionData:executionSource.map((exercise,index)=>normalizeExercise(exercise,index)),completedCount:Number(raw.completedCount||0),totalCount:Number(raw.totalCount??executionSource.length)||0,progress:Number(raw.progress||0),duration:Number(raw.duration||0),volume:Number(raw.volume||0),status:raw.status||'Incompleta',updatedAt,_updatedAtMs:Number(raw._updatedAtMs)||new Date(updatedAt).getTime()||entityRevision(raw)||Date.now(),_dirty:raw._dirty===true}}
@@ -5786,6 +5786,7 @@ function renderPagos(){
  const activeTab=ui.paymentTab==='packs'?'packs':'movements';
  const allPayments=data.payments.slice().sort((a,b)=>new Date(b.date||b.createdAt||0)-new Date(a.date||a.createdAt||0));
  const methodFilter=ui.paymentFilters?.method||'all';
+ const availablePaymentMethods=[...new Set([...data.payments.map(payment=>paymentMethodKey(payment)),...(Array.isArray(data.meta?.activeMethods)?data.meta.activeMethods:[])])].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es'));
  const datePayments=range.from||range.to?allPayments.filter(payment=>paymentWithinRange(payment,range.from,range.to)):allPayments;
  const previousDatePayments=range.previousFrom&&range.previousTo?allPayments.filter(payment=>paymentWithinRange(payment,range.previousFrom,range.previousTo)):[];
  const filterByMethod=payment=>methodFilter==='all'||paymentMethodKey(payment)===methodFilter;
@@ -5826,7 +5827,7 @@ function renderPagos(){
   const dateLabel=fmtDate(payment.date||payment.createdAt);
   const method=payment.method||'Sin método';
   const concept=paymentConcept(payment);
-  return`<details class="payment-movement-card payment-movement-details"><summary class="payment-movement-summary"><div class="payment-movement-identity"><span class="payment-concept">${esc(payment.type||'Pago')}</span><strong class="payment-patient-name">${esc(name)}</strong></div><span class="payment-movement-summary-meta">${esc(dateLabel)} · ${esc(method)}</span><strong class="payment-amount">${money(payment.amount)}</strong><span class="payment-movement-summary-side">${statusBadge(payment.status)}<span class="payment-movement-chevron" aria-hidden="true">${chevronIcon}</span></span></summary><div class="payment-movement-body"><div class="payment-movement-detail-line"><span>Detalle</span><strong>${esc(concept)}</strong></div><div class="payment-movement-actions">${refs.patient?`<button type="button" class="btn payment-profile-btn" data-action="profile" data-id="${esc(refs.patient.id)}">${userIcon}<span>Ficha</span></button>`:''}<button type="button" class="btn payment-edit-btn" data-action="edit-payment" data-id="${esc(payment.id)}">${editIcon}<span>Editar</span></button><button type="button" class="btn payment-delete-btn" data-action="delete-payment" data-id="${esc(payment.id)}">${deleteIcon}<span>Eliminar</span></button></div></div></details>`
+  return`<details class="payment-movement-card payment-movement-details"><summary class="payment-movement-summary"><div class="payment-movement-identity"><span class="payment-concept">${esc(payment.type||'Pago')}</span><strong class="payment-patient-name">${esc(name)}</strong></div><span class="payment-movement-summary-meta">${esc(dateLabel)} · ${esc(method)}</span><strong class="payment-amount">${money(payment.amount)}</strong><span class="payment-movement-summary-side">${statusBadge(payment.status)}<span class="payment-movement-chevron" aria-hidden="true">${chevronIcon}</span></span></summary><div class="payment-movement-body"><div class="payment-movement-detail-line"><span>Detalle</span><strong>${esc(concept)}</strong></div><div class="payment-movement-detail-line"><span>Fecha efectiva de cobro</span><strong>${esc(dateLabel)}</strong></div><div class="payment-movement-detail-line"><span>Modalidad de pago</span><strong>${esc(method)}</strong></div>${payment.methodDetail?`<div class="payment-movement-detail-line"><span>Detalle de modalidad</span><strong>${esc(payment.methodDetail)}</strong></div>`:''}${payment.notes?`<div class="payment-movement-detail-line"><span>Observación</span><strong>${esc(payment.notes)}</strong></div>`:''}<div class="payment-movement-actions">${refs.patient?`<button type="button" class="btn payment-profile-btn" data-action="profile" data-id="${esc(refs.patient.id)}">${userIcon}<span>Ficha</span></button>`:''}<button type="button" class="btn payment-edit-btn" data-action="edit-payment" data-id="${esc(payment.id)}">${editIcon}<span>Editar</span></button><button type="button" class="btn payment-delete-btn" data-action="delete-payment" data-id="${esc(payment.id)}">${deleteIcon}<span>Eliminar</span></button></div></div></details>`
  }).join('')||`<div class="payments-empty">No hay movimientos para ${esc(methodLabel.toLowerCase())} en el período seleccionado</div>`;
  const summaryHtml=`<section class="payments-summary-card payments-summary-first"><div class="payments-summary-head"><div><h3>Resumen del período</h3><p>${esc(summaryLabel)}</p></div></div><div class="payments-compact-metrics"><article class="payment-compact-metric is-primary"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.9-.8-2.1-1.2-3.5-1.2-1.9 0-3.2.9-3.2 2.3 0 1.5 1.2 2.1 3.4 2.5 2.1.4 3.1 1 3.1 2.5 0 1.5-1.4 2.5-3.4 2.5-1.6 0-3-.5-4-1.5M12 5.5v13"/></svg></span><strong>${money(collected)}</strong><span>${methodFilter==='all'?'Ingresos del período':`Ingresos en ${esc(methodLabel.toLowerCase())}`}</span></article><article class="payment-compact-metric is-method is-cash"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M7 9H5v2M17 15h2v-2"/></svg></span><strong>${money(cashCollected)}</strong><span>Cobrado en efectivo</span></article><article class="payment-compact-metric is-method is-transfer"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4"/></svg></span><strong>${money(transferCollected)}</strong><span>Cobrado por transferencia</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M3 17 9 11l4 4 8-9"/><path d="M15 6h6v6"/></svg></span><strong>${range.previousFrom?money(previousCollected):'—'}</strong><span>Período anterior</span></article><article class="payment-compact-metric is-purple ${variationClass}"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M4 18V6M4 18h16"/><path d="m7 14 4-4 3 3 5-6"/></svg></span><strong>${esc(variationLabel)}</strong><span>Variación</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><strong>${money(pendingTurns)}</strong><span>Pendiente en turnos</span></article><article class="payment-compact-metric is-purple"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14"/></svg></span><strong>${money(pendingCombos)}</strong><span>Pendiente en packs</span></article><article class="payment-compact-metric is-success"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg></span><strong>${activeCombos}</strong><span>Packs vigentes</span></article><article class="payment-compact-metric is-warning"><span class="payment-metric-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 14v3"/></svg></span><strong>${expiring}</strong><span>Packs próximos a vencer</span></article></div><details class="payments-filter-details"${filtersOpen?' open':''}><summary><span class="payments-filter-summary-main"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7Z"/></svg><span>Filtros y comparación</span></span><span class="finance-chevron" aria-hidden="true">${chevronIcon}</span></summary><div class="payments-filter-content"><div class="payments-filter-grid"><div class="field payments-filter-period"><label>Período</label><select class="select" id="paymentPeriodFilter"><option value="all" ${range.period==='all'?'selected':''}>Todo el historial</option><option value="week" ${range.period==='week'?'selected':''}>Esta semana</option><option value="month" ${range.period==='month'?'selected':''}>Este mes</option><option value="year" ${range.period==='year'?'selected':''}>Este año</option><option value="custom" ${range.period==='custom'?'selected':''}>Rango personalizado</option></select></div><div class="field payments-filter-method"><label>Método de pago</label><select class="select" id="paymentMethodFilter"><option value="all" ${methodFilter==='all'?'selected':''}>Todos los métodos</option><option value="Efectivo" ${methodFilter==='Efectivo'?'selected':''}>Efectivo</option><option value="Transferencia" ${methodFilter==='Transferencia'?'selected':''}>Transferencia</option><option value="Tarjeta" ${methodFilter==='Tarjeta'?'selected':''}>Tarjeta</option><option value="Sin método" ${methodFilter==='Sin método'?'selected':''}>Sin método</option><option value="Otro" ${methodFilter==='Otro'?'selected':''}>Otro</option></select></div><div class="field"><label>Desde</label><input class="input" id="paymentFromFilter" type="date" value="${esc(fromValue)}" ${custom?'':'disabled'}></div><div class="field"><label>Hasta</label><input class="input" id="paymentToFilter" type="date" value="${esc(toValue)}" ${custom?'':'disabled'}></div><button type="button" class="btn payment-filter-reset" data-action="reset-payment-filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Restablecer</span></button></div><div class="card-sub" style="margin-top:10px">Método aplicado: <strong>${esc(methodLabel)}</strong> · Comparación: ${esc(previousLabel)}</div></div></details></section>`;
  const movementsPanel=`<div class="payments-tab-panel payments-movements-panel" role="tabpanel">${summaryHtml}<section class="finance-section payment-movements-section"><div class="finance-section-head"><div><h3>Movimientos</h3><p>${esc(movementLabel)} · Tocá una tarjeta para ver sus acciones</p></div></div><div class="payment-movements-list">${movementCards}</div></section></div>`;
@@ -5834,7 +5835,7 @@ function renderPagos(){
  const headerAction=activeTab==='packs'?`<button type="button" class="btn payments-new-pack-btn" data-action="new-combo">${packIcon}<span>Pack personalizado</span></button>`:`<button type="button" class="btn btn-primary payments-new-payment-btn" data-action="new-payment">${plusIcon}<span>Registrar pago</span></button>`;
  setElementHtml($('#view-pagos'),`<div class="payments-dashboard"><header class="payments-page-header"><div class="payments-heading"><h2>Pagos y promociones</h2><p>${activeTab==='packs'?'Packs asignados, tarifas y promociones':'Ingresos, cobros y movimientos registrados'}</p></div><div class="payments-main-actions">${headerAction}</div></header><nav class="payments-tabs" aria-label="Secciones de pagos"><button type="button" class="payments-tab-btn ${activeTab==='movements'?'active':''}" data-action="payment-tab" data-tab="movements" aria-selected="${activeTab==='movements'}">${movementIcon}<span>Movimientos</span><strong>${payments.length}</strong></button><button type="button" class="payments-tab-btn ${activeTab==='packs'?'active':''}" data-action="payment-tab" data-tab="packs" aria-selected="${activeTab==='packs'}">${packIcon}<span>Packs y promociones</span><strong>${combos.length}</strong></button></nav>${activeTab==='packs'?packsPanel:movementsPanel}</div>`)
 }
-function openPaymentForm(prefill={}){const existing=prefill.paymentId?data.payments.find(payment=>payment.id===prefill.paymentId)||null:null,selectedTurn=prefill.turnId?getTurnById(prefill.turnId):existing?.turnId?getTurnById(existing.turnId):null,selectedCombo=prefill.comboId?getCombo(prefill.comboId):existing?.comboId?getCombo(existing.comboId):null,patientId=prefill.patientId||existing?.patientId||selectedTurn?.patientId||selectedCombo?.patientId||'',type=existing?.type?(existing.type==='Pack / combo'?'Pack / combo':existing.type==='Turno'?'Turno':'Pago sin turno'):(selectedTurn?'Turno':selectedCombo?'Pack / combo':'Pago sin turno');openModal(existing?'Editar pago':'Registrar pago',`<form id="paymentForm" class="form-grid"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><div class="field"><label>Concepto *</label><select class="select" name="type" id="paymentType"><option ${type==='Turno'?'selected':''}>Turno</option><option ${type==='Pack / combo'?'selected':''}>Pack / combo</option><option value="Pago sin turno" ${type==='Pago sin turno'?'selected':''}>Pago sin turno</option></select></div><div class="field"><label>Paciente *</label><select class="select" name="patientId" id="paymentPatient" required><option value="">Seleccionar</option>${data.patients.map(patient=>`<option value="${patient.id}" ${patient.id===patientId?'selected':''}>${esc(patient.nombre)}</option>`).join('')}</select></div><div class="field full" id="paymentReferenceField"><label id="paymentReferenceLabel">Turno vinculado *</label><select class="select" name="referenceId" id="paymentReference"></select></div><div class="field"><label>Monto *</label><input class="input" name="amount" id="paymentAmount" type="number" min="0" step="1" required value="${existing?Number(existing.amount||0):''}"></div><div class="field"><label>Fecha</label><input class="input" name="date" id="paymentDate" type="date" value="${existing?.date||todayISO()}"></div><div class="field"><label>Método</label><select class="select" name="method">${['Efectivo','Transferencia','Tarjeta'].map(method=>`<option ${method===(existing?.method||'Efectivo')?'selected':''}>${method}</option>`).join('')}</select></div><div class="field"><label>Estado</label><select class="select" name="status"><option ${existing?.status!=='Pendiente'?'selected':''}>Cobrado</option><option ${existing?.status==='Pendiente'?'selected':''}>Pendiente</option></select></div><div class="field full"><label>Observación</label><input class="input" name="notes" value="${esc(existing?.notes||'')}"></div><div class="field full"><div class="billing-note" id="paymentHelp">Seleccioná un turno para completar automáticamente el monto y la fecha.</div></div></form>`,`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn btn-primary" data-action="save-payment">${existing?'Actualizar':'Guardar'}</button>`,'wide');const typeSelect=$('#paymentType'),patientSelect=$('#paymentPatient'),referenceField=$('#paymentReferenceField'),referenceLabel=$('#paymentReferenceLabel'),referenceSelect=$('#paymentReference'),amountInput=$('#paymentAmount'),dateInput=$('#paymentDate'),help=$('#paymentHelp');const initialReference=selectedTurn?.id||selectedCombo?.id||'';const refreshReferences=()=>{const concept=typeSelect.value,pid=patientSelect.value;referenceField.hidden=concept==='Pago sin turno'||concept==='Otro';referenceSelect.required=concept==='Turno'||concept==='Pack / combo';if(concept==='Turno'){referenceLabel.textContent='Turno vinculado *';const turns=data.turns.filter(turn=>turn.patientId===pid&&(!getPaymentByTurn(turn.id)||turn.id===existing?.turnId)).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`));referenceSelect.innerHTML=`<option value="">Seleccionar turno</option>${turns.map(turn=>`<option value="${turn.id}" ${turn.id===initialReference?'selected':''}>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)} · ${money(turn.price)}</option>`).join('')}`;help.textContent=turns.length?'El pago quedará enlazado al turno seleccionado y se verá en la agenda.':'Este paciente no tiene turnos disponibles. Elegí “Pago sin turno” en Concepto para registrar el cobro igualmente.'}else if(concept==='Pack / combo'){referenceLabel.textContent='Pack vinculado *';const combos=getPatientCombos(pid).filter(combo=>!getPaymentByCombo(combo.id)||combo.id===existing?.comboId);referenceSelect.innerHTML=`<option value="">Seleccionar pack</option>${combos.map(combo=>`<option value="${combo.id}" ${combo.id===initialReference?'selected':''}>${esc(combo.name)} · ${fmtDate(combo.startDate)} a ${fmtDate(combo.endDate)} · ${money(combo.price)}</option>`).join('')}`;help.textContent='El pago quedará enlazado al pack y conservará su vigencia y cantidad de sesiones.'}else{referenceSelect.innerHTML='';help.textContent='El pago se registrará para el paciente sin exigir un turno o pack vinculado.'}syncReference()};const syncReference=()=>{const concept=typeSelect.value,referenceId=referenceSelect.value;if(concept==='Turno'){const turn=getTurnById(referenceId);if(turn){if(!amountInput.value||!existing)amountInput.value=Number(turn.price||0);dateInput.value=turn.fecha}}else if(concept==='Pack / combo'){const combo=getCombo(referenceId);if(combo){if(!amountInput.value||!existing)amountInput.value=Number(combo.price||0);dateInput.value=combo.startDate}}};typeSelect.addEventListener('change',refreshReferences);patientSelect.addEventListener('change',refreshReferences);referenceSelect.addEventListener('change',syncReference);refreshReferences()}
+function openPaymentForm(prefill={}){const existing=prefill.paymentId?data.payments.find(payment=>payment.id===prefill.paymentId)||null:null,selectedTurn=prefill.turnId?getTurnById(prefill.turnId):existing?.turnId?getTurnById(existing.turnId):null,selectedCombo=prefill.comboId?getCombo(prefill.comboId):existing?.comboId?getCombo(existing.comboId):null,patientId=prefill.patientId||existing?.patientId||selectedTurn?.patientId||selectedCombo?.patientId||'',type=existing?.type?(existing.type==='Pack / combo'?'Pack / combo':existing.type==='Turno'?'Turno':'Pago sin turno'):(selectedTurn?'Turno':selectedCombo?'Pack / combo':'Pago sin turno'),methods=[...new Set([...(Array.isArray(data.meta?.activeMethods)?data.meta.activeMethods:[]),'Efectivo','Transferencia','Mercado Pago','Débito','Crédito','Tarjeta','Otro'])];openModal(existing?'Editar pago':'Registrar pago',`<form id="paymentForm" class="form-grid"><input type="hidden" name="id" value="${esc(existing?.id||'')}"><div class="field"><label>Concepto *</label><select class="select" name="type" id="paymentType"><option ${type==='Turno'?'selected':''}>Turno</option><option ${type==='Pack / combo'?'selected':''}>Pack / combo</option><option value="Pago sin turno" ${type==='Pago sin turno'?'selected':''}>Pago sin turno</option></select></div><div class="field"><label>Paciente *</label><select class="select" name="patientId" id="paymentPatient" required><option value="">Seleccionar</option>${data.patients.map(patient=>`<option value="${patient.id}" ${patient.id===patientId?'selected':''}>${esc(patient.nombre)}</option>`).join('')}</select></div><div class="field full" id="paymentReferenceField"><label id="paymentReferenceLabel">Turno vinculado *</label><select class="select" name="referenceId" id="paymentReference"></select></div><div class="field"><label>Monto *</label><input class="input" name="amount" id="paymentAmount" type="number" min="0" step="1" required value="${existing?Number(existing.amount||0):''}"></div><div class="field"><label>Fecha efectiva de cobro *</label><input class="input" name="date" id="paymentDate" type="date" required value="${existing?.date||todayISO()}"></div><div class="field"><label>Modalidad de pago *</label><select class="select" name="method">${methods.map(method=>`<option ${method===(existing?.method||'Efectivo')?'selected':''}>${esc(method)}</option>`).join('')}</select></div><div class="field"><label>Detalle de modalidad</label><input class="input" name="methodDetail" placeholder="Ej. Banco, cuotas, alias, comprobante" value="${esc(existing?.methodDetail||'')}"></div><div class="field"><label>Estado</label><select class="select" name="status"><option ${existing?.status!=='Pendiente'?'selected':''}>Cobrado</option><option ${existing?.status==='Pendiente'?'selected':''}>Pendiente</option></select></div><div class="field full"><label>Observación</label><input class="input" name="notes" value="${esc(existing?.notes||'')}"></div><div class="field full"><div class="billing-note" id="paymentHelp">La fecha efectiva de cobro se registra por separado de la fecha del turno o de la vigencia del pack.</div></div></form>`,`<button class="btn" data-action="close-modal">Cancelar</button><button class="btn btn-primary" data-action="save-payment">${existing?'Actualizar':'Guardar'}</button>`,'wide');const typeSelect=$('#paymentType'),patientSelect=$('#paymentPatient'),referenceField=$('#paymentReferenceField'),referenceLabel=$('#paymentReferenceLabel'),referenceSelect=$('#paymentReference'),amountInput=$('#paymentAmount'),dateInput=$('#paymentDate'),help=$('#paymentHelp');const initialReference=selectedTurn?.id||selectedCombo?.id||'';const refreshReferences=()=>{const concept=typeSelect.value,pid=patientSelect.value;referenceField.hidden=concept==='Pago sin turno'||concept==='Otro';referenceSelect.required=concept==='Turno'||concept==='Pack / combo';if(concept==='Turno'){referenceLabel.textContent='Turno vinculado *';const turns=data.turns.filter(turn=>turn.patientId===pid&&(!getPaymentByTurn(turn.id)||turn.id===existing?.turnId)).sort((a,b)=>`${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`));referenceSelect.innerHTML=`<option value="">Seleccionar turno</option>${turns.map(turn=>`<option value="${turn.id}" ${turn.id===initialReference?'selected':''}>${fmtDate(turn.fecha)} · ${esc(turn.hora)} · ${esc(turn.motivo)} · ${money(turn.price)}</option>`).join('')}`;help.textContent=turns.length?'El pago quedará enlazado al turno seleccionado; se conserva la fecha efectiva de cobro elegida.':'Este paciente no tiene turnos disponibles. Elegí “Pago sin turno” en Concepto para registrar el cobro igualmente.'}else if(concept==='Pack / combo'){referenceLabel.textContent='Pack vinculado *';const combos=getPatientCombos(pid).filter(combo=>!getPaymentByCombo(combo.id)||combo.id===existing?.comboId);referenceSelect.innerHTML=`<option value="">Seleccionar pack</option>${combos.map(combo=>`<option value="${combo.id}" ${combo.id===initialReference?'selected':''}>${esc(combo.name)} · ${fmtDate(combo.startDate)} a ${fmtDate(combo.endDate)} · ${money(combo.price)}</option>`).join('')}`;help.textContent='El pago quedará enlazado al pack; se conservarán su vigencia, modalidad y fecha efectiva de cobro.'}else{referenceSelect.innerHTML='';help.textContent='El pago se registrará para el paciente sin exigir un turno o pack vinculado.'}syncReference()};const syncReference=()=>{const concept=typeSelect.value,referenceId=referenceSelect.value;if(concept==='Turno'){const turn=getTurnById(referenceId);if(turn&&!amountInput.value)amountInput.value=Number(turn.price||0)}else if(concept==='Pack / combo'){const combo=getCombo(referenceId);if(combo&&!amountInput.value)amountInput.value=Number(combo.price||0)}};typeSelect.addEventListener('change',refreshReferences);patientSelect.addEventListener('change',refreshReferences);referenceSelect.addEventListener('change',syncReference);refreshReferences()}
 function savePayment(){
  const form=$('#paymentForm');
  if(!form.reportValidity())return;
@@ -5847,7 +5848,7 @@ function savePayment(){
   if(turn.comboId)return toast('Ese turno está incluido en un pack y no debe cobrarse por separado','error');
   if(data.payments.some(payment=>payment.turnId===turn.id&&payment.id!==existing?.id))return toast('El turno ya tiene un pago registrado','error');
   turnId=turn.id;
-  date=turn.fecha
+  date=values.date||turn.fecha
  }else if(type==='Pack / combo'){
   const combo=getCombo(values.referenceId);
   if(!combo||combo.patientId!==patient.id)return toast('Seleccioná un pack válido del paciente','error');
@@ -5855,7 +5856,7 @@ function savePayment(){
   comboId=combo.id;
   date=values.date||combo.startDate
  }else type='Pago sin turno';
- const payment=normalizePayment({...existing,id:existing?.id||uid('payment'),patientId:patient.id,patientName:patient.nombre,type,turnId,comboId,amount:Number(values.amount||0),date,method:values.method,status:values.status,notes:values.notes});
+ const payment=normalizePayment({...existing,id:existing?.id||uid('payment'),patientId:patient.id,patientName:patient.nombre,type,turnId,comboId,amount:Number(values.amount||0),date,method:values.method,methodDetail:values.methodDetail,status:values.status,notes:values.notes});
  upsertEntity('payments',payment);
  if(turnId&&payment.status==='Cobrado'){
   const paidTurn=getTurnById(turnId);
@@ -6080,9 +6081,12 @@ function renderConfiguracion(){
     <summary class="settings-section-summary"><div class="card-head"><div><div class="card-title">Exportar datos</div><div class="card-sub">Descargá toda la información clínica y administrativa en una planilla de Excel</div></div></div></summary>
     <div class="settings-section-content">
     <div class="clinical-block">
-     <h4>Excel completo (.xlsx)</h4>
-     <p>Genera un archivo con varias pestañas: Pacientes (con diagnóstico/motivo de consulta y una columna de Dato extra), Pagos, Pagos por mes, Turnos, Packs y combos, y Evoluciones.</p>
-     <button type="button" id="exportExcelBtn" class="btn btn-primary" style="margin-top:12px" data-action="export-excel">⬇ Exportar Excel</button>
+     <h4>Exportación Excel (.xlsx)</h4>
+     <p>Elegí entre el libro completo y el detalle de un mes. Ambos incluyen fecha efectiva de cobro, modalidad, detalle de modalidad, estado, referencia, turno o pack vinculado y observaciones.</p>
+     <div class="form-grid" style="margin-top:12px">
+      <div class="field"><label>Mes para la exportación mensual</label><input class="input" id="exportExcelMonth" type="month" value="${todayISO().slice(0,7)}"></div>
+      <div class="field" style="align-self:end;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-primary" data-action="export-excel" data-export-scope="month">⬇ Descargar Excel del mes</button><button type="button" class="btn" data-action="export-excel" data-export-scope="total">⬇ Descargar Excel completo</button></div>
+     </div>
     </div>
     </div>
    </details>
@@ -6158,8 +6162,10 @@ function exportBackupJson(){
  setTimeout(()=>URL.revokeObjectURL(url),0);
  toast('Backup JSON exportado')
 }
-async function exportExcelWorkbook(){
- const btn=$('#exportExcelBtn');
+async function exportExcelWorkbook(scope='total'){
+ const btn=document.querySelector(`[data-action="export-excel"][data-export-scope="${scope}"]`);
+ const selectedMonth=$('#exportExcelMonth')?.value||todayISO().slice(0,7);
+ if(scope==='month'&&!/^\d{4}-\d{2}$/.test(selectedMonth)){toast('Seleccioná un mes válido','warn');return}
  if(btn){btn.disabled=true;btn.dataset.originalText=btn.dataset.originalText||btn.textContent;btn.textContent='Generando…'}
  try{
   toast('Generando archivo Excel…','info');
@@ -6167,6 +6173,11 @@ async function exportExcelWorkbook(){
   const wb=XLSX.utils.book_new();
   const monthKey=value=>{const raw=String(value||'').slice(0,7);return /^\d{4}-\d{2}$/.test(raw)?raw:''};
   const monthLabel=key=>{if(!key)return'Sin fecha';const [y,m]=key.split('-');return `${['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][Number(m)]} ${y}`};
+
+  const paymentsInScope=scope==='month'?data.payments.filter(pay=>monthKey(paymentDateValue(pay))===selectedMonth):data.payments.slice();
+  const scopeLabel=scope==='month'?monthLabel(selectedMonth):'Completo';
+  const scopedPaymentIds=new Set(paymentsInScope.map(pay=>pay.id));
+  const paymentReferenceDetails=pay=>{const turn=pay.turnId?getTurnById(pay.turnId):null,combo=pay.comboId?getCombo(pay.comboId):null;return{turn,combo,reference:turn?`Turno · ${fmtDate(turn.fecha)} · ${turn.hora||'sin horario'} · ${turn.motivo||'Sin motivo'}`:combo?`Pack · ${combo.name||'Sin nombre'}`:paymentConcept(pay)}};
 
   /* 1) PACIENTES */
   const patientRows=data.patients.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'})).map(p=>({
@@ -6191,30 +6202,49 @@ async function exportExcelWorkbook(){
   wsPatients['!cols']=[{wch:24},{wch:12},{wch:7},{wch:15},{wch:15},{wch:22},{wch:18},{wch:18},{wch:14},{wch:16},{wch:18},{wch:34},{wch:24},{wch:14},{wch:14},{wch:24}];
   XLSX.utils.book_append_sheet(wb,wsPatients,'Pacientes');
 
-  /* 2) PAGOS (movimientos) */
-  const paymentRows=data.payments.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(pay=>({
-   'Fecha':pay.date?fmtDate(pay.date):'',
+  /* 2) PAGOS (movimientos con trazabilidad financiera) */
+  const paymentRows=paymentsInScope.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).map(pay=>{const ref=paymentReferenceDetails(pay);return{
+   'Fecha efectiva de cobro':pay.date?fmtDate(pay.date):'',
+   'Fecha ISO':paymentDateValue(pay)||'',
+   'Mes':monthLabel(monthKey(paymentDateValue(pay))),
+   'Año':String(paymentDateValue(pay)||'').slice(0,4),
    'Paciente':getPatient(pay.patientId)?.nombre||pay.patientName||'Paciente eliminado',
    'Concepto':pay.type||'',
-   'Referencia':paymentConcept(pay),
+   'Referencia':ref.reference,
+   'Fecha del turno':ref.turn?.fecha?fmtDate(ref.turn.fecha):'',
+   'Hora del turno':ref.turn?.hora||'',
+   'Motivo del turno':ref.turn?.motivo||'',
+   'Pack vinculado':ref.combo?.name||'',
+   'Inicio de vigencia del pack':ref.combo?.startDate?fmtDate(ref.combo.startDate):'',
+   'Fin de vigencia del pack':ref.combo?.endDate?fmtDate(ref.combo.endDate):'',
    'Monto':Number(pay.amount||0),
-   'Método':pay.method||'',
+   'Modalidad de pago':pay.method||'',
+   'Detalle de modalidad':pay.methodDetail||'',
    'Estado':pay.status||'',
-   'Observación':pay.notes||''
-  }));
+   'Observación':pay.notes||'',
+   'Registrado el':pay.createdAt?new Date(pay.createdAt).toLocaleString('es-AR'):''
+  }});
   const wsPayments=XLSX.utils.json_to_sheet(paymentRows);
-  wsPayments['!cols']=[{wch:12},{wch:24},{wch:16},{wch:28},{wch:12},{wch:14},{wch:12},{wch:30}];
+  wsPayments['!cols']=[{wch:18},{wch:12},{wch:14},{wch:8},{wch:24},{wch:16},{wch:40},{wch:16},{wch:12},{wch:28},{wch:24},{wch:18},{wch:18},{wch:14},{wch:14},{wch:12},{wch:20},{wch:12},{wch:30},{wch:22}];
   XLSX.utils.book_append_sheet(wb,wsPayments,'Pagos');
 
+  /* 3) RESUMEN POR MODALIDAD */
+  const paymentMethods=[...new Set(paymentsInScope.map(pay=>pay.method||'Sin modalidad'))].sort((a,b)=>a.localeCompare(b,'es'));
+  const methodRows=paymentMethods.map(method=>{const items=paymentsInScope.filter(pay=>(pay.method||'Sin modalidad')===method),charged=items.filter(pay=>pay.status==='Cobrado').reduce((sum,pay)=>sum+Number(pay.amount||0),0),pending=items.filter(pay=>pay.status!=='Cobrado').reduce((sum,pay)=>sum+Number(pay.amount||0),0);return{'Modalidad de pago':method,'Cantidad de movimientos':items.length,'Cobrado':charged,'Pendiente':pending,'Total registrado':charged+pending}});
+  const methodTotals={'Modalidad de pago':'TOTAL','Cantidad de movimientos':methodRows.reduce((sum,row)=>sum+row['Cantidad de movimientos'],0),'Cobrado':methodRows.reduce((sum,row)=>sum+row['Cobrado'],0),'Pendiente':methodRows.reduce((sum,row)=>sum+row['Pendiente'],0),'Total registrado':methodRows.reduce((sum,row)=>sum+row['Total registrado'],0)};
+  const wsMethods=XLSX.utils.json_to_sheet(methodRows.length?[...methodRows,methodTotals]:[]);
+  wsMethods['!cols']=[{wch:24},{wch:22},{wch:16},{wch:16},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,wsMethods,'Resumen por modalidad');
+
   /* 3) PAGOS MES A MES (pivote por paciente) */
-  const months=[...new Set(data.payments.map(pay=>monthKey(pay.date)).filter(Boolean))].sort();
-  const patientsWithPayments=[...new Set(data.payments.map(pay=>pay.patientId).filter(Boolean))];
+  const months=[...new Set(paymentsInScope.map(pay=>monthKey(paymentDateValue(pay))).filter(Boolean))].sort();
+  const patientsWithPayments=[...new Set(paymentsInScope.map(pay=>pay.patientId).filter(Boolean))];
   const monthlyRows=patientsWithPayments.map(pid=>{
    const patient=getPatient(pid);
    const row={'Paciente':patient?.nombre||data.payments.find(pay=>pay.patientId===pid)?.patientName||'Paciente eliminado'};
    let total=0;
    months.forEach(m=>{
-    const sum=data.payments.filter(pay=>pay.patientId===pid&&monthKey(pay.date)===m&&pay.status==='Cobrado').reduce((s,pay)=>s+Number(pay.amount||0),0);
+    const sum=paymentsInScope.filter(pay=>pay.patientId===pid&&monthKey(paymentDateValue(pay))===m&&pay.status==='Cobrado').reduce((s,pay)=>s+Number(pay.amount||0),0);
     row[monthLabel(m)]=sum;
     total+=sum
    });
@@ -6229,7 +6259,8 @@ async function exportExcelWorkbook(){
   XLSX.utils.book_append_sheet(wb,wsMonthly,'Pagos por mes');
 
   /* 4) TURNOS */
-  const turnRows=data.turns.slice().sort((a,b)=>`${a.fecha} ${a.hora||''}`.localeCompare(`${b.fecha} ${b.hora||''}`)).map(turn=>({
+  const turnsInScope=scope==='month'?data.turns.filter(turn=>monthKey(turn.fecha)===selectedMonth||scopedPaymentIds.has(getPaymentByTurn(turn.id)?.id)):data.turns.slice();
+  const turnRows=turnsInScope.sort((a,b)=>`${a.fecha} ${a.hora||''}`.localeCompare(`${b.fecha} ${b.hora||''}`)).map(turn=>{const payment=getPaymentByTurn(turn.id);return{
    'Fecha':turn.fecha?fmtDate(turn.fecha):'',
    'Hora':turn.hora||'',
    'Paciente':resolveTurnPatient(turn)?.nombre||turn.paciente||'',
@@ -6237,14 +6268,19 @@ async function exportExcelWorkbook(){
    'Estado':turn.estado||'',
    'Precio':Number(turn.price||0),
    'Pack vinculado':turn.comboId?(getCombo(turn.comboId)?.name||'Pack eliminado'):'',
-   'Pago registrado':getPaymentByTurn(turn.id)?'Sí':'No'
-  }));
+   'Pago registrado':payment?'Sí':'No',
+   'Fecha efectiva del pago':payment?.date?fmtDate(payment.date):'',
+   'Modalidad de pago':payment?.method||'',
+   'Detalle de modalidad':payment?.methodDetail||'',
+   'Estado del pago':payment?.status||''
+  }});
   const wsTurns=XLSX.utils.json_to_sheet(turnRows);
-  wsTurns['!cols']=[{wch:12},{wch:8},{wch:24},{wch:26},{wch:14},{wch:12},{wch:24},{wch:14}];
+  wsTurns['!cols']=[{wch:12},{wch:8},{wch:24},{wch:26},{wch:14},{wch:12},{wch:24},{wch:14},{wch:18},{wch:22},{wch:24},{wch:16}];
   XLSX.utils.book_append_sheet(wb,wsTurns,'Turnos');
 
   /* 5) PACKS Y COMBOS */
-  const comboRows=data.packages.slice().sort((a,b)=>String(b.startDate||'').localeCompare(String(a.startDate||''))).map(combo=>{
+  const combosInScope=scope==='month'?data.packages.filter(combo=>monthKey(combo.startDate)===selectedMonth||monthKey(combo.endDate)===selectedMonth||scopedPaymentIds.has(getPaymentByCombo(combo.id)?.id)):data.packages.slice();
+  const comboRows=combosInScope.sort((a,b)=>String(b.startDate||'').localeCompare(String(a.startDate||''))).map(combo=>{const payment=getPaymentByCombo(combo.id);
    const usage=comboUsage(combo);
    return{
     'Paciente':getPatient(combo.patientId)?.nombre||'Paciente eliminado',
@@ -6256,11 +6292,15 @@ async function exportExcelWorkbook(){
     'Inicio de vigencia':combo.startDate?fmtDate(combo.startDate):'',
     'Fin de vigencia':combo.endDate?fmtDate(combo.endDate):'',
     'Estado':comboComputedStatus(combo),
-    'Pago registrado':getPaymentByCombo(combo.id)?'Sí':'No'
+    'Pago registrado':payment?'Sí':'No',
+    'Fecha efectiva del pago':payment?.date?fmtDate(payment.date):'',
+    'Modalidad de pago':payment?.method||'',
+    'Detalle de modalidad':payment?.methodDetail||'',
+    'Estado del pago':payment?.status||''
    }
   });
   const wsCombos=XLSX.utils.json_to_sheet(comboRows);
-  wsCombos['!cols']=[{wch:24},{wch:28},{wch:14},{wch:14},{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14}];
+  wsCombos['!cols']=[{wch:24},{wch:28},{wch:14},{wch:14},{wch:16},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14},{wch:18},{wch:22},{wch:24},{wch:16}];
   XLSX.utils.book_append_sheet(wb,wsCombos,'Packs y combos');
 
   /* 6) EVOLUCIONES CLÍNICAS */
@@ -6279,13 +6319,13 @@ async function exportExcelWorkbook(){
   wsEvolutions['!cols']=[{wch:24},{wch:14},{wch:14},{wch:14},{wch:26},{wch:40}];
   XLSX.utils.book_append_sheet(wb,wsEvolutions,'Evoluciones');
 
-  XLSX.writeFile(wb,`ETER-KinePro-export-${todayISO()}.xlsx`);
-  toast('Excel exportado con éxito','success')
+  XLSX.writeFile(wb,`ETER-KinePro-${scope==='month'?'mensual-'+selectedMonth:'completo'}-${todayISO()}.xlsx`);
+  toast(`Excel ${scopeLabel.toLowerCase()} exportado con éxito`,'success')
  }catch(error){
   console.error('Excel export failed',error);
   toast('No se pudo generar el Excel. Revisá tu conexión a internet','error')
  }finally{
-  if(btn){btn.disabled=false;btn.textContent=btn.dataset.originalText||'Exportar Excel'}
+  if(btn){btn.disabled=false;btn.textContent=btn.dataset.originalText||btn.textContent}
  }
 }
 function clearDemoPatients(){
@@ -6330,7 +6370,7 @@ else if(a==='whatsapp-mark-contacted-direct')markPatientAsContacted(patientId||i
 else if(a==='availability-add-time')addAvailabilityTimeFromSettings(target.dataset.day);
 else if(a==='availability-remove-time'){const card=target.closest('[data-availability-day]');target.closest('.weekly-time-chip')?.remove();if(card)renderAvailabilityChips(card,card.dataset.availabilityDay,availabilityCardTimes(card))}
 else if(a==='availability-copy-times')copyAvailabilityTimes(target.dataset.day);
-else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='new-rate')openRateForm();else if(a==='edit-rate')openRateForm(id);else if(a==='save-rate')saveRate();else if(a==='delete-rate')deleteRateFlow(id);else if(a==='export-backup-json')exportBackupJson();else if(a==='export-excel')exportExcelWorkbook();else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){forceSyncNow()}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
+else if(a==='export-csv')exportCsv();else if(a==='save-settings')saveSettings();else if(a==='new-rate')openRateForm();else if(a==='edit-rate')openRateForm(id);else if(a==='save-rate')saveRate();else if(a==='delete-rate')deleteRateFlow(id);else if(a==='export-backup-json')exportBackupJson();else if(a==='export-excel')exportExcelWorkbook(target.dataset.exportScope==='month'?'month':'total');else if(a==='clear-demo-patients')clearDemoPatients();else if(a==='force-sync'){forceSyncNow()}else if(a==='reset-payment-filters'){ui.paymentFilters={period:'all',method:'all',from:'',to:''};renderPagos();toast('Filtros de ingresos restablecidos','info')}else if(a){console.warn('Unhandled action',{action:a,id});toast('Esta acción no está disponible','warn')}
  if(target.closest('details.context'))queueMicrotask(()=>target.closest('details.context')?.removeAttribute('open'))
 }
 function handlePatientDetailsToggle(event){const card=event.target;if(!(card instanceof HTMLDetailsElement))return;if(card.classList.contains('context')){const summary=card.querySelector(':scope > summary');if(summary)summary.setAttribute('aria-expanded',String(card.open));return}if(!card.classList.contains('patient-card'))return;const id=card.dataset.patientCardId;if(!id)return;if(card.open)ui.expandedPatientIds.add(id);else ui.expandedPatientIds.delete(id)}
