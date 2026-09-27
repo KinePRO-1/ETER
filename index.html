@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>ETER KinePro | Panel clínico</title>
+<title>ETER KinePro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
@@ -6727,7 +6727,7 @@ function initClinicalListeners(){
 }
 async function initFirebase(){
  if(firebaseInitPromise)return firebaseInitPromise;firebaseInitPromise=(async()=>{try{
-  const [appMod,fsMod,authMod]=await Promise.all([import(`${CDN}/firebase-app.js`),import(`${CDN}/firebase-firestore.js`),import(`${CDN}/firebase-auth.js`)]);firebaseApi={...appMod,...fsMod,...authMod};const app=appMod.getApps().find(item=>item.name==='kineproApp')||appMod.initializeApp(KINEPRO_CONFIG,'kineproApp');clinicalDb=fsMod.initializeFirestore(app,{localCache:fsMod.persistentLocalCache({tabManager:fsMod.persistentMultipleTabManager()})});const auth=authMod.getAuth(app);if(!auth.currentUser)await authMod.signInAnonymously(auth);cloudReady=true;clearInterval(leaderHeartbeat);for(const cfg of Object.values(ENTITY_COLLECTIONS))for(const item of data[cfg.key]||[])for(const legacy of ['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending'])delete item[legacy];delete data.pendingDeletes;calibrateClockOffset();initClinicalListeners();flushNativeOutboundBuffer();nativeUpdateSyncStatus()
+  const [appMod,fsMod,authMod]=await Promise.all([import(`${CDN}/firebase-app.js`),import(`${CDN}/firebase-firestore.js`),import(`${CDN}/firebase-auth.js`)]);firebaseApi={...appMod,...fsMod,...authMod};const app=appMod.getApps().find(item=>item.name==='kineproApp')||appMod.initializeApp(KINEPRO_CONFIG,'kineproApp');if(!clinicalDb){try{clinicalDb=fsMod.initializeFirestore(app,{localCache:fsMod.persistentLocalCache({tabManager:fsMod.persistentMultipleTabManager()})})}catch(initError){console.warn('Firestore ya estaba inicializado, reutilizando instancia existente',initError);clinicalDb=fsMod.getFirestore(app)}}const auth=authMod.getAuth(app);if(!auth.currentUser)await authMod.signInAnonymously(auth);cloudReady=true;clearInterval(leaderHeartbeat);for(const cfg of Object.values(ENTITY_COLLECTIONS))for(const item of data[cfg.key]||[])for(const legacy of ['_dirty','_patch','_baseline','_neverSynced','_writeId','_clientId','_seedPending'])delete item[legacy];delete data.pendingDeletes;calibrateClockOffset();initClinicalListeners();flushNativeOutboundBuffer();nativeUpdateSyncStatus()
  }catch(error){cloudReady=false;console.error('Firebase initialization failed',error);nativeUpdateSyncStatus();throw error}finally{firebaseInitPromise=null}})();return firebaseInitPromise
 }
 function writeDirtyEntities(){return Promise.resolve()}
