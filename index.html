@@ -4402,14 +4402,18 @@ const KINEPRO_CONFIG={
   appId:"1:649656331502:web:3a34b5eda4e2461fab97ff"
 };
 const PROMO_CATALOG=[
-  {id:'espalda-cuello-suelta',kind:'single',service:'Espalda y cuello',name:'Espalda y cuello · Sesión suelta',sessions:1,price:35000,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'espalda-cuello-suelta',kind:'single',service:'Espalda y cuello',name:'Espalda y cuello · 45 min',sessions:1,price:37000,durationMinutes:45,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'espalda-cuello-90',kind:'single',service:'Espalda y cuello',name:'Espalda y cuello · 1 h 30 min',sessions:1,price:55500,durationMinutes:90,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'espalda-cuello-120',kind:'single',service:'Espalda y cuello',name:'Espalda y cuello · 2 h',sessions:1,price:74000,durationMinutes:120,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
   {id:'espalda-cuello-quincenal',kind:'package',service:'Espalda y cuello',name:'Espalda y cuello · Pack quincenal',sessions:2,price:66500,intervalDays:15,frequency:'2 sesiones · una cada 15 días',sameMonth:true},
   {id:'espalda-cuello-mensual',kind:'package',service:'Espalda y cuello',name:'Espalda y cuello · Pack mensual',sessions:4,price:125000,intervalDays:7,frequency:'4 sesiones · una por semana',sameMonth:true},
-  {id:'cuerpo-completo-suelta',kind:'single',service:'Cuerpo completo',name:'Cuerpo completo · Sesión suelta',sessions:1,price:45000,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'cuerpo-completo-suelta',kind:'single',service:'Cuerpo completo',name:'Cuerpo completo · 1 h',sessions:1,price:50000,durationMinutes:60,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'cuerpo-completo-90',kind:'single',service:'Cuerpo completo',name:'Cuerpo completo · 1 h 30 min',sessions:1,price:75000,durationMinutes:90,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
+  {id:'cuerpo-completo-120',kind:'single',service:'Cuerpo completo',name:'Cuerpo completo · 2 h',sessions:1,price:100000,durationMinutes:120,intervalDays:0,frequency:'Sesión individual',sameMonth:false},
   {id:'cuerpo-completo-quincenal',kind:'package',service:'Cuerpo completo',name:'Cuerpo completo · Pack quincenal',sessions:2,price:85500,intervalDays:15,frequency:'2 sesiones · una cada 15 días',sameMonth:true},
   {id:'cuerpo-completo-mensual',kind:'package',service:'Cuerpo completo',name:'Cuerpo completo · Pack mensual',sessions:4,price:160000,intervalDays:7,frequency:'4 sesiones · una por semana',sameMonth:true}
 ];
-function getRates(){try{if(!Array.isArray(data.meta?.rates)||!data.meta.rates.length){data.meta={...data.meta,rates:PROMO_CATALOG.map(rate=>({...rate}))};persistLocal()}return data.meta.rates}catch(_){return PROMO_CATALOG}}
+function getRates(){try{const stored=Array.isArray(data.meta?.rates)?data.meta.rates:[];const rates=stored.length?[...stored]:[];let changed=!stored.length;for(const preset of PROMO_CATALOG){const index=rates.findIndex(rate=>rate.id===preset.id);if(index<0){rates.push({...preset});changed=true}else if(preset.kind==='single'&&['espalda-cuello-suelta','espalda-cuello-90','espalda-cuello-120','cuerpo-completo-suelta','cuerpo-completo-90','cuerpo-completo-120'].includes(preset.id)){const merged={...rates[index],...preset};if(JSON.stringify(merged)!==JSON.stringify(rates[index])){rates[index]=merged;changed=true}}}const serviceOrder={'Espalda y cuello':0,'Cuerpo completo':1};rates.sort((a,b)=>(serviceOrder[a.service]??9)-(serviceOrder[b.service]??9)||((a.kind==='single'?0:1)-(b.kind==='single'?0:1))||((Number(a.durationMinutes)||0)-(Number(b.durationMinutes)||0))||((Number(a.sessions)||0)-(Number(b.sessions)||0))||String(a.name||'').localeCompare(String(b.name||''),'es'));if(changed){data.meta={...data.meta,rates};persistLocal()}return rates}catch(_){return PROMO_CATALOG}}
 const getPromo=id=>getRates().find(promo=>promo.id===id)||null;
 const singlePromos=()=>getRates().filter(promo=>promo.kind==='single');
 const packagePromos=()=>getRates().filter(promo=>promo.kind==='package');
@@ -5615,7 +5619,7 @@ function openTurnForm(id='',prefill={}){
 
     <div class="field"><label>Hora *</label><input class="input" name="hora" type="time" required value="${esc(turn.hora||'09:00')}"></div>
     <div class="field"><label>Fecha *</label><input class="input" name="fecha" id="turnDate" type="date" required value="${esc(turn.fecha||todayISO())}"></div>
-    <div class="field full"><label>Tarifa predefinida</label><select class="select" name="rateId" id="turnRateSelect"><option value="">Precio personalizado</option>${singlePromos().map(promo=>`<option value="${promo.id}" ${promo.id===turn.rateId?'selected':''}>${esc(promo.name)} · ${money(promo.price)}</option>`).join('')}</select></div>
+    <div class="field full"><label>Tarifa predefinida</label><select class="select" name="rateId" id="turnRateSelect"><option value="">Precio personalizado</option>${['Espalda y cuello','Cuerpo completo'].map(service=>`<optgroup label="${service}">${singlePromos().filter(promo=>promo.service===service).map(promo=>`<option value="${promo.id}" ${promo.id===turn.rateId?'selected':''}>${esc(promo.name.replace(`${service} · `,''))} · ${money(promo.price)}</option>`).join('')}</optgroup>`).join('')}</select></div>
     <div class="field full"><label>Tratamiento o motivo</label><input class="input" name="motivo" id="turnMotivo" value="${esc(turn.motivo||'')}"></div>
     <div class="field"><label>Estado</label><select class="select" name="estado">${['Confirmado','Pendiente','Finalizado','Cancelado'].map(status=>`<option ${status===(turn.estado||'Confirmado')?'selected':''}>${status}</option>`).join('')}</select></div>
     <div class="field"><label>Precio específico del turno</label><input class="input" name="price" id="turnPrice" type="number" min="0" step="1" value="${Number(turn.price||0)||''}" placeholder="Ej. 35000"></div>
@@ -5805,7 +5809,8 @@ async function saveTurn(){
    search?.focus();
    return
   }
-  const scheduleConflict=findTurnScheduleConflict(normalizeTurn({...existing,fecha:values.fecha,hora:values.hora}),existing?.id||'');
+  const rate=getPromo(values.rateId),selectedDuration=values.billingType!=='combo'&&rate?.kind==='single'?Number(rate.durationMinutes)||undefined:existing?.durationMinutes;
+  const scheduleConflict=findTurnScheduleConflict(normalizeTurn({...existing,fecha:values.fecha,hora:values.hora,durationMinutes:selectedDuration}),existing?.id||'');
   if(scheduleConflict){
    const conflictName=livePatientName(scheduleConflict.turn)||'otro paciente';
    const conflictTime=`${fmtDate(scheduleConflict.turn.fecha)} · ${scheduleConflict.turn.hora||'sin horario'}`;
@@ -5822,7 +5827,6 @@ async function saveTurn(){
    if(comboUsage(combo,existing?.id||'').remaining<1)return toast('El pack ya no tiene sesiones disponibles','error');
    if(linkedPayment)return toast('El turno ya tiene un pago vinculado. Eliminá ese pago antes de pasarlo a un pack','error')
   }
-  const rate=getPromo(values.rateId);
   const payload=normalizeTurn({
    ...existing,
    id:values.id||uid('turn'),
@@ -5833,6 +5837,7 @@ async function saveTurn(){
    motivo:values.motivo,
    estado:values.estado,
    price:Number(values.price||0),
+   durationMinutes:selectedDuration,
    rateId:billingType==='individual'&&rate?.kind==='single'?rate.id:'',
    billingType,
    comboId:billingType==='combo'?combo.id:''
@@ -6998,13 +7003,25 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
   function fichaLabel(f){ return f ? (f.motivo || f.diagnostico || 'Ficha sin motivo') : 'Sin ficha'; }
   function fichaDerivedStatus(p){ if(['Activo parcial','Reincorporado'].includes(p.estadoClinico)) return p.estadoClinico; return fichasActivas(p.id).length ? 'Activo' : 'Inactivo'; }
   function persistEpisodes(){ try{persistLocal();}catch(_){ } }
+  function consolidateDuplicateFichas(){
+    const bySignature=new Map(),byId=new Map(),redirects=new Map();
+    for(const raw of data.fichas||[]){
+      const f=normalizeFicha(raw), signature=JSON.stringify([f.patientId,f.motivo.trim().toLocaleLowerCase('es'),f.fechaAlta,f.createdAt,f.diagnostico,f.zonasAfectadas,f.tiempoProblema,f.irradiacion,f.estudiosDisponibles,f.evaActividad,f.evaReposo,f.faseTratamiento,f.planTerapeutico,f.frecuenciaSesiones,f.evoluciones,f.testsFuncionales,f.estado,f.fechaFinalizacion,f.tipoCierre,f.notasCierre,f.evaFinalActividad,f.evaFinalReposo,f.cierres]);
+      const prior=byId.get(f.id)||bySignature.get(signature);
+      if(prior){redirects.set(f.id,prior.id);if(Number(f._updatedAtMs)>Number(prior._updatedAtMs))Object.assign(prior,f);continue}
+      byId.set(f.id,f);bySignature.set(signature,f);
+    }
+    if(!redirects.size){data.fichas=[...byId.values()];return false}
+    for(const key of ['turns','routines','activeSessions','history'])for(const item of data[key]||[])if(redirects.has(item.fichaId)){item.fichaId=redirects.get(item.fichaId);item._dirty=true}
+    data.fichas=[...byId.values()];return true;
+  }
   function migrateFichas(){
-    let changed=false;
+    let changed=consolidateDuplicateFichas();
     data.fichas ??= [];
     for(const patient of data.patients||[]){
       let owned=fichasDe(patient.id);
       if(!owned.length){
-        const legacy=normalizeFicha({patientId:patient.id,motivo:patient.motivo||patient.diagnostico||'Consulta inicial',diagnostico:patient.diagnostico||'',zonasAfectadas:patient.zonasAfectadas,tiempoProblema:patient.tiempoProblema,irradiacion:patient.irradiacion,estudiosDisponibles:patient.estudiosDisponibles,evaActividad:patient.evaActividad,evaReposo:patient.evaReposo,faseTratamiento:patient.faseTratamiento,planTerapeutico:patient.planTerapeutico,frecuenciaSesiones:patient.frecuenciaSesiones,evoluciones:patient.evoluciones,testsFuncionales:patient.testsFuncionales,fechaAlta:patient.fechaRegistro||patient.createdAt||todayISO(),estado:patient.estadoClinico==='Inactivo'?CLOSED:ACTIVE,fechaFinalizacion:patient.estadoClinico==='Inactivo'?(patient.updatedAt||todayISO()):''});
+        const legacy=normalizeFicha({id:`ficha-legacy-${patient.id}`,patientId:patient.id,motivo:patient.motivo||patient.diagnostico||'Consulta inicial',diagnostico:patient.diagnostico||'',zonasAfectadas:patient.zonasAfectadas,tiempoProblema:patient.tiempoProblema,irradiacion:patient.irradiacion,estudiosDisponibles:patient.estudiosDisponibles,evaActividad:patient.evaActividad,evaReposo:patient.evaReposo,faseTratamiento:patient.faseTratamiento,planTerapeutico:patient.planTerapeutico,frecuenciaSesiones:patient.frecuenciaSesiones,evoluciones:patient.evoluciones,testsFuncionales:patient.testsFuncionales,fechaAlta:patient.fechaRegistro||patient.createdAt||todayISO(),estado:patient.estadoClinico==='Inactivo'?CLOSED:ACTIVE,fechaFinalizacion:patient.estadoClinico==='Inactivo'?(patient.updatedAt||todayISO()):''});
         data.fichas.unshift({...legacy,_dirty:true,_neverSynced:true}); owned=[legacy]; changed=true;
       }
       const target=owned.sort((a,b)=>String(b.fechaAlta).localeCompare(String(a.fechaAlta)))[0];
@@ -7066,7 +7083,30 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
   function deleteFicha(id){ const f=ficha(id); if(!f) return; const linked=['turns','routines','activeSessions','history'].flatMap(key=>(data[key]||[]).filter(x=>x.fichaId===id)); openConfirm('Eliminar ficha',linked.length?`Hay ${linked.length} registro(s) vinculado(s). Se conservarán, pero quedarán desvinculados de esta ficha.`:'La ficha se eliminará de forma permanente.',async()=>{ for(const key of ['turns','routines','activeSessions','history']) for(const item of data[key]||[]) if(item.fichaId===id) episodeBaseUpsert(key,{...item,fichaId:''}); await removeEntity('fichas',id); if(ui.selectedFichaId===id) ui.selectedFichaId=''; closeConfirm(); renderPatientProfile(); toast('Ficha eliminada','info'); }); }
   function printFicha(id){ const f=ficha(id),p=getPatient(f?.patientId); if(!f||!p)return; const rows=[['Motivo',f.motivo],['Diagnóstico',f.diagnostico],['Alta',fmtDate(f.fechaAlta)],['Estado',f.estado],['Fase',f.faseTratamiento],['Zonas afectadas',(f.zonasAfectadas||[]).join(', ')],['Tiempo del problema',f.tiempoProblema],['Irradiación',f.irradiacion],['EVA inicial',`${f.evaActividad??'—'} / ${f.evaReposo??'—'}`],['EVA final',`${f.evaFinalActividad??'—'} / ${f.evaFinalReposo??'—'}`],['Plan terapéutico',(f.planTerapeutico||[]).join(', ')],['Cierre',f.tipoCierre],['Notas de cierre',f.notasCierre]]; $('#printArea').innerHTML=`<div class="print-sheet"><h1>ETER KinePro</h1><p>Ficha por motivo de consulta</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p.nombre)}</div><div><strong>Fecha:</strong> ${fmtDate(todayISO())}</div></div><table><tbody>${rows.map(([a,b])=>`<tr><th>${esc(a)}</th><td>${esc(b||'—')}</td></tr>`).join('')}</tbody></table><h2>Evoluciones</h2><table><thead><tr><th>Fecha</th><th>EVA A/R</th><th>Observaciones</th></tr></thead><tbody>${(f.evoluciones||[]).map(e=>`<tr><td>${fmtDate(e.fecha)}</td><td>${esc(e.evaActividad)}/${esc(e.evaReposo)}</td><td>${esc(e.observaciones||'—')}</td></tr>`).join('')||'<tr><td colspan="3">Sin evoluciones</td></tr>'}</tbody></table></div>`; window.print(); }
 
-  openTurnForm = function(id='',prefill={}){ episodeBaseOpenTurn(id,prefill); const form=$('#turnForm'); if(!form) return; const patientId=form.querySelector('[name="patientId"]')?.value || prefill.patientId || getTurnById?.(id)?.patientId; if(!patientId)return; const existing=getTurnById?.(id), options=fichaOptions(patientId,existing?.fichaId||prefill.fichaId||fichaActivaPorDefecto(patientId)?.id||''); form.insertAdjacentHTML('beforeend',`<div class="field full ficha-select"><label>Ficha clínica</label><select class="select" name="fichaId" ${fichasActivas(patientId).length>1?'required':''}><option value="">Seleccionar ficha</option>${options}</select></div>`); };
+  openTurnForm = function(id='',prefill={}){
+    episodeBaseOpenTurn(id,prefill);
+    const form=$('#turnForm'); if(!form)return;
+    const patientInput=form.querySelector('[name="patientId"]'),existing=getTurnById?.(id);
+    const selectedFor=(patientId,previousPatientId,currentValue)=>{
+      if(patientId===previousPatientId&&fichasActivas(patientId).some(f=>f.id===currentValue))return currentValue;
+      if(existing?.patientId===patientId&&existing.fichaId)return existing.fichaId;
+      if(prefill.patientId===patientId&&prefill.fichaId)return prefill.fichaId;
+      return fichaActivaPorDefecto(patientId)?.id||'';
+    };
+    const renderSelect=(patientId,previousPatientId='',currentValue='')=>{
+      let field=form.querySelector('.ficha-select');
+      if(!field){field=document.createElement('div');field.className='field full ficha-select';field.innerHTML='<label>Ficha clínica</label><select class="select" name="fichaId"></select>';form.appendChild(field)}
+      const select=field.querySelector('[name="fichaId"]'), validPatient=Boolean(patientId&&patientId!=='__free__'), active=validPatient?fichasActivas(patientId):[];
+      const selected=selectedFor(patientId,previousPatientId,currentValue);
+      select.required=active.length>1;select.disabled=!validPatient;
+      select.innerHTML=`<option value="">${validPatient?(active.length?'Seleccionar ficha':'No hay fichas activas'):'Seleccioná primero un paciente'}</option>${validPatient?fichaOptions(patientId,selected,true):''}`;
+      select.value=active.some(f=>f.id===selected)?selected:'';
+      select.dataset.patientId=validPatient?patientId:'';
+    };
+    const initialPatient=patientInput?.value||prefill.patientId||existing?.patientId||'';
+    renderSelect(initialPatient,'',existing?.fichaId||prefill.fichaId||'');
+    patientInput?.addEventListener('change',()=>{const select=form.querySelector('[name="fichaId"]');renderSelect(patientInput.value,select?.dataset.patientId||'',select?.value||'')});
+  };
   saveTurn = async function(){ const form=$('#turnForm'), v=form?Object.fromEntries(new FormData(form)):{}; if(v.patientId&&!v.fichaId&&fichasActivas(v.patientId).length>1)return toast('Seleccioná la ficha clínica','error'); await episodeBaseSaveTurn(); if(v.fichaId){ const candidates=(data.turns||[]).filter(t=>t.patientId===v.patientId&&t.fecha===v.fecha&&t.hora===v.hora).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))); for(const t of candidates.slice(0,1)) episodeBaseUpsert('turns',{...t,fichaId:v.fichaId}); } };
   openRoutineEditor = function(patientId='',routineId=''){ episodeBaseOpenRoutine(patientId,routineId); const form=$('#routineForm'); const pId=patientId||getRoutine?.(routineId)?.patientId; if(!form||!pId)return; const existing=getRoutine?.(routineId), selected=existing?.fichaId||fichaActivaPorDefecto(pId)?.id||''; form.insertAdjacentHTML('beforeend',`<div class="field full ficha-select"><label>Ficha clínica</label><select class="select" name="fichaId">${fichaOptions(pId,selected)}</select></div>`); };
   saveRoutine = function(draft=false){ const select=$('#routineForm [name="fichaId"]'); if(select&&ui.routineDraft)ui.routineDraft.fichaId=select.value; return episodeBaseSaveRoutine(draft); };
