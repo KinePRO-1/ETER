@@ -4410,6 +4410,22 @@ function mzGen(){
  mzS.routine=Object.keys(mzS.slots).map(Number).sort((a,b)=>a-b).map(k=>mzS.slots[k]);
  mzS.routine.forEach(i=>mzS.used.add(i));
  renderMezclador()}
+function mzText(){
+ const T=MZ_TPL[mzS.cur||'A'],p=getPatient(mzS.pid);let ph='';
+ const out=['*Rutina de ejercicios*'];if(p?.nombre)out.push('Paciente: '+p.nombre);
+ mzSlotKeys().forEach((k,q)=>{const sl=T.slots[k];if(sl.ph!==ph){ph=sl.ph;out.push('','*'+ph+'*')}
+  out.push((q+1)+'. '+MZ_DATA[mzS.slots[k]][2]+' — '+sl.sets+' x '+sl.reps)});
+ return out.join('\n')}
+function mzWA(){
+ const ph=getPatientWhatsAppPhone(getPatient(mzS.pid)),w=window.open('https://wa.me/'+(ph||'')+'?text='+encodeURIComponent(mzText()),'_blank');
+ if(!w)mzS.msg='El navegador bloqueó WhatsApp. Usá "Copiar para WhatsApp" y pegalo en el chat.';
+ else{try{w.opener=null}catch(_){}mzS.msg=ph?'WhatsApp abierto con la rutina lista para enviar.':'WhatsApp abierto: elegí el contacto para enviarla.'}}
+function mzPrint(){
+ const T=MZ_TPL[mzS.cur||'A'],p=getPatient(mzS.pid),ks=mzSlotKeys();if(!ks.length)return;let ph='';
+ const rows=ks.map((k,q)=>{const sl=T.slots[k];let h='';if(sl.ph!==ph){ph=sl.ph;h=`<tr><th colspan="3">${esc(ph)}</th></tr>`}
+  return h+`<tr><td>${q+1}</td><td class="print-exercise-name">${esc(MZ_DATA[mzS.slots[k]][2])}</td><td>${sl.sets} x ${esc(sl.reps)}</td></tr>`}).join('');
+ $('#printArea').innerHTML=`<div class="print-sheet"><h1>${esc(data.meta?.clinicName||'ETER KinePro')}</h1><p>Rutina de ejercicios · ${esc(T.n)}</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p?.nombre||'—')}</div><div><strong>Fecha:</strong> ${fmtDate(todayISO())}</div></div><table><thead><tr><th>#</th><th>Ejercicio</th><th>Series x reps</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+ window.print()}
 function mzSwap(p){
  const T=MZ_TPL[mzS.cur||'A'],old=mzS.routine[p],k=Object.keys(mzS.slots).find(y=>mzS.slots[y]===old);
  if(k==null){mzS.msg='No se pudo cambiar este ejercicio.';return renderMezclador()}
@@ -4446,7 +4462,7 @@ function renderMezclador(){
   <div class="mz-bar"><button type="button" class="btn btn-primary mz-go" data-mz="gen">${mzS.lock.size?'Regenerar (fijos: '+mzS.lock.size+')':'Generar rutina'}<\/button><button type="button" class="btn" data-mz="assign" ${mzS.pid&&mzS.routine.length?'':'disabled'} title="${mzS.pid?'':'Elegí un paciente'}">Asignar a paciente<\/button><\/div>
   <div class="mz-bar"><button type="button" class="btn ${mzS.panel==='restr'?'on':''}" data-mz="panel" data-v="restr">Restricciones${r.z.length+r.m.length?' ('+(r.z.length+r.m.length)+')':''}<\/button><button type="button" class="btn ${mzS.panel==='mgr'?'on':''}" data-mz="panel" data-v="mgr">Mis ejercicios<\/button><\/div>${panel}
   ${mzS.msg?`<p class="mz-msg" role="status">${mzEsc(mzS.msg)}<\/p>`:''}<div class="mz-list">${items||'<p class="card-sub" style="padding:18px 0">Elegí paciente y tocá “Generar rutina”.<\/p>'}<\/div>
-  <div class="mz-foot"><button type="button" class="btn" data-mz="copy" ${mzS.routine.length?'':'disabled'}>Copiar rutina<\/button><button type="button" class="btn" data-mz="reset">Limpiar sesión<\/button><\/div><\/div>`;
+  <div class="mz-foot"><button type="button" class="btn btn-primary" data-mz="copy" ${mzS.routine.length?'':'disabled'}>Copiar para WhatsApp<\/button><button type="button" class="btn" data-mz="wa" ${mzS.routine.length?'':'disabled'}>Abrir en WhatsApp<\/button><button type="button" class="btn" data-mz="print" ${mzS.routine.length?'':'disabled'}>Imprimir<\/button><button type="button" class="btn" data-mz="reset">Limpiar sesión<\/button><\/div><\/div>`;
 }
 document.addEventListener('click',async e=>{
   const t=e.target.closest('[data-mz]');if(!t||!document.getElementById('view-mezclador')?.contains(t))return;
@@ -4463,9 +4479,9 @@ document.addEventListener('click',async e=>{
   else if(a==='flt'){mzS.flt=V}
   else if(a==='rz'||a==='rm'){const k=mzS.pid||'_',o=mzC.restr[k]||(mzC.restr[k]={z:[],m:[]}),L=a==='rz'?o.z:o.m,j=L.indexOf(+V);j<0?L.push(+V):L.splice(j,1);mzSave()}
   else if(a==='reset'){mzS.used=new Set();mzS.routine=[];mzS.lock=new Set();mzS.msg='Sesión limpia.'}
-  else if(a==='copy'){
-    const T=MZ_TPL[mzS.cur||'A'];let ph='';const txt=mzSlotKeys().map(k=>{const sl=T.slots[k];let h='';if(sl.ph!==ph){ph=sl.ph;h=(ph?'\n':'')+ph.toUpperCase()+'\n'}return h+'• '+MZ_DATA[mzS.slots[k]][2]+' — '+sl.sets+' x '+sl.reps}).join('\n').trim();
-    try{await navigator.clipboard.writeText(txt);mzS.msg='Rutina copiada.'}catch(err){mzS.msg='No se pudo copiar desde este navegador.'}
+  else if(a==='wa'){mzWA()}else if(a==='print'){mzPrint()}else if(a==='copy'){
+    const txt=mzText();
+    try{await navigator.clipboard.writeText(txt);mzS.msg='Copiado. Pegalo en el chat de WhatsApp.'}catch(err){mzS.msg='No se pudo copiar desde este navegador.'}
   }
   if(list&&mzS.panel==='mgr'&&a!=='hid'&&document.getElementById('mzList')&&a==='fav'){t.textContent=mzFav(i)?'★':'☆';return}
   renderMezclador();
