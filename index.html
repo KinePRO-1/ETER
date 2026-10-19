@@ -4310,6 +4310,47 @@ try{Object.assign(mzC,JSON.parse(localStorage.getItem(MZ_KEY)||'{}'))}catch(e){}
 const mzS={pid:'',routine:[],lock:new Set(),used:new Set(),msg:'',panel:'',q:'',flt:'all',rel:0};
 const mzN=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
 const MZ_NN=MZ_DATA.map(d=>mzN(d[2]));
+/* Biblioteca compartida: índices estables durante la sesión. */
+const MZ_BUILTIN=MZ_DATA.map(d=>d.slice()),MZ_LIB_INDEX=new Map();
+let mzActive=new Set(),mzSources=[];
+const mzSource=s=>/prokinesio/.test(mzN(s))?'PROKINESIO':/ces\s*757/.test(mzN(s))?'CES757':(/^(personalizado|personalizados|biblioteca|manual|base)?$/.test(mzN(s))?'Personalizados':String(s).trim());
+const mzSourceOn=s=>mzC.sources===null||mzC.sources.includes(s);
+if(!Array.isArray(mzC.sources))mzC.sources=mzC.src&&mzC.src!=='ALL'?[mzC.src]:null;
+function mzSyncLibrary(){
+ const entries=combinedExerciseLibrary(),active=new Set(),counts=new Map();
+ entries.forEach(e=>{
+  if(e.hidden||!String(e.name||'').trim())return;
+  const source=mzSource(e.source),cat=String(e.category||'General').trim(),name=String(e.name).trim();
+  const original=MZ_BUILTIN.findIndex(d=>mzN(d[2])===mzN(name)&&mzN(d[1])===mzN(cat)&&d[0]===source);
+  let i=MZ_LIB_INDEX.get(e.id);
+  if(i===undefined){i=!e.custom&&original>=0?original:MZ_DATA.length;MZ_LIB_INDEX.set(e.id,i)}
+  const type=mzN(e.type),c=mzN(cat),n=mzN(name),all=mzN(name+' '+(e.equipment||''));
+  const same=MZ_BUILTIN.filter(d=>mzN(d[1])===c),votes={};same.forEach(d=>votes[d[3]]=(votes[d[3]]||0)+1);
+  const known=Object.keys(votes).sort((a,b)=>votes[b]-votes[a])[0];
+  const block=/movilidad|elongacion|estiramiento/.test(type)?'Movilidad':/activacion|estabilidad|control motor|core/.test(type)?'Activación':/fuerza|potencia|pliometr/.test(type)?'Fuerza':original>=0?MZ_BUILTIN[original][3]:known||(/movilidad|elongacion|estiramiento/.test(c+' '+n)?'Movilidad':/activacion|core|zona media|escapular|equilibrio|plancha|puente/.test(c+' '+n)?'Activación':'Fuerza');
+  const zones=[/rodilla|sentadilla|estocada|zancada|bulgara|salto|arrodill/,/hombro|press|remo|flexiones|dominada|escapul|plancha/,/lumbar|peso muerto|bisagra|espinal/,/cadera|glute|puente|sentadilla|estocada|aduc|abduc/,/muneca|plancha|flexiones/];
+  const materials=[/banda|elast/,/pelota|fitball/,/disco/,/barra/,/manc|dumbbell/,/pesa rusa|kettlebell/,/trx/,/cajon|banco/,/inestable|bosu/,/polea|soga|cable/];
+  const mask=rs=>rs.reduce((v,r,k)=>v|(r.test(all)?1<<k:0),0);
+  const d=[source,cat.toUpperCase(),name,block,mask(zones),mask(materials)];
+  if(original>=0){d[4]|=MZ_BUILTIN[original][4];d[5]|=MZ_BUILTIN[original][5]}
+  MZ_DATA[i]=d;MZ_NN[i]=n;active.add(i);counts.set(source,(counts.get(source)||0)+1);
+ });
+ mzActive=active;mzSources=[...counts].sort((a,b)=>a[0].localeCompare(b[0]));
+ const valid=i=>active.has(i)&&mzSourceOn(MZ_DATA[i][0]);
+ mzS.routine=mzS.routine.filter(valid);
+ Object.keys(mzS.slots).forEach(k=>{if(!valid(mzS.slots[k]))delete mzS.slots[k]});
+ mzS.lock=new Set([...mzS.lock].filter(valid));
+}
+function mzSourcesPanel(){
+ const chosen=mzSources.filter(([s])=>mzSourceOn(s)),total=chosen.reduce((n,[s,c])=>n+c,0);
+ return `<div class="mz-panel"><strong>Fuentes de ejercicios</strong><p class="card-sub">Seleccioná una o varias antes de generar. ${chosen.length} de ${mzSources.length} fuentes seleccionadas · ${total} ejercicios.</p><div class="routine-tabs" role="group" aria-label="Fuentes de ejercicios">${mzSources.map(([s,n])=>`<label class="routine-tab ${mzSourceOn(s)?'active':''}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" data-mzsource="${mzEsc(s)}" ${mzSourceOn(s)?'checked':''}>${mzEsc(s)} (${n})</label>`).join('')}</div><div class="mz-bar" style="margin-top:10px"><button class="btn" type="button" data-mz="sources-all">Todas</button><button class="btn" type="button" data-mz="sources-none">Ninguna</button></div><p class="card-sub">Los personalizados se agrupan por su campo Fuente. Su tipo y categoría determinan el bloque; si no están definidos, se estima por el nombre.</p></div>`;
+}
+document.addEventListener('change',e=>{
+ const t=e.target.closest('[data-mzsource]');if(!t)return;
+ const selected=new Set(mzSources.filter(([s])=>mzSourceOn(s)).map(([s])=>s));
+ t.checked?selected.add(t.dataset.mzsource):selected.delete(t.dataset.mzsource);
+ mzC.sources=[...selected];mzS.routine=[];mzS.slots={};mzS.lock.clear();mzS.msg='';mzSave();renderMezclador();
+});
 const mzSave=()=>{try{localStorage.setItem(MZ_KEY,JSON.stringify(mzC))}catch(e){}};
 const mzEsc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mzRnd=a=>a[Math.floor(Math.random()*a.length)];
@@ -4319,7 +4360,7 @@ function mzRecent(){const s=new Set();if(!mzS.pid)return s;
   let rs=data.routines.filter(r=>r.patientId===mzS.pid&&!r.template).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
   rs=rs.slice(0,mzC.hist);rs.forEach(r=>(r.exercises||[]).forEach(e=>s.add(mzN(e.name))));return s}
 function mzOk(i,lvl,rc){const d=MZ_DATA[i];
-  if(mzC.src!=='ALL'&&d[0]!==mzC.src||mzHid(i)||mzS.routine.includes(i))return 0;
+  if(!mzActive.has(i)||!mzSourceOn(d[0])||mzHid(i)||mzS.routine.some(j=>MZ_NN[j]===MZ_NN[i]))return 0;
   const r=mzR();if(r.z.some(z=>d[4]>>z&1)||r.m.some(m=>d[5]>>m&1))return 0;
   if(lvl<2&&rc.has(MZ_NN[i]))return 0;if(lvl<1&&mzS.used.has(i))return 0;return 1}
 function mzPick(b,rc,cap){
@@ -4399,6 +4440,8 @@ function mzSel(cur){const T=MZ_TPL[cur],f=mzC.foc==='S'||mzC.foc==='I'?mzC.foc:'
  return cand.slice().sort((a,b)=>a.sl.p-b.sl.p).slice(0,n).map(o=>o.k).sort((a,b)=>a-b)}
 function mzMax(cur){const f=mzC.foc==='S'||mzC.foc==='I'?mzC.foc:'all';return MZ_TPL[cur].slots.filter(sl=>f==='all'||sl.z==='C'||sl.z===f).length}
 function mzGen(){
+ mzSyncLibrary();
+ if(!mzSources.some(([s])=>mzSourceOn(s))){mzS.msg='Seleccioná al menos una fuente de ejercicios.';return renderMezclador()}
  const x={last:mzLast(),rc:mzRecent()},cur=mzTplNow(),T=MZ_TPL[cur],keys=mzSel(cur);
  const prev=(mzS.cur===cur?Object.entries(mzS.slots):[]).filter(([k,i])=>keys.includes(+k)&&mzS.lock.has(i)&&mzS.routine.includes(i));
  mzS.cur=cur;mzS.msg='';mzS.slots={};mzS.routine=[];
@@ -4427,6 +4470,7 @@ function mzPrint(){
  $('#printArea').innerHTML=`<div class="print-sheet"><h1>${esc(data.meta?.clinicName||'ETER KinePro')}</h1><p>Rutina de ejercicios · ${esc(T.n)}</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p?.nombre||'—')}</div><div><strong>Fecha:</strong> ${fmtDate(todayISO())}</div></div><table><thead><tr><th>#</th><th>Ejercicio</th><th>Series x reps</th></tr></thead><tbody>${rows}</tbody></table></div>`;
  window.print()}
 function mzSwap(p){
+ mzSyncLibrary();
  const T=MZ_TPL[mzS.cur||'A'],old=mzS.routine[p],k=Object.keys(mzS.slots).find(y=>mzS.slots[y]===old);
  if(k==null){mzS.msg='No se pudo cambiar este ejercicio.';return renderMezclador()}
  mzS.routine.splice(p,1);mzS.lock.delete(old);
@@ -4437,16 +4481,17 @@ function mzSwap(p){
 function mzToggle(arr,v){const k=mzC[arr].indexOf(v);k<0?mzC[arr].push(v):mzC[arr].splice(k,1);mzSave()}
 function mzAssign(){
   const pt=data.patients.find(p=>p.id===mzS.pid);if(!pt||!mzS.routine.length)return;
-  const d=todayISO(),T=MZ_TPL[mzS.cur||'A'],ex=mzSlotKeys().map((k,n)=>{const i=mzS.slots[k],sl=T.slots[k];return{name:MZ_DATA[i][2],category:MZ_DATA[i][3],sets:sl.sets,reps:sl.reps,notes:sl.l,source:'Mezclador',order:n}});
+  const d=todayISO(),T=MZ_TPL[mzS.cur||'A'],ex=mzSlotKeys().map((k,n)=>{const i=mzS.slots[k],sl=T.slots[k];return{name:MZ_DATA[i][2],category:MZ_DATA[i][3],sets:sl.sets,reps:sl.reps,notes:sl.l,source:MZ_DATA[i][0],order:n}});
   upsertEntity('routines',normalizeRoutine({id:uid('routine'),name:'Mezclador · '+d.split('-').reverse().join('/'),patientId:pt.id,patientName:pt.nombre,date:d,status:'Activa',active:true,template:false,exercises:ex,mezclador:true,tpl:mzS.cur||'A'}));
   mzS.msg='Rutina asignada a '+pt.nombre+'. Ya aparece en su ficha y en Rutinas.';renderAll();toast('Rutina asignada a '+pt.nombre)}
 function mzMgr(){
-  const q=mzN(mzS.q);let L=MZ_DATA.map((d,i)=>i).filter(i=>(mzC.src==='ALL'||MZ_DATA[i][0]===mzC.src)&&(!q||MZ_NN[i].includes(q))&&(mzS.flt==='all'||(mzS.flt==='fav'?mzFav(i):mzHid(i))));
+  const q=mzN(mzS.q);let L=MZ_DATA.map((d,i)=>i).filter(i=>mzActive.has(i)&&mzSourceOn(MZ_DATA[i][0])&&(!q||MZ_NN[i].includes(q))&&(mzS.flt==='all'||(mzS.flt==='fav'?mzFav(i):mzHid(i))));
   const n=L.length;L=L.slice(0,50);
   return L.map(i=>`<div class="mz-row"><span>${mzEsc(MZ_DATA[i][2])}<small> · ${mzEsc(MZ_DATA[i][3])}<\/small><\/span>${mzBtns(i,0)}<\/div>`).join('')+(n>50?`<p class="card-sub">Mostrando 50 de ${n}. Escribí para filtrar.<\/p>`:'')||'<p class="card-sub">Sin resultados.<\/p>'}
 const mzBtns=(i,p)=>`<span class="mz-ic"><button type="button" class="btn" data-mz="fav" data-i="${i}" aria-label="Favorito" title="Favorito">${mzFav(i)?'★':'☆'}<\/button><button type="button" class="btn ${mzHid(i)?'on':''}" data-mz="hid" data-i="${i}" data-p="${p}" aria-label="Ocultar" title="Nunca mostrar">⊘<\/button><\/span>`;
 function renderMezclador(){
   const v=document.getElementById('view-mezclador');if(!v)return;
+  mzSyncLibrary();
   const tab=(k,l)=>`<button type="button" class="routine-tab ${mzC.src===k?'active':''}" data-mz="src" data-v="${k}">${l}<\/button>`;
   const pts=[...data.patients].sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
   const r=mzR(),chip=(t,k,i,on)=>`<button type="button" class="routine-tab ${on?'active':''}" data-mz="${k}" data-v="${i}">${t}<\/button>`;
@@ -4457,8 +4502,8 @@ function renderMezclador(){
     return h+`<div class="mz-item" style="--mzc:${MZ_BC[d[3]]}"><span class="mz-n">${q+1}<\/span><div class="mz-t"><b>${mzEsc(d[2])}<\/b><small>${mzEsc(sl.l)} · ${sl.sets} x ${mzEsc(sl.reps)} · ${mzEsc(d[0])}<\/small><\/div><span class="mz-ic"><button type="button" class="btn ${L?'on':''}" data-mz="lock" data-i="${i}" aria-pressed="${L}" aria-label="Fijar" title="Fijar al regenerar">${L?'🔒':'🔓'}<\/button>${mzBtns(i,p).replace('<span class="mz-ic">','').replace(/<\/span>$/,'')}<button type="button" class="btn" data-mz="swap" data-p="${p}">Cambiar<\/button><\/span><\/div>`}).join('');
   const panel=mzS.panel==='restr'?`<div class="mz-panel"><p class="card-sub">${mzS.pid?'Restricciones de este paciente':'Restricciones generales (sin paciente)'} · tocá para excluir. Las etiquetas se asignaron automáticamente por el nombre del ejercicio: si alguno no corresponde, ocultalo en “Mis ejercicios”.<\/p><div class="routine-tabs"><span class="mz-lb">Zona afectada<\/span>${MZ_Z.map((z,i)=>chip(z,'rz',i,r.z.includes(i))).join('')}<\/div><div class="routine-tabs" style="margin-top:8px"><span class="mz-lb">Sin material<\/span>${MZ_M.map((z,i)=>chip(z,'rm',i,r.m.includes(i))).join('')}<\/div><\/div>`
     :mzS.panel==='mgr'?`<div class="mz-panel"><div class="mz-mgr"><input type="search" id="mzQ" placeholder="Buscar ejercicio…" value="${mzEsc(mzS.q)}" aria-label="Buscar ejercicio"><div class="routine-tabs">${[['all','Todos'],['fav','★ Favoritos'],['hid','⊘ Ocultos']].map(([k,l])=>chip(l,'flt',k,mzS.flt===k)).join('')}<\/div><\/div><p class="card-sub">★ sale con más frecuencia · ⊘ no sale nunca.<\/p><div id="mzList">${mzMgr()}<\/div><\/div>`:'';
-  v.innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Mezclador de rutinas<\/h2><p>Rutinas por bloques, sin repetir lo que el paciente ya hizo<\/p><\/div><div class="routine-tabs" role="radiogroup" aria-label="Fuente de ejercicios">${tab('ALL','Ambos')}${tab('PROKINESIO','PROKINESIO')}${tab('CES757','CES 757')}<\/div><\/div>
-  <div class="card mz-card"><div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A · fuerza<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B · control motor<\/option><\/select><\/label><label class="mz-f">Enfoque<select data-mzsel="foc"><option value="all" ${mzC.foc!=='S'&&mzC.foc!=='I'?'selected':''}>Completo<\/option><option value="S" ${mzC.foc==='S'?'selected':''}>MMSS (tren superior)<\/option><option value="I" ${mzC.foc==='I'?'selected':''}>MMII (tren inferior)<\/option><\/select><\/label><label class="mz-f">Cantidad<select data-mzsel="n"><option value="0" ${!(mzC.n>0)?'selected':''}>Auto (${Math.min(MZ_TPL[mzTplNow()].def,mzMax(mzTplNow()))})<\/option>${Array.from({length:mzMax(mzTplNow())-4},(_,q)=>q+5).map(v=>`<option value="${v}" ${mzC.n===v?'selected':''}>${v} ejercicios<\/option>`).join('')}<\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${mzSel(cur).length} ejercicios<\/p>
+  v.innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Mezclador de rutinas<\/h2><p>Rutinas por bloques, sin repetir lo que el paciente ya hizo<\/p><\/div><\/div>
+  <div class="card mz-card">${mzSourcesPanel()}<div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A · fuerza<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B · control motor<\/option><\/select><\/label><label class="mz-f">Enfoque<select data-mzsel="foc"><option value="all" ${mzC.foc!=='S'&&mzC.foc!=='I'?'selected':''}>Completo<\/option><option value="S" ${mzC.foc==='S'?'selected':''}>MMSS (tren superior)<\/option><option value="I" ${mzC.foc==='I'?'selected':''}>MMII (tren inferior)<\/option><\/select><\/label><label class="mz-f">Cantidad<select data-mzsel="n"><option value="0" ${!(mzC.n>0)?'selected':''}>Auto (${Math.min(MZ_TPL[mzTplNow()].def,mzMax(mzTplNow()))})<\/option>${Array.from({length:mzMax(mzTplNow())-4},(_,q)=>q+5).map(v=>`<option value="${v}" ${mzC.n===v?'selected':''}>${v} ejercicios<\/option>`).join('')}<\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${mzSel(cur).length} ejercicios<\/p>
   <div class="mz-bar"><button type="button" class="btn btn-primary mz-go" data-mz="gen">${mzS.lock.size?'Regenerar (fijos: '+mzS.lock.size+')':'Generar rutina'}<\/button><button type="button" class="btn" data-mz="assign" ${mzS.pid&&mzS.routine.length?'':'disabled'} title="${mzS.pid?'':'Elegí un paciente'}">Asignar a paciente<\/button><\/div>
   <div class="mz-bar"><button type="button" class="btn ${mzS.panel==='restr'?'on':''}" data-mz="panel" data-v="restr">Restricciones${r.z.length+r.m.length?' ('+(r.z.length+r.m.length)+')':''}<\/button><button type="button" class="btn ${mzS.panel==='mgr'?'on':''}" data-mz="panel" data-v="mgr">Mis ejercicios<\/button><\/div>${panel}
   ${mzS.msg?`<p class="mz-msg" role="status">${mzEsc(mzS.msg)}<\/p>`:''}<div class="mz-list">${items||'<p class="card-sub" style="padding:18px 0">Elegí paciente y tocá “Generar rutina”.<\/p>'}<\/div>
@@ -4473,7 +4518,7 @@ document.addEventListener('click',async e=>{
   if(a==='lock'){mzS.lock.has(i)?mzS.lock.delete(i):mzS.lock.add(i)}
   else if(a==='fav'){mzToggle('fav',MZ_DATA[i][2]);list=1}
   else if(a==='hid'){const was=mzHid(i);mzToggle('hid',MZ_DATA[i][2]);list=1;if(!was&&mzS.routine.includes(i)){return mzSwap(mzS.routine.indexOf(i))}}
-  else if(a==='src'){mzC.src=V;mzSave()}
+  else if(a==='sources-all'||a==='sources-none'){mzC.sources=a==='sources-all'?null:[];mzS.routine=[];mzS.slots={};mzS.lock.clear();mzS.msg='';mzSave()}
   else if(a==='cnt'){const b=+t.dataset.b;mzC.cnt[b]=Math.max(0,Math.min(8,mzC.cnt[b]+ +t.dataset.d));mzSave()}
   else if(a==='panel'){mzS.panel=mzS.panel===V?'':V}
   else if(a==='flt'){mzS.flt=V}
