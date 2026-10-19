@@ -4333,24 +4333,37 @@ function mzPick(b,rc,cap){
   }return null}
 /* ── Plantillas de día: cada slot = patrón de movimiento ── */
 const MZ_TPL={
- A:{n:'Día A · fuerza con activación previa',slots:[
-  {ph:'Circuito de activación · 3 vueltas',l:'Core / escápula',b:'Activación',c:['CORE / ESCAPULA / ESTABILIDAD','CINTURA ESCAPULAR'],sets:3,reps:'10'},
-  {ph:'Circuito de activación · 3 vueltas',l:'Glúteo / cadena posterior',b:'Activación',c:['ZONA MEDIA CADENA POSTERIOR','AUX DE PP'],sets:3,reps:'10'},
-  {ph:'Circuito de activación · 3 vueltas',l:'Movilidad dinámica',b:'Movilidad',c:['MOVILIDAD CADENA POSTERIOR','AUX DE MOVILIDAD','MOVILIDAD Y ACTIVACION ESCAPULAR'],sets:3,reps:'6'},
-  {ph:'Trabajo principal',l:'Core integrado',b:'Activación',c:['ZONA MEDIA CADENA ANTERIOR','CORE / ESCAPULA / ESTABILIDAD'],sets:3,reps:'10'},
-  {ph:'Trabajo principal',l:'Pierna unilateral',b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/estocada|zancada|bulgara|1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
-  {ph:'Trabajo principal',l:'Empuje horizontal',b:'Fuerza',c:['EMPUJE HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
-  {ph:'Trabajo principal',l:'Sentadilla',b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/sentadilla|goblet/,sets:3,reps:'10'},
-  {ph:'Trabajo principal',l:'Cadena posterior',b:'Fuerza',c:['PP CADENA POSTERIOR','FUERZA TREN INFERIOR / POTENCIA'],sets:3,reps:'10'},
-  {ph:'Cierre accesorio',l:'Accesorio integrado',b:'Fuerza',c:['FUERZA INTEGRADA (PIERNAS + BRAZOS)','FUERZA TREN SUPERIOR'],sets:3,reps:'10'}]},
- B:{n:'Día B · control motor y potencia',slots:[
-  {ph:'Control motor',l:'Core',b:'Activación',c:['CORE / ESCAPULA / ESTABILIDAD','ZONA MEDIA CADENA ANTERIOR'],sets:3,reps:'10'},
-  {ph:'Control motor',l:'Glúteo medio / cadera',b:'Activación',c:['AUX DE PP','ZONA MEDIA CADENA POSTERIOR'],k:/banda|elastico|lateral|abduc/,sets:3,reps:'10'},
-  {ph:'Potencia y fuerza',l:'Pliométrico',b:'Fuerza',c:['PLIOMETRICOS','FUERZA TREN INFERIOR / POTENCIA'],sets:3,reps:'5 c/pierna'},
-  {ph:'Potencia y fuerza',l:'Pierna unilateral',b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/bulgara|estocada|1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
-  {ph:'Potencia y fuerza',l:'Tracción',b:'Fuerza',c:['TRACCION HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
-  {ph:'Potencia y fuerza',l:'Bisagra unilateral',b:'Fuerza',c:['PP CADENA POSTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
-  {ph:'Potencia y fuerza',l:'Empuje / apertura',b:'Fuerza',c:['EMPUJE HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'}]}
+ A:{n:'Día A · fuerza con activación previa',def:9,slots:[
+  {ph:'Circuito de activación · 3 vueltas',l:'Core / escápula',z:'C',p:1,b:'Activación',c:['CORE / ESCAPULA / ESTABILIDAD','CINTURA ESCAPULAR'],sets:3,reps:'10'},
+  {ph:'Circuito de activación · 3 vueltas',l:'Glúteo / cadena posterior',z:'I',p:2,b:'Activación',c:['ZONA MEDIA CADENA POSTERIOR','AUX DE PP'],sets:3,reps:'10'},
+  {ph:'Circuito de activación · 3 vueltas',l:'Activación escapular',z:'S',p:10,b:'Activación',c:['CINTURA ESCAPULAR'],sets:3,reps:'10'},
+  {ph:'Circuito de activación · 3 vueltas',l:'Movilidad dinámica',z:'C',p:3,b:'Movilidad',c:['MOVILIDAD CADENA POSTERIOR','AUX DE MOVILIDAD','MOVILIDAD Y ACTIVACION ESCAPULAR'],cS:['MOVILIDAD Y ACTIVACION ESCAPULAR','AUX DE MOVILIDAD'],cI:['MOVILIDAD CADENA POSTERIOR','AUX DE MOVILIDAD'],sets:3,reps:'6'},
+  {ph:'Trabajo principal',l:'Core integrado',z:'C',p:4,b:'Activación',c:['ZONA MEDIA CADENA ANTERIOR','CORE / ESCAPULA / ESTABILIDAD'],sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Pierna unilateral',z:'I',p:5,b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/estocada|zancada|bulgara|1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Empuje horizontal',z:'S',p:6,b:'Fuerza',c:['EMPUJE HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Sentadilla',z:'I',p:7,b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/sentadilla|goblet/,sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Cadena posterior',z:'I',p:8,b:'Fuerza',c:['PP CADENA POSTERIOR','FUERZA TREN INFERIOR / POTENCIA'],sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Tracción horizontal',z:'S',p:11,b:'Fuerza',c:['TRACCION HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
+  {ph:'Trabajo principal',l:'Pliométrico',z:'I',p:12,b:'Fuerza',c:['PLIOMETRICOS'],sets:3,reps:'5 c/pierna'},
+  {ph:'Trabajo principal',l:'Empuje vertical / hombro',z:'S',p:13,b:'Fuerza',c:['EMPUJE VERTICAL'],sets:3,reps:'10'},
+  {ph:'Cierre accesorio',l:'Accesorio integrado',z:'C',p:9,b:'Fuerza',c:['FUERZA INTEGRADA (PIERNAS + BRAZOS)','FUERZA TREN SUPERIOR'],cS:['FUERZA TREN SUPERIOR','FUERZA INTEGRADA (PIERNAS + BRAZOS)','PESAS'],cI:['FUERZA INTEGRADA (PIERNAS + BRAZOS)','FUERZA TREN INFERIOR / POTENCIA'],sets:3,reps:'10'},
+  {ph:'Cierre accesorio',l:'Tracción vertical / bíceps',z:'S',p:14,b:'Fuerza',c:['TRACCION VERTICAL','PESAS'],sets:3,reps:'10'},
+  {ph:'Cierre accesorio',l:'Glúteo medio / aductores',z:'I',p:15,b:'Activación',c:['AUX DE PP','ZONA MEDIA CADENA POSTERIOR'],k:/banda|elastico|lateral|abduc|aduc/,sets:3,reps:'10'},
+  {ph:'Cierre accesorio',l:'Core rotación',z:'C',p:16,b:'Activación',c:['ZONA MEDIA CADENA ANTERIOR'],k:/rotac|pallof|anti|lenador/,sets:3,reps:'10'}]},
+ B:{n:'Día B · control motor y potencia',def:7,slots:[
+  {ph:'Control motor',l:'Core',z:'C',p:1,b:'Activación',c:['CORE / ESCAPULA / ESTABILIDAD','ZONA MEDIA CADENA ANTERIOR'],sets:3,reps:'10'},
+  {ph:'Control motor',l:'Glúteo medio / cadera',z:'I',p:2,b:'Activación',c:['AUX DE PP','ZONA MEDIA CADENA POSTERIOR'],k:/banda|elastico|lateral|abduc/,sets:3,reps:'10'},
+  {ph:'Control motor',l:'Coordinación / cadenas cruzadas',z:'C',p:9,b:'Activación',c:['ZONA MEDIA CADENA POSTERIOR','CORE / ESCAPULA / ESTABILIDAD'],k:/diagonal|cruz|alterno|contralateral|coordin/,sets:3,reps:'10'},
+  {ph:'Control motor',l:'Activación escapular',z:'S',p:10,b:'Activación',c:['CINTURA ESCAPULAR'],sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Pliométrico',z:'I',p:3,b:'Fuerza',c:['PLIOMETRICOS','FUERZA TREN INFERIOR / POTENCIA'],sets:3,reps:'5 c/pierna'},
+  {ph:'Potencia y fuerza',l:'Pierna unilateral',z:'I',p:4,b:'Fuerza',c:['PP CADENA ANTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/bulgara|estocada|1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Tracción',z:'S',p:5,b:'Fuerza',c:['TRACCION HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Bisagra unilateral',z:'I',p:6,b:'Fuerza',c:['PP CADENA POSTERIOR','FUERZA TREN INFERIOR / POTENCIA'],k:/1 pierna|unilateral|1 pp/,sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Empuje / apertura',z:'S',p:7,b:'Fuerza',c:['EMPUJE HORIZONTAL','FUERZA TREN SUPERIOR'],sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Empuje vertical / hombro',z:'S',p:11,b:'Fuerza',c:['EMPUJE VERTICAL'],sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Tracción vertical',z:'S',p:12,b:'Fuerza',c:['TRACCION VERTICAL'],sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Aductores / abductores',z:'I',p:13,b:'Activación',c:['AUX DE PP','ZONA MEDIA CADENA POSTERIOR'],k:/aduc|abduc|lateral/,sets:3,reps:'10'},
+  {ph:'Potencia y fuerza',l:'Core rotación',z:'C',p:14,b:'Activación',c:['ZONA MEDIA CADENA ANTERIOR'],k:/rotac|pallof|anti|lenador/,sets:3,reps:'10'}]}
 };
 mzS.slots={};mzS.cur='A';
 const MZ_FAM=[/plancha/,/peso muerto/,/press|presion/,/remo/,/sentadilla/,/estocada|zancada|bulgara/,/puente|hip thrust/,/pall ?of/,/salto|jump/,/flexion/,/apertura/,/bicho muerto/];
@@ -4371,7 +4384,7 @@ function mzW(i,x){let w=1;const t=x.last.get(MZ_NN[i]);
  if(mzFav(i))w*=2;
  return w}
 function mzPickSlot(s,x,ex){
- const pools=[d=>d[3]===s.b&&s.c.includes(d[1])&&(!s.k||s.k.test(mzN(d[2]))),d=>d[3]===s.b&&s.c.includes(d[1]),d=>d[3]===s.b];
+ const C=(mzC.foc==='S'&&s.cS)||(mzC.foc==='I'&&s.cI)||s.c;const pools=[d=>d[3]===s.b&&C.includes(d[1])&&(!s.k||s.k.test(mzN(d[2]))),d=>d[3]===s.b&&C.includes(d[1]),d=>d[3]===s.b];
  for(const f of pools){
   const P=MZ_DATA.map((d,i)=>i).filter(i=>f(MZ_DATA[i])&&!(ex&&ex.has(i))&&mzOk(i,2,x.rc));
   if(!P.length)continue;
@@ -4380,14 +4393,20 @@ function mzPickSlot(s,x,ex){
   return P[P.length-1]}
  return null}
 const mzSlotKeys=()=>Object.keys(mzS.slots).map(Number).filter(k=>mzS.routine.includes(mzS.slots[k])).sort((a,b)=>a-b);
+function mzSel(cur){const T=MZ_TPL[cur],f=mzC.foc==='S'||mzC.foc==='I'?mzC.foc:'all';
+ const cand=T.slots.map((sl,k)=>({sl,k})).filter(o=>f==='all'||o.sl.z==='C'||o.sl.z===f);
+ const n=Math.min(mzC.n>0?mzC.n:T.def,cand.length);
+ return cand.slice().sort((a,b)=>a.sl.p-b.sl.p).slice(0,n).map(o=>o.k).sort((a,b)=>a-b)}
+function mzMax(cur){const f=mzC.foc==='S'||mzC.foc==='I'?mzC.foc:'all';return MZ_TPL[cur].slots.filter(sl=>f==='all'||sl.z==='C'||sl.z===f).length}
 function mzGen(){
- const x={last:mzLast(),rc:mzRecent()},cur=mzTplNow(),T=MZ_TPL[cur];
- const prev=mzS.cur===cur?Object.entries(mzS.slots).filter(([k,i])=>mzS.lock.has(i)&&mzS.routine.includes(i)):[];
+ const x={last:mzLast(),rc:mzRecent()},cur=mzTplNow(),T=MZ_TPL[cur],keys=mzSel(cur);
+ const prev=(mzS.cur===cur?Object.entries(mzS.slots):[]).filter(([k,i])=>keys.includes(+k)&&mzS.lock.has(i)&&mzS.routine.includes(i));
  mzS.cur=cur;mzS.msg='';mzS.slots={};mzS.routine=[];
  prev.forEach(([k,i])=>{mzS.slots[k]=i;mzS.routine.push(i)});
- T.slots.forEach((s,k)=>{if(k in mzS.slots)return;const i=mzPickSlot(s,x);
-  if(i==null){mzS.msg+='Sin opciones para "'+s.l+'". ';return}
+ keys.forEach(k=>{if(k in mzS.slots)return;const i=mzPickSlot(T.slots[k],x);
+  if(i==null){mzS.msg+='Sin opciones para "'+T.slots[k].l+'". ';return}
   mzS.routine.push(i);mzS.slots[k]=i});
+ if(mzC.n>keys.length)mzS.msg+='Este enfoque tiene '+keys.length+' patrones como máximo. ';
  mzS.routine=Object.keys(mzS.slots).map(Number).sort((a,b)=>a-b).map(k=>mzS.slots[k]);
  mzS.routine.forEach(i=>mzS.used.add(i));
  renderMezclador()}
@@ -4417,13 +4436,13 @@ function renderMezclador(){
   const r=mzR(),chip=(t,k,i,on)=>`<button type="button" class="routine-tab ${on?'active':''}" data-mz="${k}" data-v="${i}">${t}<\/button>`;
   const steps=MZ_B.map((b,bi)=>`<span class="mz-step"><b style="color:${MZ_BC[b]}">${b}<\/b><button type="button" class="btn" data-mz="cnt" data-b="${bi}" data-d="-1" aria-label="Menos ${b}">−<\/button><em>${mzC.cnt[bi]}<\/em><button type="button" class="btn" data-mz="cnt" data-b="${bi}" data-d="1" aria-label="Más ${b}">+<\/button><\/span>`).join('');
   const cur=mzS.routine.length?mzS.cur:mzTplNow(),TT=MZ_TPL[cur];let ph='';
-  const items=mzSlotKeys().map(k=>{const sl=TT.slots[k],i=mzS.slots[k],d=MZ_DATA[i],L=mzS.lock.has(i),p=mzS.routine.indexOf(i);
+  const items=mzSlotKeys().map((k,q)=>{const sl=TT.slots[k],i=mzS.slots[k],d=MZ_DATA[i],L=mzS.lock.has(i),p=mzS.routine.indexOf(i);
     let h='';if(sl.ph!==ph){ph=sl.ph;h=`<h3 class="mz-bh" style="color:${MZ_BC[d[3]]}">${mzEsc(ph)}<\/h3>`}
-    return h+`<div class="mz-item" style="--mzc:${MZ_BC[d[3]]}"><span class="mz-n">${k+1}<\/span><div class="mz-t"><b>${mzEsc(d[2])}<\/b><small>${mzEsc(sl.l)} · ${sl.sets} x ${mzEsc(sl.reps)} · ${mzEsc(d[0])}<\/small><\/div><span class="mz-ic"><button type="button" class="btn ${L?'on':''}" data-mz="lock" data-i="${i}" aria-pressed="${L}" aria-label="Fijar" title="Fijar al regenerar">${L?'🔒':'🔓'}<\/button>${mzBtns(i,p).replace('<span class="mz-ic">','').replace(/<\/span>$/,'')}<button type="button" class="btn" data-mz="swap" data-p="${p}">Cambiar<\/button><\/span><\/div>`}).join('');
+    return h+`<div class="mz-item" style="--mzc:${MZ_BC[d[3]]}"><span class="mz-n">${q+1}<\/span><div class="mz-t"><b>${mzEsc(d[2])}<\/b><small>${mzEsc(sl.l)} · ${sl.sets} x ${mzEsc(sl.reps)} · ${mzEsc(d[0])}<\/small><\/div><span class="mz-ic"><button type="button" class="btn ${L?'on':''}" data-mz="lock" data-i="${i}" aria-pressed="${L}" aria-label="Fijar" title="Fijar al regenerar">${L?'🔒':'🔓'}<\/button>${mzBtns(i,p).replace('<span class="mz-ic">','').replace(/<\/span>$/,'')}<button type="button" class="btn" data-mz="swap" data-p="${p}">Cambiar<\/button><\/span><\/div>`}).join('');
   const panel=mzS.panel==='restr'?`<div class="mz-panel"><p class="card-sub">${mzS.pid?'Restricciones de este paciente':'Restricciones generales (sin paciente)'} · tocá para excluir. Las etiquetas se asignaron automáticamente por el nombre del ejercicio: si alguno no corresponde, ocultalo en “Mis ejercicios”.<\/p><div class="routine-tabs"><span class="mz-lb">Zona afectada<\/span>${MZ_Z.map((z,i)=>chip(z,'rz',i,r.z.includes(i))).join('')}<\/div><div class="routine-tabs" style="margin-top:8px"><span class="mz-lb">Sin material<\/span>${MZ_M.map((z,i)=>chip(z,'rm',i,r.m.includes(i))).join('')}<\/div><\/div>`
     :mzS.panel==='mgr'?`<div class="mz-panel"><div class="mz-mgr"><input type="search" id="mzQ" placeholder="Buscar ejercicio…" value="${mzEsc(mzS.q)}" aria-label="Buscar ejercicio"><div class="routine-tabs">${[['all','Todos'],['fav','★ Favoritos'],['hid','⊘ Ocultos']].map(([k,l])=>chip(l,'flt',k,mzS.flt===k)).join('')}<\/div><\/div><p class="card-sub">★ sale con más frecuencia · ⊘ no sale nunca.<\/p><div id="mzList">${mzMgr()}<\/div><\/div>`:'';
   v.innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Mezclador de rutinas<\/h2><p>Rutinas por bloques, sin repetir lo que el paciente ya hizo<\/p><\/div><div class="routine-tabs" role="radiogroup" aria-label="Fuente de ejercicios">${tab('ALL','Ambos')}${tab('PROKINESIO','PROKINESIO')}${tab('CES757','CES 757')}<\/div><\/div>
-  <div class="card mz-card"><div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A · fuerza<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B · control motor<\/option><\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${TT.slots.length} ejercicios<\/p>
+  <div class="card mz-card"><div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A · fuerza<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B · control motor<\/option><\/select><\/label><label class="mz-f">Enfoque<select data-mzsel="foc"><option value="all" ${mzC.foc!=='S'&&mzC.foc!=='I'?'selected':''}>Completo<\/option><option value="S" ${mzC.foc==='S'?'selected':''}>MMSS (tren superior)<\/option><option value="I" ${mzC.foc==='I'?'selected':''}>MMII (tren inferior)<\/option><\/select><\/label><label class="mz-f">Cantidad<select data-mzsel="n"><option value="0" ${!(mzC.n>0)?'selected':''}>Auto (${Math.min(MZ_TPL[mzTplNow()].def,mzMax(mzTplNow()))})<\/option>${Array.from({length:mzMax(mzTplNow())-4},(_,q)=>q+5).map(v=>`<option value="${v}" ${mzC.n===v?'selected':''}>${v} ejercicios<\/option>`).join('')}<\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${mzSel(cur).length} ejercicios<\/p>
   <div class="mz-bar"><button type="button" class="btn btn-primary mz-go" data-mz="gen">${mzS.lock.size?'Regenerar (fijos: '+mzS.lock.size+')':'Generar rutina'}<\/button><button type="button" class="btn" data-mz="assign" ${mzS.pid&&mzS.routine.length?'':'disabled'} title="${mzS.pid?'':'Elegí un paciente'}">Asignar a paciente<\/button><\/div>
   <div class="mz-bar"><button type="button" class="btn ${mzS.panel==='restr'?'on':''}" data-mz="panel" data-v="restr">Restricciones${r.z.length+r.m.length?' ('+(r.z.length+r.m.length)+')':''}<\/button><button type="button" class="btn ${mzS.panel==='mgr'?'on':''}" data-mz="panel" data-v="mgr">Mis ejercicios<\/button><\/div>${panel}
   ${mzS.msg?`<p class="mz-msg" role="status">${mzEsc(mzS.msg)}<\/p>`:''}<div class="mz-list">${items||'<p class="card-sub" style="padding:18px 0">Elegí paciente y tocá “Generar rutina”.<\/p>'}<\/div>
@@ -4452,7 +4471,7 @@ document.addEventListener('click',async e=>{
   renderMezclador();
 });
 document.addEventListener('change',e=>{const t=e.target.closest('[data-mzsel]');if(!t||!document.getElementById('view-mezclador')?.contains(t))return;
-  if(t.dataset.mzsel==='pid'){mzS.pid=t.value;mzS.used=new Set();mzS.routine=[];mzS.lock=new Set();mzS.msg=''}else if(t.dataset.mzsel==='tpl'){mzC.tpl=t.value;mzS.routine=[];mzS.slots={};mzS.lock=new Set();mzS.msg='';mzSave()}else{mzC.hist=+t.value;mzSave()}
+  if(t.dataset.mzsel==='pid'){mzS.pid=t.value;mzS.used=new Set();mzS.routine=[];mzS.lock=new Set();mzS.msg=''}else if(['tpl','foc','n'].includes(t.dataset.mzsel)){mzC[t.dataset.mzsel]=t.dataset.mzsel==='n'?+t.value:t.value;mzS.routine=[];mzS.slots={};mzS.lock=new Set();mzS.msg='';mzSave()}else{mzC.hist=+t.value;mzSave()}
   renderMezclador()});
 document.addEventListener('input',e=>{if(e.target.id!=='mzQ')return;mzS.q=e.target.value;const l=document.getElementById('mzList');if(l)l.innerHTML=mzMgr()});
 
