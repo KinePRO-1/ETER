@@ -5374,7 +5374,7 @@ function saveEvolution(){const form=$('#evolutionForm');if(!form.reportValidity(
 function deleteEvolution(patientId,id){const p=getPatient(patientId);if(!p)return;openConfirm('Eliminar evolución','La evolución se eliminará de la ficha clínica.',()=>{upsertEntity('patients',{...p,evoluciones:(p.evoluciones||[]).filter(e=>e.id!==id)});closeConfirm();if(ui.selectedPatientId===patientId)renderPatientProfile();else renderEvoluciones();toast('Evolución eliminada','info')})}
 
 /* RUTINAS Y BIBLIOTECA */
-function renderRutinas(){const tabs=`<div class="routine-tabs"><button class="routine-tab ${ui.routineTab==='routines'?'active':''}" data-action="routine-tab" data-tab="routines">Rutinas</button><button class="routine-tab ${ui.routineTab==='execution'?'active':''}" data-action="routine-tab" data-tab="execution">Ejecución</button><button class="routine-tab ${ui.routineTab==='history'?'active':''}" data-action="routine-tab" data-tab="history">Historial</button></div>`;$('#view-rutinas').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Rutinas terapéuticas</h2><p>Creación, ejecución e historial clínico</p></div>${tabs}</div><div id="routineTabContent"></div>`;if(ui.routineTab==='routines')renderRoutineList();if(ui.routineTab==='execution')renderExecution();if(ui.routineTab==='history')renderHistory()}
+function renderRutinas(){const tabs=`<div class="routine-tabs"><button class="routine-tab ${ui.routineTab==='routines'?'active':''}" data-action="routine-tab" data-tab="routines">Rutinas</button><button class="routine-tab ${ui.routineTab==='execution'?'active':''}" data-action="routine-tab" data-tab="execution">Ejecución</button><button class="routine-tab ${ui.routineTab==='history'?'active':''}" data-action="routine-tab" data-tab="history">Historial</button><button class="routine-tab ${ui.routineTab==='library'?'active':''}" data-action="routine-tab" data-tab="library">Biblioteca</button></div>`;$('#view-rutinas').innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Rutinas terapéuticas</h2><p>Creación, ejecución, historial y biblioteca de ejercicios</p></div>${tabs}</div><div id="routineTabContent"></div>`;if(ui.routineTab==='routines')renderRoutineList();if(ui.routineTab==='execution')renderExecution();if(ui.routineTab==='history')renderHistory();if(ui.routineTab==='library')renderLibraryTab()}
 function renderRoutineList(){
   const currentSearch=String(ui.routineSearch||'');
   const normalize=value=>normalizedPatientName(value||'');
@@ -5530,15 +5530,17 @@ function renderRoutineCard(r){
 function persistRoutineEditorDraft(){if(ui.routineDraft&&!ui.routineEditingId)localStorage.setItem(ROUTINE_DRAFT_KEY,JSON.stringify(ui.routineDraft))}
 function clearRoutineEditorDraft(){localStorage.removeItem(ROUTINE_DRAFT_KEY)}
 function openRoutineEditor(patientId='',routineId=''){const existing=routineId?getRoutine(routineId):null,saved=!routineId&&!patientId?safelyParse(localStorage.getItem(ROUTINE_DRAFT_KEY),null):null;ui.routineEditingId=routineId;ui.routineDraft=existing?JSON.parse(JSON.stringify(existing)):(saved||{id:uid('routine'),name:'',patientId:patientId||'',patientName:getPatient(patientId)?.nombre||'',objective:'',notes:'',date:todayISO(),status:'Activa',template:false,active:true,exercises:[],createdAt:nowIso()});renderRoutineEditorModal()}
-function renderRoutineEditorModal(){const d=ui.routineDraft;const categories=[...new Set([...BASE_EXERCISE_LIBRARY,...data.exerciseLibrary].map(e=>e.category))].sort();openModal(ui.routineEditingId?'Editar rutina':'Crear rutina',`<div class="routine-editor-layout"><div class="editor-panel"><h3>Datos de la rutina</h3><div class="form-grid"><div class="field full"><label>Nombre *</label><input class="input" id="routineName" value="${esc(d.name)}"></div><div class="field full"><label>Paciente *</label><select class="select" id="routinePatient"><option value="">Seleccionar paciente</option>${data.patients.map(p=>`<option value="${p.id}" ${p.id===d.patientId?'selected':''}>${esc(p.nombre)}</option>`).join('')}</select></div><div class="field full"><label>Objetivo terapéutico</label><textarea class="textarea" id="routineObjective">${esc(d.objective)}</textarea></div><div class="field full"><label>Observaciones</label><textarea class="textarea" id="routineNotes">${esc(d.notes)}</textarea></div><div class="field"><label>Fecha</label><input class="input" id="routineDate" type="date" value="${esc(d.date||todayISO())}"></div><div class="field"><label>Estado</label><select class="select" id="routineStatus">${['Activa','Borrador','Finalizada'].map(x=>`<option ${x===d.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="field full"><label style="display:flex;align-items:center;gap:8px"><input id="routineTemplate" type="checkbox" ${d.template?'checked':''} style="width:18px;height:18px"> Guardar como plantilla</label></div></div><details class="exercise-library" open><summary>Biblioteca de ejercicios <span class="badge b-gray">${BASE_EXERCISE_LIBRARY.length+data.exerciseLibrary.length}</span></summary><div class="exercise-library-controls"><input class="input" id="exerciseLibrarySearch" placeholder="Buscar por nombre"><select class="select" id="exerciseLibraryCategory"><option value="">Todas las categorías</option>${categories.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div><div class="result-count" id="exerciseResultCount"></div><div class="exercise-results" id="exerciseLibraryResults"></div><button class="btn btn-sm" style="margin-top:10px" data-action="new-custom-exercise">+ Ejercicio personalizado</button></details></div><div class="editor-panel"><div class="routine-toolbar"><div><h3 style="margin:0">Ejercicios ordenados</h3><div class="card-sub"><span id="draftCount">${d.exercises.length}</span> ejercicio(s)</div></div><button class="btn btn-sm" data-action="add-blank-exercise">+ Agregar</button></div><div class="exercise-draft-list" id="exerciseDraftList"></div></div></div>`,`<span id="routineUnsaved" class="unsaved">Cambios sin guardar</span><button class="btn" data-action="close-modal">Cancelar</button><button class="btn" data-action="save-routine-draft">Guardar borrador</button><button class="btn btn-primary" data-action="save-routine">Guardar rutina</button>`,'xl');bindRoutineDraftInputs();renderExerciseLibraryResults();renderExerciseDraftList();persistRoutineEditorDraft()}
+function renderRoutineEditorModal(){const d=ui.routineDraft;const categories=[...new Set(combinedExerciseLibrary().map(e=>e.category))].sort();openModal(ui.routineEditingId?'Editar rutina':'Crear rutina',`<div class="routine-editor-layout"><div class="editor-panel"><h3>Datos de la rutina</h3><div class="form-grid"><div class="field full"><label>Nombre *</label><input class="input" id="routineName" value="${esc(d.name)}"></div><div class="field full"><label>Paciente *</label><select class="select" id="routinePatient"><option value="">Seleccionar paciente</option>${data.patients.map(p=>`<option value="${p.id}" ${p.id===d.patientId?'selected':''}>${esc(p.nombre)}</option>`).join('')}</select></div><div class="field full"><label>Objetivo terapéutico</label><textarea class="textarea" id="routineObjective">${esc(d.objective)}</textarea></div><div class="field full"><label>Observaciones</label><textarea class="textarea" id="routineNotes">${esc(d.notes)}</textarea></div><div class="field"><label>Fecha</label><input class="input" id="routineDate" type="date" value="${esc(d.date||todayISO())}"></div><div class="field"><label>Estado</label><select class="select" id="routineStatus">${['Activa','Borrador','Finalizada'].map(x=>`<option ${x===d.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="field full"><label style="display:flex;align-items:center;gap:8px"><input id="routineTemplate" type="checkbox" ${d.template?'checked':''} style="width:18px;height:18px"> Guardar como plantilla</label></div></div><details class="exercise-library" open><summary>Biblioteca de ejercicios <span class="badge b-gray">${combinedExerciseLibrary().length}</span></summary><div class="exercise-library-controls"><input class="input" id="exerciseLibrarySearch" placeholder="Buscar por nombre"><select class="select" id="exerciseLibraryCategory"><option value="">Todas las categorías</option>${categories.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div><div class="result-count" id="exerciseResultCount"></div><div class="exercise-results" id="exerciseLibraryResults"></div><button class="btn btn-sm" style="margin-top:10px" data-action="new-custom-exercise">+ Ejercicio personalizado</button></details></div><div class="editor-panel"><div class="routine-toolbar"><div><h3 style="margin:0">Ejercicios ordenados</h3><div class="card-sub"><span id="draftCount">${d.exercises.length}</span> ejercicio(s)</div></div><button class="btn btn-sm" data-action="add-blank-exercise">+ Agregar</button></div><div class="exercise-draft-list" id="exerciseDraftList"></div></div></div>`,`<span id="routineUnsaved" class="unsaved">Cambios sin guardar</span><button class="btn" data-action="close-modal">Cancelar</button><button class="btn" data-action="save-routine-draft">Guardar borrador</button><button class="btn btn-primary" data-action="save-routine">Guardar rutina</button>`,'xl');bindRoutineDraftInputs();renderExerciseLibraryResults();renderExerciseDraftList();persistRoutineEditorDraft()}
 function bindRoutineDraftInputs(){[['routineName','name'],['routinePatient','patientId'],['routineObjective','objective'],['routineNotes','notes'],['routineDate','date'],['routineStatus','status']].forEach(([id,key])=>$(`#${id}`).addEventListener('input',e=>{ui.routineDraft[key]=e.target.value;if(key==='patientId')ui.routineDraft.patientName=getPatient(e.target.value)?.nombre||'';persistRoutineEditorDraft()}));$('#routineTemplate').onchange=e=>{ui.routineDraft.template=e.target.checked;persistRoutineEditorDraft()};$('#exerciseLibrarySearch').oninput=()=>debounce('exercise-lib-search',renderExerciseLibraryResults,220);$('#exerciseLibraryCategory').onchange=renderExerciseLibraryResults}
 function stableExerciseSlug(value,index=0){
  const slug=String(value||`ejercicio-${index}`).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
  return slug||`ejercicio-${index}`
 }
 function combinedExerciseLibrary(){
- const custom=(data.exerciseLibrary||[]).map((exercise,index)=>({...exercise,id:exercise.id||`custom-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:true,source:exercise.source||'Personalizado'}));
- const base=BASE_EXERCISE_LIBRARY.map((exercise,index)=>({...exercise,id:exercise.id||`base-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:false,source:exercise.source||'Biblioteca'}));
+ const entries=(data.exerciseLibrary||[]).map((exercise,index)=>({...exercise,id:exercise.id||`custom-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:true,source:exercise.source||'Personalizado'}));
+ const hiddenBase=new Set(entries.filter(e=>e.replaces).map(e=>e.replaces));
+ const custom=entries.filter(e=>!e.hidden);
+ const base=BASE_EXERCISE_LIBRARY.map((exercise,index)=>({...exercise,id:exercise.id||`base-${stableExerciseSlug(exercise.name,index)}-${index}`,custom:false,source:exercise.source||'Biblioteca'})).filter(e=>!hiddenBase.has(e.id));
  return[...base,...custom]
 }
 function renderExerciseLibraryResults(){const container=$('#exerciseLibraryResults');if(!container)return;const q=$('#exerciseLibrarySearch').value.toLowerCase(),cat=$('#exerciseLibraryCategory').value;const list=combinedExerciseLibrary().filter(e=>(!q||e.name.toLowerCase().includes(q))&&(!cat||e.category===cat)).slice(0,100);$('#exerciseResultCount').textContent=`${list.length}${list.length===100?' primeros':''} resultados`;container.innerHTML=list.map(e=>`<div class="exercise-result"><div><strong>${esc(e.name)}</strong><small>${esc(e.category)} · ${esc(e.source||'Biblioteca')}</small></div><div class="action-btns"><button class="btn btn-sm btn-primary" data-action="use-library-exercise" data-id="${esc(e.id)}">Agregar</button>${e.custom?`<button class="btn btn-sm btn-danger" data-action="delete-custom-exercise" data-id="${e.id}">Eliminar</button>`:''}</div></div>`).join('')||'<div class="empty">Sin ejercicios coincidentes</div>'}
@@ -7303,5 +7305,430 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
   document.addEventListener('change',e=>{if(e.target?.id==='patientBirthInput')syncAgeFromBirth()});
 })();
 </script>
+<style>
+/* ─── BIBLIOTECA DE EJERCICIOS ─── */
+#view-rutinas .lib-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 230px auto auto;align-items:center;gap:10px;margin-bottom:12px}
+#view-rutinas .lib-search{position:relative;min-width:0}
+#view-rutinas .lib-search svg{position:absolute;left:13px;top:50%;width:19px;height:19px;transform:translateY(-50%);color:var(--muted);pointer-events:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#view-rutinas .lib-search .input{width:100%;max-width:none;height:44px;padding-left:42px;background:var(--surface)}
+#view-rutinas .lib-toolbar .select{height:44px;background:var(--surface)}
+#view-rutinas .lib-toolbar .btn{min-height:44px;border-radius:11px;font-weight:700;white-space:nowrap}
+#view-rutinas .lib-sub{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;color:var(--muted);font-size:12.5px;font-weight:600}
+#view-rutinas .lib-sub label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+#view-rutinas .lib-bulkbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;margin-bottom:10px;border:1px solid var(--blue-100);border-radius:11px;background:var(--blue-50);color:var(--blue)}
+#view-rutinas .lib-cat-head{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 7px;color:var(--muted);font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+#view-rutinas .lib-row{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:6px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}
+#view-rutinas .lib-row:hover{border-color:var(--blue-100);background:var(--surface-2)}
+#view-rutinas .lib-row.is-selected{border-color:var(--blue);background:var(--blue-50)}
+#view-rutinas .lib-row input[type=checkbox],.lib-bulk input[type=checkbox]{width:18px;height:18px;flex:0 0 auto;accent-color:var(--blue)}
+#view-rutinas .lib-row-main{flex:1;min-width:0}
+#view-rutinas .lib-row-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--text);font-size:14px;font-weight:700;overflow-wrap:anywhere}
+#view-rutinas .lib-row-meta{margin-top:2px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+#view-rutinas .lib-row-actions{display:flex;gap:6px;flex:0 0 auto}
+.lib-badge{display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--muted);font-size:10.5px;font-weight:800}
+.lib-b-custom{background:var(--blue-50);border-color:var(--blue-100);color:var(--blue)}
+.lib-b-edit{background:var(--purple-50);border-color:transparent;color:var(--purple)}
+#view-rutinas .lib-more{display:flex;justify-content:center;margin:14px 0 4px}
+#view-rutinas .lib-footer-note{margin-top:14px;padding:11px 13px;border:1px dashed var(--border-strong);border-radius:11px;color:var(--muted);font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lib-note{margin-bottom:12px;padding:10px 12px;border-radius:10px;background:var(--purple-50);color:var(--purple);font-size:12.5px;font-weight:600}
+.lib-bulk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.lib-bulk-col{min-width:0}
+.lib-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-size:12.5px!important;line-height:1.55!important;min-height:250px;white-space:pre;overflow:auto}
+.lib-format{margin-bottom:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2)}
+.lib-format>summary{cursor:pointer;padding:10px 13px;font-size:13px;font-weight:800;color:var(--text)}
+.lib-format-body{padding:0 13px 12px;font-size:12.5px;color:var(--text-2);line-height:1.55}
+.lib-format-body code,.lib-format-body pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:7px}
+.lib-format-body code{padding:1px 5px}
+.lib-format-body pre{padding:9px 11px;margin:7px 0;white-space:pre-wrap;overflow:auto}
+.lib-format-body ul{margin:6px 0 0 18px;padding:0}
+.lib-actions-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.lib-preview-box{border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--surface)}
+.lib-preview-summary{display:flex;gap:7px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.lib-preview-scroll{max-height:380px;overflow:auto}
+.lib-preview-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.lib-preview-table th{position:sticky;top:0;text-align:left;padding:7px 10px;background:var(--surface-2);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.lib-preview-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;overflow-wrap:anywhere}
+.lib-preview-table tr.st-dup td,.lib-preview-table tr.st-exists td{color:var(--muted)}
+.lib-preview-table tr.st-error td{background:var(--red-50)}
+.lib-st{display:inline-flex;height:19px;align-items:center;padding:0 7px;border-radius:999px;font-size:10.5px;font-weight:800;background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
+.lib-st.st-new{background:#e6f6ec;color:#17803d;border-color:#bfe6cc}
+.lib-st.st-update{background:var(--purple-50);color:var(--purple);border-color:transparent}
+.lib-st.st-error{background:var(--red-50);color:var(--red);border-color:var(--red-100)}
+@media(max-width:900px){
+  #view-rutinas .lib-toolbar{grid-template-columns:1fr 1fr}
+  #view-rutinas .lib-search{grid-column:1/-1}
+  .lib-bulk{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  #view-rutinas .lib-toolbar{grid-template-columns:1fr}
+  #view-rutinas .lib-row{flex-wrap:wrap}
+  #view-rutinas .lib-row-main{flex-basis:calc(100% - 40px)}
+  #view-rutinas .lib-row-actions{width:100%;justify-content:flex-end}
+}
+</style>
+<script>
+/* ─── BIBLIOTECA DE EJERCICIOS (pestaña dentro de Rutinas) ───
+   Alta manual, edición, eliminación y carga masiva por lista con interpretación automática.
+   Guarda en data.exerciseLibrary (misma colección que ya sincroniza con Firebase).
+   - Ejercicio nuevo/personalizado: registro propio.
+   - Editar un ejercicio base: se guarda una copia editada con {replaces:<id base>}.
+   - Eliminar un ejercicio base: se guarda una marca {hidden:true, replaces:<id base>} (reversible). */
+(function(){
+  'use strict';
+  const STEP=60;
+  const collator=new Intl.Collator('es',{sensitivity:'base',numeric:true});
+  const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const keyOf=(name,cat)=>norm(name)+'|'+norm(cat);
+  const state=ui.lib=ui.lib||{search:'',cat:'',limit:STEP,sel:new Set(),editId:'',bulk:{text:'',cat:'',source:'Carga masiva',dup:'skip',upper:true}};
+  let bulkRows=[];
+
+  const SAMPLE=[
+    '## MOVILIDAD',
+    'Elongación de psoas dinámica | Movilidad | Colchoneta | Mantener 30 s por lado',
+    'Spiderman con rotación | Movilidad',
+    '',
+    '## PLIOMETRICOS',
+    '- Salto al cajón | Pliometría | Cajón 40 cm',
+    '- Sentadilla con salto',
+    '',
+    '[FUERZA TREN SUPERIOR] Press con mancuernas | Fuerza | Mancuernas | Banco a 30°'
+  ].join('\n');
+
+  const FIELD={nombre:'name',ejercicio:'name',name:'name',categoria:'category',category:'category',grupo:'category',
+    tipo:'type',type:'type',equipamiento:'equipment',equipo:'equipment',material:'equipment',equipment:'equipment',
+    descripcion:'description',detalle:'description',notas:'description',observaciones:'description',description:'description',
+    fuente:'source',source:'source'};
+  const BULLET=/^(?:[-*•·▪►>–—]+\s*|\d{1,3}\s*[.)]\s+|\(\d{1,3}\)\s*)/;
+
+  const categories=()=>[...new Set(combinedExerciseLibrary().map(e=>e.category).filter(Boolean))].sort(collator.compare);
+
+  /* ───── Parser ───── */
+  function detectDelim(line){if(line.includes('\t'))return'\t';if(line.includes('|'))return'|';if(line.includes(';'))return';';return null}
+  function splitCols(line,delim){
+    if(delim!==','&&delim!==';')return line.split(delim).map(s=>s.trim());
+    const out=[];let cur='',q=false;
+    for(let i=0;i<line.length;i++){const ch=line[i];
+      if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++}else q=!q}
+      else if(ch===delim&&!q){out.push(cur.trim());cur=''}
+      else cur+=ch}
+    out.push(cur.trim());return out;
+  }
+  function cleanName(v){
+    let s=String(v||'').replace(/\s+/g,' ').trim().replace(/^["'“”«»]+|["'“”«»]+$/g,'').replace(/[\s.,;:]+$/,'').trim();
+    return s?s.charAt(0).toUpperCase()+s.slice(1):s;
+  }
+
+  function parseBulk(text,opts){
+    opts=opts||{};
+    const cats=new Map(categories().map(c=>[norm(c),c]));
+    const existing=new Map(combinedExerciseLibrary().map(e=>[keyOf(e.name,e.category),e]));
+    const seen=new Set(),rows=[];
+    let current='',header=null,hDelim=null;
+    const resolveCat=raw=>{
+      let c=String(raw||'').replace(/\s+/g,' ').trim();
+      if(!c)c=String(opts.cat||'').replace(/\s+/g,' ').trim();
+      if(!c)return'SIN CATEGORIA';
+      const k=norm(c);if(cats.has(k))return cats.get(k);
+      const v=opts.upper?c.toUpperCase():c;cats.set(k,v);return v;
+    };
+    String(text||'').replace(/\r/g,'').split('\n').forEach((raw,idx)=>{
+      let line=raw.trim();
+      if(!line||/^\/\//.test(line))return;
+      const isBullet=BULLET.test(line);
+      const m=line.match(/^#{1,6}\s*(.+?)\s*#*$/)||line.match(/^\[([^\]]+)\]$/)||line.match(/^categor[ií]a\s*[:=]\s*(.+)$/i)||(!isBullet&&!/[|\t;]/.test(line)?line.match(/^(.{2,80}?)\s*:$/):null);
+      if(m){current=m[1].trim();return}
+      if(!header&&!rows.length){
+        const d=detectDelim(line)||(line.includes(',')?',':null);
+        if(d){const cols=splitCols(line,d).map(norm),map={};
+          cols.forEach((c,i)=>{const f=FIELD[c];if(f&&!(f in map))map[f]=i});
+          if(map.name!==undefined&&Object.keys(map).length>1){header=map;hDelim=d;return}}
+      }
+      let cat=current,f;
+      if(header){
+        const parts=splitCols(line,hDelim),get=k=>header[k]!==undefined?(parts[header[k]]||'').trim():'';
+        f={name:get('name'),type:get('type'),equipment:get('equipment'),description:get('description'),source:get('source')};
+        cat=get('category')||current;
+      }else{
+        line=line.replace(BULLET,'');
+        const pm=line.match(/^\[([^\]]+)\]\s*(.+)$/);
+        if(pm){cat=pm[1].trim();line=pm[2]}
+        const d=detectDelim(line),parts=d?splitCols(line,d):[line];
+        f={name:parts[0]||'',type:parts[1]||'',equipment:parts[2]||'',description:parts.slice(3).join(' | ').trim(),source:''};
+      }
+      f.name=cleanName(f.name);
+      const category=resolveCat(cat);
+      const row={line:idx+1,name:f.name,category,type:f.type,equipment:f.equipment,description:f.description,source:(f.source||opts.source||'Carga masiva').trim()};
+      if(!row.name){row.status='error';row.note='Falta el nombre'}
+      else if(row.name.length>120){row.status='error';row.note='Nombre demasiado largo (máx. 120)'}
+      else{
+        const k=keyOf(row.name,category);
+        if(seen.has(k)){row.status='dup';row.note='Repetido en la lista'}
+        else{
+          seen.add(k);const ex=existing.get(k);
+          if(ex){row.match=ex;
+            if(opts.dup==='update'){row.status='update';row.note='Actualiza el existente'}
+            else if(opts.dup==='add'){row.status='new';row.note='Ya existía (se crea igual)'}
+            else{row.status='exists';row.note='Ya existe en la biblioteca'}
+          }else row.status='new';
+        }
+      }
+      row.action=row.status==='new'||row.status==='update';
+      rows.push(row);
+    });
+    return rows;
+  }
+  window.libParseBulk=parseBulk;
+
+  /* ───── Escritura (alta / edición / baja) ───── */
+  function libWrite(item,fields){
+    if(!item)return upsertEntity('exerciseLibrary',created({id:uid('custom-exercise'),custom:true,source:'Personalizado',...fields}));
+    if(item.custom){const raw=(data.exerciseLibrary||[]).find(x=>x.id===item.id)||item;return upsertEntity('exerciseLibrary',{...raw,...fields})}
+    return upsertEntity('exerciseLibrary',created({id:uid('custom-exercise'),custom:true,replaces:item.id,source:item.source||'Biblioteca',...fields}));
+  }
+  async function removeOne(it){
+    if(it.custom&&!it.replaces)return removeEntity('exerciseLibrary',it.id);
+    if(it.custom){const raw=(data.exerciseLibrary||[]).find(x=>x.id===it.id);if(raw)upsertEntity('exerciseLibrary',{...raw,hidden:true});return}
+    upsertEntity('exerciseLibrary',created({id:uid('custom-exercise'),name:it.name,category:it.category,hidden:true,replaces:it.id,custom:true,source:'Base'}));
+  }
+  function refresh(){try{renderAll()}catch(_){renderLibraryTab()}}
+  const byId=id=>combinedExerciseLibrary().find(e=>e.id===id);
+  const plural=(n,s,p)=>`${n} ${n===1?s:p}`;
+
+  /* ───── Pestaña ───── */
+  function filtered(){
+    const q=norm(state.search),cat=state.cat;
+    return combinedExerciseLibrary()
+      .filter(e=>(!cat||e.category===cat)&&(!q||norm(`${e.name} ${e.category} ${e.type||''} ${e.equipment||''} ${e.description||''}`).includes(q)))
+      .sort((a,b)=>collator.compare(a.category||'',b.category||'')||collator.compare(a.name||'',b.name||''));
+  }
+  function renderLibraryTab(){
+    const host=$('#routineTabContent');if(!host)return;
+    const cats=categories();if(state.cat&&!cats.includes(state.cat))state.cat='';
+    const hidden=(data.exerciseLibrary||[]).filter(e=>e.hidden).length;
+    setElementHtml(host,`
+      <div class="lib-toolbar">
+        <div class="lib-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="input" id="libSearch" placeholder="Buscar por nombre, categoría, equipamiento…" value="${esc(state.search)}" autocomplete="off"></div>
+        <select class="select" id="libCat" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option>${cats.map(c=>`<option value="${esc(c)}" ${c===state.cat?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <button type="button" class="btn" data-lib="bulk">Carga por lista</button>
+        <button type="button" class="btn btn-primary" data-lib="new">+ Ejercicio</button>
+      </div>
+      <div class="lib-sub"><label><input type="checkbox" id="libAll"> Seleccionar los visibles</label><span id="libCount" aria-live="polite"></span>
+        <span><button type="button" class="btn btn-sm" data-lib="export">Exportar lista</button></span></div>
+      <div id="libBulkBar"></div>
+      <div id="libList"></div>
+      ${hidden?`<div class="lib-footer-note"><span>${plural(hidden,'ejercicio base oculto','ejercicios base ocultos')} por haberlos eliminado.</span><button type="button" class="btn btn-sm" data-lib="restore-hidden">Restaurar ocultos</button></div>`:''}`);
+    renderLibraryList();
+  }
+  function renderLibraryList(){
+    const list=filtered(),shown=list.slice(0,state.limit),box=$('#libList');if(!box)return;
+    let last=null,html='';
+    shown.forEach(e=>{
+      if(e.category!==last){last=e.category;html+=`<div class="lib-cat-head"><span>${esc(e.category||'Sin categoría')}</span><span>${list.filter(x=>x.category===e.category).length}</span></div>`}
+      const badge=e.custom?(e.replaces?'<span class="lib-badge lib-b-edit">Editado</span>':'<span class="lib-badge lib-b-custom">Personalizado</span>'):'<span class="lib-badge">Base</span>';
+      const meta=[e.type,e.equipment,e.source].filter(Boolean).map(esc).join(' · ');
+      html+=`<div class="lib-row ${state.sel.has(e.id)?'is-selected':''}"><input type="checkbox" data-lib-check="${esc(e.id)}" ${state.sel.has(e.id)?'checked':''} aria-label="Seleccionar ${esc(e.name)}">
+        <div class="lib-row-main"><div class="lib-row-name">${esc(e.name)} ${badge}</div>${meta?`<div class="lib-row-meta">${meta}</div>`:''}${e.description?`<div class="lib-row-meta">${esc(e.description)}</div>`:''}</div>
+        <div class="lib-row-actions"><button type="button" class="btn btn-sm" data-lib="edit" data-id="${esc(e.id)}">Editar</button>${e.custom&&e.replaces?`<button type="button" class="btn btn-sm" data-lib="restore" data-id="${esc(e.id)}" title="Volver al ejercicio original">Original</button>`:''}<button type="button" class="btn btn-sm btn-danger" data-lib="delete" data-id="${esc(e.id)}">Eliminar</button></div></div>`;
+    });
+    if(list.length>shown.length)html+=`<div class="lib-more"><button type="button" class="btn" data-lib="more">Ver más (${list.length-shown.length} restantes)</button></div>`;
+    setElementHtml(box,html||'<div class="empty">No hay ejercicios que coincidan. Probá otra búsqueda o agregá uno nuevo.</div>');
+    const c=$('#libCount');if(c)c.textContent=`${plural(list.length,'ejercicio','ejercicios')} en biblioteca`;
+    const all=$('#libAll');if(all)all.checked=shown.length>0&&shown.every(e=>state.sel.has(e.id));
+    renderBulkBar();
+  }
+  function renderBulkBar(){
+    const bar=$('#libBulkBar');if(!bar)return;const n=state.sel.size;
+    setElementHtml(bar,n?`<div class="lib-bulkbar"><strong>${plural(n,'seleccionado','seleccionados')}</strong><button type="button" class="btn btn-sm" data-lib="sel-category">Cambiar categoría</button><button type="button" class="btn btn-sm btn-danger" data-lib="sel-delete">Eliminar</button><button type="button" class="btn btn-sm" data-lib="sel-clear">Limpiar selección</button></div>`:'');
+  }
+
+  /* ───── Alta / edición manual ───── */
+  function catDatalist(){return`<datalist id="libCatList">${categories().map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`}
+  function openEditor(id){
+    const item=id?byId(id):null;state.editId=item?item.id:'';
+    const v=item||{name:'',category:state.cat||'',type:'',equipment:'',source:'Personalizado',description:''};
+    openModal(item?'Editar ejercicio':'Nuevo ejercicio',`
+      ${item&&!item.custom?'<div class="lib-note">Es un ejercicio de la biblioteca base. Al guardar se crea una copia editada y la original queda reemplazada (podés volver a la original cuando quieras).</div>':''}
+      <div class="form-grid">
+        <div class="field full"><label>Nombre *</label><input class="input" id="libName" maxlength="120" value="${esc(v.name)}"></div>
+        <div class="field"><label>Categoría *</label><input class="input" id="libCategory" list="libCatList" value="${esc(v.category)}" placeholder="Elegí o escribí una nueva">${catDatalist()}</div>
+        <div class="field"><label>Tipo</label><input class="input" id="libType" value="${esc(v.type||'')}"></div>
+        <div class="field"><label>Equipamiento</label><input class="input" id="libEquip" value="${esc(v.equipment||'')}"></div>
+        <div class="field"><label>Fuente</label><input class="input" id="libSource" value="${esc(v.source||'Personalizado')}"></div>
+        <div class="field full"><label>Descripción</label><textarea class="textarea" id="libDesc">${esc(v.description||'')}</textarea></div>
+      </div>`,
+      `<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn btn-primary" data-lib="save">${item?'Guardar cambios':'Agregar ejercicio'}</button>`,'wide');
+  }
+  function saveEditor(){
+    const g=id=>($('#'+id)?.value||'').trim();
+    const name=cleanName(g('libName'));let cat=g('libCategory').replace(/\s+/g,' ');
+    if(!name)return toast('El nombre es obligatorio','error');
+    if(!cat)return toast('La categoría es obligatoria','error');
+    const known=categories().find(c=>norm(c)===norm(cat));cat=known||cat.toUpperCase();
+    const item=state.editId?byId(state.editId):null;
+    const clash=combinedExerciseLibrary().find(e=>keyOf(e.name,e.category)===keyOf(name,cat)&&e.id!==(item&&item.id));
+    if(clash)return toast('Ya existe un ejercicio con ese nombre en esa categoría','error');
+    libWrite(item,{name,category:cat,type:g('libType'),equipment:g('libEquip'),source:g('libSource')||'Personalizado',description:g('libDesc')});
+    closeModal();refresh();toast(item?'Ejercicio actualizado':'Ejercicio agregado');
+  }
+  function confirmDelete(items){
+    if(!items.length)return;
+    const one=items.length===1;
+    openConfirm(one?'Eliminar ejercicio':`Eliminar ${items.length} ejercicios`,
+      one?`Se quitará «${items[0].name}» de la biblioteca. Las rutinas existentes no se modifican.`:`Se quitarán ${items.length} ejercicios de la biblioteca. Las rutinas existentes no se modifican.`,
+      async()=>{
+        for(const it of items)await removeOne(it);
+        items.forEach(it=>state.sel.delete(it.id));
+        closeConfirm();refresh();
+        if(!one||!items[0].custom||items[0].replaces)toast(one?'Ejercicio eliminado':`${items.length} ejercicios eliminados`);
+      });
+  }
+
+  /* ───── Carga por lista ───── */
+  const FORMAT_HELP=`
+    <details class="lib-format" open><summary>📋 Formato de orden para la lista</summary><div class="lib-format-body">
+      <p>Una línea por ejercicio. Los campos se separan con <code>|</code> (también sirven tabulaciones o <code>;</code>):</p>
+      <pre>Nombre | Tipo | Equipamiento | Descripción</pre>
+      <p>Solo el <b>nombre</b> es obligatorio; el resto es opcional y se completa de izquierda a derecha.</p>
+      <p>La <b>categoría</b> se indica de una de estas formas:</p>
+      <ul>
+        <li>Una línea de encabezado: <code>## MOVILIDAD</code> (o <code>MOVILIDAD:</code>). Vale para todos los ejercicios que siguen.</li>
+        <li>Entre corchetes al inicio de la línea: <code>[PLIOMETRICOS] Salto al cajón | …</code></li>
+        <li>O ninguna: se usa la “categoría por defecto” de abajo.</li>
+      </ul>
+      <p style="margin-top:8px">También interpreto viñetas (<code>-</code>, <code>•</code>, <code>1.</code>), líneas en blanco y comentarios con <code>//</code>. Si pegás una tabla de Excel/CSV con encabezados <code>Nombre, Categoría, Tipo, Equipamiento, Descripción</code>, las columnas se reconocen solas.</p>
+      <pre>${esc(SAMPLE)}</pre>
+    </div></details>`;
+  function openBulk(){
+    const b=state.bulk;
+    openModal('Carga de ejercicios por lista',`
+      <div class="lib-bulk">
+        <div class="lib-bulk-col">
+          ${FORMAT_HELP}
+          <div class="form-grid">
+            <div class="field"><label>Categoría por defecto</label><input class="input" id="libBulkCat" list="libCatList" value="${esc(b.cat)}" placeholder="Para líneas sin categoría">${catDatalist()}</div>
+            <div class="field"><label>Fuente</label><input class="input" id="libBulkSource" value="${esc(b.source)}"></div>
+            <div class="field"><label>Si ya existe</label><select class="select" id="libBulkDup">
+              <option value="skip" ${b.dup==='skip'?'selected':''}>Omitir duplicados</option>
+              <option value="update" ${b.dup==='update'?'selected':''}>Actualizar el existente</option>
+              <option value="add" ${b.dup==='add'?'selected':''}>Crear igual</option></select></div>
+            <div class="field"><label style="display:flex;align-items:center;gap:8px;margin-top:24px"><input type="checkbox" id="libBulkUpper" ${b.upper?'checked':''}> Categorías nuevas en MAYÚSCULAS</label></div>
+          </div>
+        </div>
+        <div class="lib-bulk-col">
+          <div class="field"><label>Pegá tu lista de ejercicios</label>
+            <textarea class="textarea lib-mono" id="libBulkText" spellcheck="false" placeholder="## CATEGORÍA&#10;Nombre | Tipo | Equipamiento | Descripción">${esc(b.text)}</textarea></div>
+          <div class="lib-actions-row">
+            <button type="button" class="btn btn-sm" data-lib="bulk-example">Insertar ejemplo</button>
+            <button type="button" class="btn btn-sm" data-lib="bulk-copy">Copiar formato</button>
+            <button type="button" class="btn btn-sm" data-lib="bulk-template">Descargar plantilla</button>
+            <button type="button" class="btn btn-sm" data-lib="bulk-file">Cargar archivo…</button>
+            <input type="file" id="libBulkFile" accept=".txt,.csv,.tsv,.md,text/plain,text/csv" hidden>
+          </div>
+          <div id="libBulkPreview" style="margin-top:12px"></div>
+        </div>
+      </div>`,
+      `<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn btn-primary" id="libBulkGo" data-lib="bulk-go" disabled>Importar</button>`,'xl');
+    renderBulkPreview();
+  }
+  function readBulkOpts(){
+    const o={cat:$('#libBulkCat')?.value||'',source:$('#libBulkSource')?.value||'',dup:$('#libBulkDup')?.value||'skip',upper:!!$('#libBulkUpper')?.checked,text:$('#libBulkText')?.value||''};
+    Object.assign(state.bulk,o);return o;
+  }
+  function renderBulkPreview(){
+    const box=$('#libBulkPreview'),go=$('#libBulkGo');if(!box)return;
+    const o=readBulkOpts();bulkRows=parseBulk(o.text,o);
+    const c={new:0,update:0,exists:0,dup:0,error:0};bulkRows.forEach(r=>c[r.status]++);
+    const n=c.new+c.update;
+    if(go){go.disabled=!n;go.textContent=n?`Importar ${plural(n,'ejercicio','ejercicios')}`:'Importar'}
+    if(!bulkRows.length){setElementHtml(box,'<div class="empty">Pegá la lista a la izquierda y acá vas a ver cómo se interpreta antes de cargarla.</div>');return}
+    const label={new:'Nuevo',update:'Actualiza',exists:'Ya existe',dup:'Repetido',error:'Error'};
+    const shown=bulkRows.slice(0,400);
+    setElementHtml(box,`<div class="lib-preview-box"><div class="lib-preview-summary">
+        <span class="lib-st st-new">${c.new} nuevos</span>${c.update?`<span class="lib-st st-update">${c.update} a actualizar</span>`:''}
+        ${c.exists?`<span class="lib-st">${c.exists} ya existen</span>`:''}${c.dup?`<span class="lib-st">${c.dup} repetidos</span>`:''}${c.error?`<span class="lib-st st-error">${c.error} con error</span>`:''}</div>
+      <div class="lib-preview-scroll"><table class="lib-preview-table"><thead><tr><th>#</th><th>Estado</th><th>Ejercicio</th><th>Categoría</th><th>Tipo / Equipo</th></tr></thead><tbody>
+      ${shown.map(r=>`<tr class="st-${r.status}"><td>${r.line}</td><td><span class="lib-st st-${r.status}" title="${esc(r.note||'')}">${label[r.status]}</span></td><td>${esc(r.name||'—')}${r.description?`<div style="color:var(--muted);font-size:11.5px">${esc(r.description)}</div>`:''}${r.status==='error'||r.status==='dup'?`<div style="font-size:11.5px">${esc(r.note)}</div>`:''}</td><td>${esc(r.category)}</td><td>${esc([r.type,r.equipment].filter(Boolean).join(' · '))}</td></tr>`).join('')}
+      </tbody></table></div>${bulkRows.length>shown.length?`<div class="lib-sub" style="padding:8px 12px;margin:0">Mostrando ${shown.length} de ${bulkRows.length} líneas (se importan todas).</div>`:''}</div>`);
+  }
+  function runBulkImport(){
+    const rows=bulkRows.filter(r=>r.action);if(!rows.length)return;
+    let added=0,updated=0;
+    try{
+      rows.forEach(r=>{
+        const base={name:r.name,category:r.category,source:r.source};
+        ['type','equipment','description'].forEach(k=>{if(r[k])base[k]=r[k]});
+        if(r.status==='update'&&r.match){libWrite(r.match,base);updated++}
+        else{libWrite(null,{type:'',equipment:'',description:'',...base});added++}
+      });
+    }catch(err){console.error(err);toast('No se pudo completar la importación','error');return}
+    state.bulk.text='';bulkRows=[];closeModal();refresh();
+    toast(`Importación lista: ${plural(added,'nuevo','nuevos')}${updated?` y ${plural(updated,'actualizado','actualizados')}`:''}`);
+  }
+
+  /* ───── Utilidades ───── */
+  function download(name,text){
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+text],{type:'text/plain;charset=utf-8'}));a.download=name;
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+  }
+  function exportText(){
+    const by=new Map();filtered().forEach(e=>{if(!by.has(e.category))by.set(e.category,[]);by.get(e.category).push(e)});
+    return[...by].map(([c,l])=>`## ${c}\n${l.map(e=>[e.name,e.type||'',e.equipment||'',e.description||''].join(' | ').replace(/(\s\|\s?)+$/,'')).join('\n')}`).join('\n\n')+'\n';
+  }
+  async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(_){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();return ok}}
+  function openCategoryChange(){
+    openModal('Cambiar categoría',`<p class="card-sub" style="margin-bottom:12px">Se aplicará a ${plural(state.sel.size,'ejercicio seleccionado','ejercicios seleccionados')}.</p>
+      <div class="field"><label>Nueva categoría *</label><input class="input" id="libNewCat" list="libCatList" placeholder="Elegí o escribí una nueva">${catDatalist()}</div>`,
+      `<button type="button" class="btn" data-action="close-modal">Cancelar</button><button type="button" class="btn btn-primary" data-lib="sel-category-apply">Aplicar</button>`,'wide');
+  }
+  function applyCategoryChange(){
+    let cat=($('#libNewCat')?.value||'').replace(/\s+/g,' ').trim();if(!cat)return toast('Indicá la categoría','error');
+    cat=categories().find(c=>norm(c)===norm(cat))||cat.toUpperCase();
+    const items=[...state.sel].map(byId).filter(Boolean);
+    items.forEach(it=>libWrite(it,{category:cat}));
+    state.sel.clear();closeModal();refresh();toast(`Categoría actualizada en ${plural(items.length,'ejercicio','ejercicios')}`);
+  }
+
+  /* ───── Eventos ───── */
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('[data-lib]');if(!t)return;
+    const a=t.dataset.lib,id=t.dataset.id;
+    if(a==='new')openEditor('');
+    else if(a==='edit')openEditor(id);
+    else if(a==='save')saveEditor();
+    else if(a==='delete'){const it=byId(id);if(it)confirmDelete([it])}
+    else if(a==='restore'){const it=byId(id);if(it&&it.replaces)openConfirm('Volver al original','Se descartará la versión editada y volverá el ejercicio de la biblioteca base.',async()=>{await removeEntity('exerciseLibrary',it.id);closeConfirm();refresh()},'Restaurar','↺')}
+    else if(a==='restore-hidden')openConfirm('Restaurar ejercicios ocultos','Volverán a mostrarse los ejercicios base que eliminaste.',async()=>{for(const x of(data.exerciseLibrary||[]).filter(r=>r.hidden))await removeEntity('exerciseLibrary',x.id);closeConfirm();refresh()},'Restaurar','↺');
+    else if(a==='more'){state.limit+=STEP;renderLibraryList()}
+    else if(a==='bulk')openBulk();
+    else if(a==='bulk-example'){const ta=$('#libBulkText');if(ta){ta.value=SAMPLE;renderBulkPreview()}}
+    else if(a==='bulk-copy')copyText(SAMPLE).then(ok=>toast(ok?'Formato copiado':'No se pudo copiar',ok?'success':'error'));
+    else if(a==='bulk-template')download('plantilla-ejercicios.txt',SAMPLE+'\n');
+    else if(a==='bulk-file')$('#libBulkFile')?.click();
+    else if(a==='bulk-go')runBulkImport();
+    else if(a==='export'){const txt=exportText();if(!txt.trim())return toast('No hay ejercicios para exportar','warn');download('biblioteca-ejercicios.txt',txt);toast('Lista exportada')}
+    else if(a==='sel-clear'){state.sel.clear();renderLibraryList()}
+    else if(a==='sel-delete')confirmDelete([...state.sel].map(byId).filter(Boolean));
+    else if(a==='sel-category')openCategoryChange();
+    else if(a==='sel-category-apply')applyCategoryChange();
+  });
+  document.addEventListener('change',e=>{
+    const el=e.target;
+    if(el.id==='libCat'){state.cat=el.value;state.limit=STEP;renderLibraryList()}
+    else if(el.id==='libAll'){const shown=filtered().slice(0,state.limit);shown.forEach(x=>el.checked?state.sel.add(x.id):state.sel.delete(x.id));renderLibraryList()}
+    else if(el.dataset&&el.dataset.libCheck){el.checked?state.sel.add(el.dataset.libCheck):state.sel.delete(el.dataset.libCheck);el.closest('.lib-row')?.classList.toggle('is-selected',el.checked);renderBulkBar()}
+    else if(el.id==='libBulkFile'){const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const ta=$('#libBulkText');if(ta){ta.value=String(r.result||'').replace(/^\ufeff/,'');renderBulkPreview()}};r.readAsText(f,'utf-8');el.value=''}
+    else if(el.id==='libBulkDup'||el.id==='libBulkUpper')renderBulkPreview();
+  });
+  document.addEventListener('input',e=>{
+    const el=e.target;
+    if(el.id==='libSearch'){state.search=el.value;state.limit=STEP;debounce('lib-search',renderLibraryList,160)}
+    else if(el.id==='libBulkText'||el.id==='libBulkCat'||el.id==='libBulkSource')debounce('lib-bulk',renderBulkPreview,220);
+  });
+
+  window.renderLibraryTab=renderLibraryTab;
+})();
+</script>
+
 </body>
 </html>
