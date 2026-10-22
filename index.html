@@ -4378,8 +4378,7 @@ function mzPick(b,rc,cap){
    nunca una lista fija de los ejercicios fotografiados. */
 const mzSlot=(ph,l,z,p,tags,extra={})=>({ph,l,z,p,tags,sets:3,reps:tags.includes('power')?'5':'10',...extra});
 const MZ_SCHEMES={
- general:{n:'General · preparación y trabajo global',A:{n:'Día A · preparación, bisagra y tracción',def:10,slots:[
-  mzSlot('Preparación','Movilidad de cadera / bisagra','I',1,['hipMobility']),
+ general:{n:'General · preparación y trabajo global',A:{n:'Día A · preparación, bisagra y tracción',def:9,slots:[
   mzSlot('Preparación','Core lateral','C',2,['lateralCore']),
   mzSlot('Preparación','Aductores','I',7,['adductor'],{prep:true}),
   mzSlot('Preparación','Control posterior / cadenas cruzadas','C',8,['posteriorCore'],{prep:true}),
@@ -4403,7 +4402,7 @@ const MZ_SCHEMES={
  integrada:{n:'Fuerza combinada · apoyos y potencia',A:{n:'Día A · fuerza global y potencia',def:10,slots:[
   mzSlot('Preparación','Core / estabilidad escapular','C',1,['anteriorCore'],{prep:true}),
   mzSlot('Preparación','Puente / activación glútea','I',2,['hipExtension'],{prep:true}),
-  mzSlot('Trabajo principal','Empuje horizontal combinado','S',7,['horizontalPush'],{prefer:['horizontalPull','integrated']}),
+  mzSlot('Trabajo principal','Tracción horizontal','S',7,['horizontalPull']),
   mzSlot('Trabajo principal','Bisagra de cadera','I',3,['hinge'],{prefer:['unilateral','integrated']}),
   mzSlot('Trabajo principal','Dominante de rodilla bilateral','I',4,['squat'],{noPower:true,bilateral:true}),
   mzSlot('Trabajo principal','Empuje horizontal de fuerza','S',5,['horizontalPush'],{noPower:true}),
@@ -4413,7 +4412,7 @@ const MZ_SCHEMES={
   mzSlot('Complementarios','Antirrotación / estabilidad de tronco','C',10,['antiRotation'])]},
  B:{n:'Día B · fuerza unilateral e integración',def:10,slots:[
   mzSlot('Preparación','Core con apoyos alternados','C',1,['anteriorCore'],{prefer:['contralateral','unilateral'],prep:true}),
-  mzSlot('Preparación','Movilidad activa / coordinación cruzada','C',7,['contralateral','hipMobility'],{prep:true}),
+  mzSlot('Preparación','Control contralateral','C',7,['contralateral'],{prep:true}),
   mzSlot('Trabajo principal','Empuje vertical','S',4,['verticalPush']),
   mzSlot('Trabajo principal','Tracción horizontal unilateral','S',5,['horizontalPull'],{prefer:['unilateral']}),
   mzSlot('Trabajo principal','Pierna unilateral','I',2,['lunge'],{noPower:true}),
@@ -4427,14 +4426,16 @@ let MZ_TPL=MZ_SCHEMES[mzC.scheme]||MZ_SCHEMES.general;
 /* Etiquetas semánticas compartidas por todas las fuentes, incluidas abreviaturas
    CES757. Las categorías específicas complementan al nombre; no hay fallback
    a cualquier ejercicio del bloque. */
+const mzTagCache=new WeakMap();
 function mzTags(i){
+ if(mzTagCache.has(MZ_DATA[i]))return mzTagCache.get(MZ_DATA[i]);
  const d=MZ_DATA[i],n=MZ_NN[i],c=mzN(d[1]),t=new Set(),add=(k,yes)=>{if(yes)t.add(k)};
  add('power',/salto|salt\.|jump|\bdj\b|sentadilla.*potencia/.test(n)&&!c.includes('pesas')&&!/arranque|cargada|carg\./.test(n));
  add('hipMobility',/bisagra|cadera|spiderman/.test(n)&&(/movilidad|elongacion|estiramiento|spiderman/.test(n+' '+c)));
  add('lateralCore',/plancha lateral|plancha lat\.|plancha de costado|copenh/.test(n));
  add('anteriorCore',/plancha|bicho muerto|dead bug/.test(n)&&!t.has('lateralCore')&&!/boca arriba/.test(n));
- add('adductor',/aduc|adductor/.test(n)&&!/(press|empuje|emp\.|arranque|sentadilla)/.test(n));
- add('abductor',/abduc|abeduc|cangrejo|monster walk/.test(n)&&!/(press|empuje|emp\.|arranque)/.test(n));
+ add('adductor',/aduc|adductor|copenh/.test(n));
+ add('abductor',/abduc|abeduc|cangrejo|monster walk/.test(n));
  add('posteriorCore',/superman|espinal|bird dog|cuadrupedia.*(altern|cruz)|cuadripedia.*(altern|cruz)/.test(n)||/lumbar|plancha boca arriba/.test(n));
  add('contralateral',/bicho muerto|dead bug|superman|spiderman|bird dog|contralateral|cadena.*cruz|altern.*(brazo|pierna)|1 bb.*1 pp|1 brazo.*1 pierna/.test(n)&&!c.includes('activadores')&&!/homolateral/.test(n));
  add('hinge',/peso muerto|bisagra|buenos dias|despegue|\bp\.?m\.?\b/.test(n)&&d[3]!=='Movilidad'&&!/abdominal/.test(n));
@@ -4455,12 +4456,26 @@ function mzTags(i){
  add('dynamicCore',c==='zona media cadena anterior'||/librito|llevo.*traigo|bicho muerto/.test(n));
  add('unilateral',/unipodal|unilateral|1 pp|1 bb|1 pierna|1 brazo|una pierna|un pie|altern|bulg/.test(n));
  add('integrated',c==='fuerza integrada (piernas + brazos)'||/\+| con remo|con press/.test(n));
- return t;
+ mzTagCache.set(d,t);return t;
 }
-function mzMatches(i,sl){const t=mzTags(i);return sl.tags.some(k=>t.has(k))&&(!sl.noPower||!t.has('power'))&&(!sl.bilateral||!t.has('unilateral'))&&(!sl.prep||!t.has('power')&&!/pesad|cargada|arranque/.test(MZ_NN[i]))}
+function mzMatches(i,sl){const t=mzTags(i);return !mzMobility(i)&&sl.tags.some(k=>t.has(k))&&(!sl.noPower||!t.has('power'))&&(!sl.bilateral||!t.has('unilateral'))&&(!sl.prep||!t.has('power')&&!/pesad|cargada|arranque/.test(MZ_NN[i]))}
 mzS.slots={};mzS.cur='A';
-const MZ_FAM=[/plancha/,/peso muerto/,/press|presion/,/remo/,/sentadilla/,/estocada|zancada|bulg/,/puente|hip thrust/,/pall ?of/,/salto|jump/,/flexion/,/apertura/,/bicho muerto/];
-const mzFam=i=>{const k=MZ_FAM.findIndex(r=>r.test(MZ_NN[i]));return k<0?'n'+i:'f'+k};
+// Las variantes de material, carga y apoyo conservan la misma familia.
+const MZ_FAM=[['aductor',/aduc|adductor|copenh/],['abductor',/abduc|abeduc/],['plancha',/plancha/],['pesoMuerto',/peso muerto|despegue/],['buenosDias',/buenos dias/],['apertura',/apertura/],['flexion',/flexiones|flexion.*brazo|extensiones.*bb/],['press',/press|presion|fza en/],['remo',/remo|serrucho/],['sentadilla',/sentadilla|squat|goblet/],['estocada',/estocada|zancada|bulg|split/],['puente',/puente|hip.?thrust|elev.*cad/],['pallof',/pall.?of/],['salto',/salto|salt\.|jump|\bdj\b/],['bichoMuerto',/bicho muerto|dead bug/],['posterior',/superman|espinal|lumbar|bird dog/],['dominada',/dominada|\bdom\./],['jalon',/jalon|tirones.*polea/],['subida',/subida|step.?up/],['oblicuos',/oblic|twist|giro/],['lateral',/cangrejo|desplaz.*lat/],['vuelos',/vuelos|elevacion.*lat/]];
+const mzFamilies=i=>MZ_FAM.filter(([,r])=>r.test(MZ_NN[i])).map(([k])=>k==='press'?(mzTags(i).has('verticalPush')?'pressVertical':'pressHorizontal'):k);
+const mzFam=i=>mzFamilies(i)[0]||MZ_NN[i];
+const mzVariant=(i,j)=>MZ_NN[i]===MZ_NN[j]||mzFamilies(i).some(k=>mzFamilies(j).includes(k));
+const mzMobility=i=>MZ_DATA[i][3]==='Movilidad'||/movilidad|elongacion|estiramiento|stretch/.test(mzN(MZ_DATA[i][1]+' '+MZ_DATA[i][2]));
+const MZ_WORK=['adductor','abductor','hinge','horizontalPush','horizontalPull','verticalPush','verticalPull','lunge','squat','step','hipExtension','transition','power','lateralMove','shoulderAccessory','antiRotation'];
+function mzOverlap(i,j){
+ if(mzVariant(i,j))return true;
+ const a=mzTags(i),b=mzTags(j);
+ // También contar los componentes de los ejercicios combinados.
+ return MZ_WORK.some(k=>a.has(k)&&b.has(k));
+}
+const mzCompatible=i=>!mzMobility(i)&&!mzS.routine.some(j=>mzOverlap(i,j));
+mzS.slotDefs={};
+const mzSlotAt=k=>mzS.slotDefs[k]||MZ_TPL[mzS.cur||'A'].slots[k];
 function mzLast(){const m=new Map();if(!mzS.pid)return m;
  const put=(n,t)=>{n=mzN(n);const x=Date.parse(t)||0;if(x>(m.get(n)||0))m.set(n,x)};
  data.routines.filter(r=>r.patientId===mzS.pid&&!r.template).forEach(r=>(r.exercises||[]).forEach(e=>put(e.name,r.date||r.createdAt)));
@@ -4478,7 +4493,7 @@ function mzW(i,x){let w=1;const t=x.last.get(MZ_NN[i]);
  return w}
 function mzPickSlot(sl,x,ex){
  // Primero preservar patrón y restricciones; luego evitar repetición.
- let P=[...mzActive].filter(i=>!(ex&&ex.has(i))&&mzOk(i,2,x.rc)&&mzMatches(i,sl));
+ let P=[...mzActive].filter(i=>!(ex&&ex.has(i))&&mzOk(i,2,x.rc)&&mzMatches(i,sl)&&mzCompatible(i));
  if(!P.length)return null;
  const fresh=P.filter(i=>!x.rc.has(MZ_NN[i]));
  if(fresh.length)P=fresh;
@@ -4500,12 +4515,29 @@ function mzGen(){
  mzSyncLibrary();
  if(!mzSources.some(([s])=>mzSourceOn(s))){mzS.msg='Seleccioná al menos una fuente de ejercicios.';return renderMezclador()}
  const x={last:mzLast(),rc:mzRecent()},cur=mzTplNow(),T=MZ_TPL[cur],keys=mzSel(cur);
- const prev=(mzS.cur===cur?Object.entries(mzS.slots):[]).filter(([k,i])=>keys.includes(+k)&&mzS.lock.has(i)&&mzS.routine.includes(i)&&mzMatches(i,T.slots[k])&&!mzHid(i)&&!mzR().z.some(z=>MZ_DATA[i][4]>>z&1)&&!mzR().m.some(m=>MZ_DATA[i][5]>>m&1));
- mzS.cur=cur;mzS.msg='';mzS.slots={};mzS.routine=[];
- prev.forEach(([k,i])=>{mzS.slots[k]=i;mzS.routine.push(i)});
- keys.forEach(k=>{if(k in mzS.slots)return;const i=mzPickSlot(T.slots[k],x);
-  if(i==null){mzS.msg+='Sin opciones para "'+T.slots[k].l+'". ';return}
-  mzS.routine.push(i);mzS.slots[k]=i});
+ const prev=(mzS.cur===cur?Object.entries(mzS.slots):[]).filter(([k,i])=>keys.includes(+k)&&mzS.lock.has(i)&&mzS.routine.includes(i)&&mzMatches(i,mzSlotAt(k))&&!mzHid(i)&&!mzR().z.some(z=>MZ_DATA[i][4]>>z&1)&&!mzR().m.some(m=>MZ_DATA[i][5]>>m&1));
+ const oldDefs=mzS.slotDefs||{};
+ mzS.cur=cur;mzS.msg='';mzS.slots={};mzS.slotDefs={};mzS.routine=[];
+ prev.forEach(([k,i])=>{if(mzCompatible(i)){mzS.slots[k]=i;mzS.slotDefs[k]=oldDefs[k]||T.slots[k];mzS.routine.push(i)}else mzS.msg+='Se liberó un fijo que duplicaba trabajo. '});
+ // Búsqueda con retroceso: reservar opciones para los otros lugares, sin
+ // flexibilizar nunca exclusiones ni superposiciones funcionales.
+ const pools=new Map(keys.filter(k=>!(k in mzS.slots)).map(k=>[k,[...mzActive].filter(i=>mzOk(i,2,x.rc)&&mzMatches(i,T.slots[k])&&mzCompatible(i))
+ .map(i=>({i,rank:-Math.log(Math.max(Number.MIN_VALUE,Math.random()))/(mzW(i,x)*(T.slots[k].prefer?.some(t=>mzTags(i).has(t))?3:1))})).sort((a,b)=>a.rank-b.rank).map(o=>o.i)]));
+ let nodes=0,best={routine:[...mzS.routine],slots:{...mzS.slots}};
+ const solve=remaining=>{
+  if(mzS.routine.length>best.routine.length)best={routine:[...mzS.routine],slots:{...mzS.slots}};
+  if(!remaining.length)return true;
+  if(++nodes>6000)return false;
+  const choices=remaining.map(k=>({k,options:pools.get(k).filter(mzCompatible)})).sort((a,b)=>a.options.length-b.options.length);
+  const {k,options}=choices[0];if(!options.length)return false;
+  for(const i of options){mzS.slots[k]=i;mzS.routine.push(i);if(solve(remaining.filter(j=>j!==k)))return true;mzS.routine.pop();delete mzS.slots[k];if(nodes>6000)break}
+  return false;
+ };
+ solve([...pools.keys()]);mzS.routine=best.routine;mzS.slots=best.slots;
+ // Con filtros incompatibles, entregar solo los lugares válidos y avisar.
+ for(const k of keys.filter(k=>!(k in mzS.slots))){const i=mzPickSlot(T.slots[k],x);if(i!=null){mzS.slots[k]=i;mzS.routine.push(i)}}
+ if(mzS.routine.some(i=>x.rc.has(MZ_NN[i])))mzS.msg+='Se reutilizó un ejercicio reciente para completar los patrones sin duplicar trabajo. ';
+ keys.filter(k=>!(k in mzS.slots)).forEach(k=>mzS.msg+='Sin opción compatible y sin repetir trabajo para "'+T.slots[k].l+'". ');
  if(mzC.n>keys.length)mzS.msg+='Este enfoque tiene '+keys.length+' patrones como máximo. ';
  mzS.routine=Object.keys(mzS.slots).map(Number).sort((a,b)=>a-b).map(k=>mzS.slots[k]);
  mzS.routine.forEach(i=>mzS.used.add(i));
@@ -4513,7 +4545,7 @@ function mzGen(){
 function mzText(){
  const T=MZ_TPL[mzS.cur||'A'],p=getPatient(mzS.pid);let ph='';
  const out=['*Rutina de ejercicios*'];if(p?.nombre)out.push('Paciente: '+p.nombre);
- mzSlotKeys().forEach((k,q)=>{const sl=T.slots[k];if(sl.ph!==ph){ph=sl.ph;out.push('','*'+ph+'*')}
+ mzSlotKeys().forEach((k,q)=>{const sl=mzSlotAt(k);if(sl.ph!==ph){ph=sl.ph;out.push('','*'+ph+'*')}
   out.push((q+1)+'. '+MZ_DATA[mzS.slots[k]][2]+' — '+sl.sets+' x '+sl.reps)});
  return out.join('\n')}
 function mzWA(){
@@ -4522,23 +4554,34 @@ function mzWA(){
  else{try{w.opener=null}catch(_){}mzS.msg=ph?'WhatsApp abierto con la rutina lista para enviar.':'WhatsApp abierto: elegí el contacto para enviarla.'}}
 function mzPrint(){
  const T=MZ_TPL[mzS.cur||'A'],p=getPatient(mzS.pid),ks=mzSlotKeys();if(!ks.length)return;let ph='';
- const rows=ks.map((k,q)=>{const sl=T.slots[k];let h='';if(sl.ph!==ph){ph=sl.ph;h=`<tr><th colspan="3">${esc(ph)}</th></tr>`}
+ const rows=ks.map((k,q)=>{const sl=mzSlotAt(k);let h='';if(sl.ph!==ph){ph=sl.ph;h=`<tr><th colspan="3">${esc(ph)}</th></tr>`}
   return h+`<tr><td>${q+1}</td><td class="print-exercise-name">${esc(MZ_DATA[mzS.slots[k]][2])}</td><td>${sl.sets} x ${esc(sl.reps)}</td></tr>`}).join('');
  $('#printArea').innerHTML=`<div class="print-sheet"><h1>${esc(data.meta?.clinicName||'ETER KinePro')}</h1><p>Rutina de ejercicios · ${esc(T.n)}</p><div class="print-meta"><div><strong>Paciente:</strong> ${esc(p?.nombre||'—')}</div><div><strong>Fecha:</strong> ${fmtDate(todayISO())}</div></div><table><thead><tr><th>#</th><th>Ejercicio</th><th>Series x reps</th></tr></thead><tbody>${rows}</tbody></table></div>`;
  window.print()}
 function mzSwap(p){
  mzSyncLibrary();
- const T=MZ_TPL[mzS.cur||'A'],old=mzS.routine[p],k=Object.keys(mzS.slots).find(y=>mzS.slots[y]===old);
+ const old=mzS.routine[p],k=Object.keys(mzS.slots).find(y=>mzS.slots[y]===old);
  if(k==null){mzS.msg='No se pudo cambiar este ejercicio.';return renderMezclador()}
- mzS.routine.splice(p,1);mzS.lock.delete(old);mzS.msg='';
- const i=mzPickSlot(T.slots[k],{last:mzLast(),rc:mzRecent()},new Set([old]));
- if(i==null){if(!mzHid(old)){mzS.routine.splice(p,0,old)}else{delete mzS.slots[k]}mzS.msg='No quedan más opciones para este patrón.'}
- else{mzS.routine.splice(p,0,i);mzS.slots[k]=i;mzS.used.add(i)}
- renderMezclador()}
+ const sl=mzSlotAt(k),wasLocked=mzS.lock.has(old),x={last:mzLast(),rc:mzRecent()};
+ mzS.routine.splice(p,1);mzS.msg='';
+ const excluded=new Set([...mzActive].filter(i=>mzVariant(i,old)));
+ // Intentar otro ejercicio del patrón; si no existe, otra función complementaria
+ // de la misma etapa y zona. El rótulo se actualiza con el reemplazo real.
+ let chosen=sl,i=mzPickSlot(sl,x,excluded);
+ if(i==null){
+  const candidates=[...MZ_TPL.A.slots,...MZ_TPL.B.slots].filter(t=>t.z===sl.z&&((t.ph==='Preparación')===(sl.ph==='Preparación'))&&!t.tags.some(tag=>sl.tags.includes(tag)));
+  for(const alt of candidates.sort(()=>Math.random()-.5)){i=mzPickSlot(alt,x,excluded);if(i!=null){chosen={...alt,ph:sl.ph,p:sl.p};break}}
+ }
+ if(i==null){
+  if(!mzHid(old)&&mzCompatible(old)){mzS.routine.splice(p,0,old);if(wasLocked)mzS.lock.add(old)}else{delete mzS.slots[k];delete mzS.slotDefs[k];mzS.lock.delete(old)}
+  mzS.msg='No hay otro ejercicio diferente y compatible sin repetir trabajo. No se reemplazó por una variante.';
+ }else{mzS.lock.delete(old);mzS.routine.splice(p,0,i);mzS.slots[k]=i;mzS.slotDefs[k]=chosen;mzS.used.add(i)}
+ renderMezclador();
+}
 function mzToggle(arr,v){const k=mzC[arr].indexOf(v);k<0?mzC[arr].push(v):mzC[arr].splice(k,1);mzSave()}
 function mzAssign(){
   const pt=data.patients.find(p=>p.id===mzS.pid);if(!pt||!mzS.routine.length)return;
-  const d=todayISO(),T=MZ_TPL[mzS.cur||'A'],ex=mzSlotKeys().map((k,n)=>{const i=mzS.slots[k],sl=T.slots[k];return{name:MZ_DATA[i][2],category:MZ_DATA[i][3],sets:sl.sets,reps:sl.reps,notes:sl.l,source:MZ_DATA[i][0],order:n}});
+  const d=todayISO(),T=MZ_TPL[mzS.cur||'A'],ex=mzSlotKeys().map((k,n)=>{const i=mzS.slots[k],sl=mzSlotAt(k);return{name:MZ_DATA[i][2],category:MZ_DATA[i][3],sets:sl.sets,reps:sl.reps,notes:sl.l,source:MZ_DATA[i][0],order:n}});
   upsertEntity('routines',normalizeRoutine({id:uid('routine'),name:'Mezclador · '+d.split('-').reverse().join('/'),patientId:pt.id,patientName:pt.nombre,date:d,status:'Activa',active:true,template:false,exercises:ex,mezclador:true,tpl:mzS.cur||'A',scheme:mzC.scheme||'general'}));
   mzS.msg='Rutina asignada a '+pt.nombre+'. Ya aparece en su ficha y en Rutinas.';renderAll();toast('Rutina asignada a '+pt.nombre)}
 function mzMgr(){
@@ -4555,13 +4598,13 @@ function renderMezclador(){
   const r=mzR(),chip=(t,k,i,on)=>`<button type="button" class="routine-tab ${on?'active':''}" data-mz="${k}" data-v="${i}">${t}<\/button>`;
   const steps=MZ_B.map((b,bi)=>`<span class="mz-step"><b style="color:${MZ_BC[b]}">${b}<\/b><button type="button" class="btn" data-mz="cnt" data-b="${bi}" data-d="-1" aria-label="Menos ${b}">−<\/button><em>${mzC.cnt[bi]}<\/em><button type="button" class="btn" data-mz="cnt" data-b="${bi}" data-d="1" aria-label="Más ${b}">+<\/button><\/span>`).join('');
   const cur=mzS.routine.length?mzS.cur:mzTplNow(),TT=MZ_TPL[cur];let ph='';
-  const items=mzSlotKeys().map((k,q)=>{const sl=TT.slots[k],i=mzS.slots[k],d=MZ_DATA[i],L=mzS.lock.has(i),p=mzS.routine.indexOf(i);
+  const items=mzSlotKeys().map((k,q)=>{const sl=mzSlotAt(k),i=mzS.slots[k],d=MZ_DATA[i],L=mzS.lock.has(i),p=mzS.routine.indexOf(i);
     let h='';if(sl.ph!==ph){ph=sl.ph;h=`<h3 class="mz-bh" style="color:${MZ_BC[d[3]]}">${mzEsc(ph)}<\/h3>`}
     return h+`<div class="mz-item" style="--mzc:${MZ_BC[d[3]]}"><span class="mz-n">${q+1}<\/span><div class="mz-t"><b>${mzEsc(d[2])}<\/b><small>${mzEsc(sl.l)} · ${sl.sets} x ${mzEsc(sl.reps)} · ${mzEsc(d[0])}<\/small><\/div><span class="mz-ic"><button type="button" class="btn ${L?'on':''}" data-mz="lock" data-i="${i}" aria-pressed="${L}" aria-label="Fijar" title="Fijar al regenerar">${L?'🔒':'🔓'}<\/button>${mzBtns(i,p).replace('<span class="mz-ic">','').replace(/<\/span>$/,'')}<button type="button" class="btn" data-mz="swap" data-p="${p}">Cambiar<\/button><\/span><\/div>`}).join('');
   const panel=mzS.panel==='restr'?`<div class="mz-panel"><p class="card-sub">${mzS.pid?'Restricciones de este paciente':'Restricciones generales (sin paciente)'} · tocá para excluir. Las etiquetas se asignaron automáticamente por el nombre del ejercicio: si alguno no corresponde, ocultalo en “Mis ejercicios”.<\/p><div class="routine-tabs"><span class="mz-lb">Zona afectada<\/span>${MZ_Z.map((z,i)=>chip(z,'rz',i,r.z.includes(i))).join('')}<\/div><div class="routine-tabs" style="margin-top:8px"><span class="mz-lb">Sin material<\/span>${MZ_M.map((z,i)=>chip(z,'rm',i,r.m.includes(i))).join('')}<\/div><\/div>`
     :mzS.panel==='mgr'?`<div class="mz-panel"><div class="mz-mgr"><input type="search" id="mzQ" placeholder="Buscar ejercicio…" value="${mzEsc(mzS.q)}" aria-label="Buscar ejercicio"><div class="routine-tabs">${[['all','Todos'],['fav','★ Favoritos'],['hid','⊘ Ocultos']].map(([k,l])=>chip(l,'flt',k,mzS.flt===k)).join('')}<\/div><\/div><p class="card-sub">★ sale con más frecuencia · ⊘ no sale nunca.<\/p><div id="mzList">${mzMgr()}<\/div><\/div>`:'';
   v.innerHTML=`<div class="page-header"><div class="page-header-left"><h2>Mezclador de rutinas<\/h2><p>Rutinas según tus planillas: preparación, patrones complementarios y trabajo integrado<\/p><\/div><\/div>
-  <div class="card mz-card">${mzSourcesPanel()}<div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Esquema<select data-mzsel="scheme">${Object.entries(MZ_SCHEMES).map(([k,t])=>`<option value="${k}" ${(mzC.scheme||'general')===k?'selected':''}>${mzEsc(t.n)}</option>`).join('')}</select></label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B<\/option><\/select><\/label><label class="mz-f">Enfoque<select data-mzsel="foc"><option value="all" ${mzC.foc!=='S'&&mzC.foc!=='I'?'selected':''}>Completo<\/option><option value="S" ${mzC.foc==='S'?'selected':''}>MMSS (tren superior)<\/option><option value="I" ${mzC.foc==='I'?'selected':''}>MMII (tren inferior)<\/option><\/select><\/label><label class="mz-f">Cantidad<select data-mzsel="n"><option value="0" ${!(mzC.n>0)?'selected':''}>Auto (${Math.min(MZ_TPL[mzTplNow()].def,mzMax(mzTplNow()))})<\/option>${Array.from({length:mzMax(mzTplNow())-4},(_,q)=>q+5).map(v=>`<option value="${v}" ${mzC.n===v?'selected':''}>${v} ejercicios<\/option>`).join('')}<\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${mzSel(cur).length} ejercicios. Estructura inferida de tus hojas; selección por patrón en todas las fuentes activas. Las dosis son valores iniciales editables en Rutinas.<\/p>
+  <div class="card mz-card">${mzSourcesPanel()}<div class="mz-cfg"><label class="mz-f">Paciente<select data-mzsel="pid"><option value="">Sin paciente<\/option>${pts.map(p=>`<option value="${mzEsc(p.id)}" ${p.id===mzS.pid?'selected':''}>${mzEsc(p.nombre)}<\/option>`).join('')}<\/select><\/label><label class="mz-f">No repetir de sus últimas<select data-mzsel="hist">${[1,2,3,5,99].map(n=>`<option value="${n}" ${n===mzC.hist?'selected':''}>${n===99?'todas las rutinas':n+(n>1?' rutinas':' rutina')}<\/option>`).join('')}<\/select><\/label><label class="mz-f">Esquema<select data-mzsel="scheme">${Object.entries(MZ_SCHEMES).map(([k,t])=>`<option value="${k}" ${(mzC.scheme||'general')===k?'selected':''}>${mzEsc(t.n)}</option>`).join('')}</select></label><label class="mz-f">Plantilla<select data-mzsel="tpl"><option value="auto" ${mzC.tpl!=='A'&&mzC.tpl!=='B'?'selected':''}>Auto (toca Día ${mzTplNow()})<\/option><option value="A" ${mzC.tpl==='A'?'selected':''}>Día A<\/option><option value="B" ${mzC.tpl==='B'?'selected':''}>Día B<\/option><\/select><\/label><label class="mz-f">Enfoque<select data-mzsel="foc"><option value="all" ${mzC.foc!=='S'&&mzC.foc!=='I'?'selected':''}>Completo<\/option><option value="S" ${mzC.foc==='S'?'selected':''}>MMSS (tren superior)<\/option><option value="I" ${mzC.foc==='I'?'selected':''}>MMII (tren inferior)<\/option><\/select><\/label><label class="mz-f">Cantidad<select data-mzsel="n"><option value="0" ${!(mzC.n>0)?'selected':''}>Auto (${Math.min(MZ_TPL[mzTplNow()].def,mzMax(mzTplNow()))})<\/option>${Array.from({length:mzMax(mzTplNow())-4},(_,q)=>q+5).map(v=>`<option value="${v}" ${mzC.n===v?'selected':''}>${v} ejercicios<\/option>`).join('')}<\/select><\/label><\/div><p class="card-sub">${mzEsc(TT.n)} · ${mzSel(cur).length} ejercicios. Estructura inferida de tus hojas; selección por patrón en todas las fuentes activas. Movilidad excluida: ya está preestablecida. Sin familias ni funciones principales duplicadas. Las dosis son editables en Rutinas.<\/p>
   <div class="mz-bar"><button type="button" class="btn btn-primary mz-go" data-mz="gen">${mzS.lock.size?'Regenerar (fijos: '+mzS.lock.size+')':'Generar rutina'}<\/button><button type="button" class="btn" data-mz="assign" ${mzS.pid&&mzS.routine.length?'':'disabled'} title="${mzS.pid?'':'Elegí un paciente'}">Asignar a paciente<\/button><\/div>
   <div class="mz-bar"><button type="button" class="btn ${mzS.panel==='restr'?'on':''}" data-mz="panel" data-v="restr">Restricciones${r.z.length+r.m.length?' ('+(r.z.length+r.m.length)+')':''}<\/button><button type="button" class="btn ${mzS.panel==='mgr'?'on':''}" data-mz="panel" data-v="mgr">Mis ejercicios<\/button><\/div>${panel}
   ${mzS.msg?`<p class="mz-msg" role="status">${mzEsc(mzS.msg)}<\/p>`:''}<div class="mz-list">${items||'<p class="card-sub" style="padding:18px 0">Elegí paciente y tocá “Generar rutina”.<\/p>'}<\/div>
