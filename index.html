@@ -7567,7 +7567,7 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
   function parseBulk(text,opts){
     opts=opts||{};
     const cats=new Map(categories().map(c=>[norm(c),c]));
-    const existing=new Map(combinedExerciseLibrary().map(e=>[keyOf(e.name,e.category),e]));
+    const existing=new Map();combinedExerciseLibrary().forEach(e=>{const k1=keyOf(e.name,e.category),k2=keyOf(cleanName(e.name),e.category);if(!existing.has(k1))existing.set(k1,e);if(!existing.has(k2))existing.set(k2,e)});
     const seen=new Set(),rows=[];
     let current='',header=null,hDelim=null;
     const resolveCat=raw=>{
@@ -7612,7 +7612,9 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
         else{
           seen.add(k);const ex=existing.get(k);
           if(ex){row.match=ex;
-            if(opts.dup==='update'){row.status='update';row.note='Actualiza el existente'}
+            if(opts.dup==='update'){
+              const same=['type','equipment','description'].every(k=>String(row[k]||'').trim()===String(ex[k]||'').trim());
+              if(same){row.status='exists';row.note='Sin cambios'}else{row.status='update';row.note='Actualiza el existente'}}
             else if(opts.dup==='add'){row.status='new';row.note='Ya existía (se crea igual)'}
             else{row.status='exists';row.note='Ya existe en la biblioteca'}
           }else row.status='new';
@@ -7660,7 +7662,7 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
         <button type="button" class="btn btn-primary" data-lib="new">+ Ejercicio</button>
       </div>
       <div class="lib-sub"><label><input type="checkbox" id="libAll"> Seleccionar los visibles</label><span id="libCount" aria-live="polite"></span>
-        <span><button type="button" class="btn btn-sm" data-lib="export">Exportar lista</button></span></div>
+        <span style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn btn-sm" data-lib="export">Exportar lista</button><button type="button" class="btn btn-sm" data-lib="xlsx-export" title="Descargar toda la biblioteca en Excel">⬇ Descargar Excel</button><button type="button" class="btn btn-sm" data-lib="xlsx-import" title="Importar una biblioteca actualizada desde Excel">⬆ Importar Excel</button><input type="file" id="libXlsxFile" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden></span></div>
       <div id="libBulkBar"></div>
       <div id="libList"></div>
       ${hidden?`<div class="lib-footer-note"><span>${plural(hidden,'ejercicio base oculto','ejercicios base ocultos')} por haberlos eliminado.</span><button type="button" class="btn btn-sm" data-lib="restore-hidden">Restaurar ocultos</button></div>`:''}`);
@@ -7804,12 +7806,50 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
       rows.forEach(r=>{
         const base={name:r.name,category:r.category,source:r.source};
         ['type','equipment','description'].forEach(k=>{if(r[k])base[k]=r[k]});
-        if(r.status==='update'&&r.match){libWrite(r.match,base);updated++}
+        if(r.status==='update'&&r.match){libWrite(r.match,{...base,name:r.match.name});updated++}
         else{libWrite(null,{type:'',equipment:'',description:'',...base});added++}
       });
     }catch(err){console.error(err);toast('No se pudo completar la importación','error');return}
     state.bulk.text='';bulkRows=[];closeModal();refresh();
     toast(`Importación lista: ${plural(added,'nuevo','nuevos')}${updated?` y ${plural(updated,'actualizado','actualizados')}`:''}`);
+  }
+
+  /* ───── Excel (.xlsx): descarga e importación ───── */
+  const XLSX_URL='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm';
+  async function loadXLSX(){const m=await import(XLSX_URL);return m.default&&m.default.utils?m.default:m}
+  async function exportXlsx(){
+    const list=combinedExerciseLibrary().slice().sort((a,b)=>collator.compare(a.category||'',b.category||'')||collator.compare(a.name||'',b.name||''));
+    if(!list.length)return toast('No hay ejercicios para exportar','warn');
+    const btn=document.querySelector('[data-lib="xlsx-export"]');
+    if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Generando…'}
+    try{
+      const XLSX=await loadXLSX();
+      const rows=list.map(e=>({'Nombre':e.name||'','Categoría':e.category||'','Tipo':e.type||'','Equipamiento':e.equipment||'','Descripción':e.description||'','Fuente':e.source||'','Origen':e.custom?(e.replaces?'Editado':'Personalizado'):'Base'}));
+      const ws=XLSX.utils.json_to_sheet(rows,{header:['Nombre','Categoría','Tipo','Equipamiento','Descripción','Fuente','Origen']});
+      ws['!cols']=[{wch:42},{wch:34},{wch:16},{wch:22},{wch:50},{wch:26},{wch:14}];
+      ws['!autofilter']={ref:`A1:G${rows.length+1}`};
+      const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Ejercicios');
+      XLSX.writeFile(wb,`biblioteca-ejercicios-${todayISO()}.xlsx`);
+      toast(`Excel descargado (${plural(rows.length,'ejercicio','ejercicios')})`);
+    }catch(err){console.error(err);toast('No se pudo generar el Excel. Revisá la conexión e intentá de nuevo.','error')}
+    finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t||'⬇ Descargar Excel'}}
+  }
+  async function importXlsxFile(file){
+    try{
+      toast('Leyendo Excel…','info');
+      const XLSX=await loadXLSX();
+      const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+      const sheetName=wb.SheetNames.find(n=>norm(n)==='ejercicios')||wb.SheetNames[0];
+      const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,defval:'',raw:false});
+      const clean=v=>String(v??'').replace(/[\t\r\n]+/g,' ').trim();
+      const lines=aoa.map(r=>r.map(clean)).filter(r=>r.some(Boolean)).map(r=>r.join('\t'));
+      if(lines.length<2)return toast('El Excel no tiene ejercicios para importar','warn');
+      const head=lines[0].split('\t').map(norm);
+      if(!head.some(h=>FIELD[h]==='name'))return toast('No encontré la columna «Nombre» en la primera fila','error');
+      state.bulk.text=lines.join('\n');state.bulk.dup='update';state.bulk.cat='';state.bulk.source='Importado de Excel';
+      openBulk();
+      toast(`Excel leído: ${plural(lines.length-1,'fila','filas')}. Revisá la vista previa y confirmá.`,'info');
+    }catch(err){console.error(err);toast('No se pudo leer el archivo. Usá un .xlsx o .csv válido.','error')}
   }
 
   /* ───── Utilidades ───── */
@@ -7852,6 +7892,8 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
     else if(a==='bulk-template')download('plantilla-ejercicios.txt',SAMPLE+'\n');
     else if(a==='bulk-file')$('#libBulkFile')?.click();
     else if(a==='bulk-go')runBulkImport();
+    else if(a==='xlsx-export')exportXlsx();
+    else if(a==='xlsx-import')$('#libXlsxFile')?.click();
     else if(a==='export'){const txt=exportText();if(!txt.trim())return toast('No hay ejercicios para exportar','warn');download('biblioteca-ejercicios.txt',txt);toast('Lista exportada')}
     else if(a==='sel-clear'){state.sel.clear();renderLibraryList()}
     else if(a==='sel-delete')confirmDelete([...state.sel].map(byId).filter(Boolean));
@@ -7864,6 +7906,7 @@ init().then(()=>{saveAutomaticBackup('Inicio de aplicación');injectEterExtensio
     else if(el.id==='libAll'){const shown=filtered().slice(0,state.limit);shown.forEach(x=>el.checked?state.sel.add(x.id):state.sel.delete(x.id));renderLibraryList()}
     else if(el.dataset&&el.dataset.libCheck){el.checked?state.sel.add(el.dataset.libCheck):state.sel.delete(el.dataset.libCheck);el.closest('.lib-row')?.classList.toggle('is-selected',el.checked);renderBulkBar()}
     else if(el.id==='libBulkFile'){const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const ta=$('#libBulkText');if(ta){ta.value=String(r.result||'').replace(/^\ufeff/,'');renderBulkPreview()}};r.readAsText(f,'utf-8');el.value=''}
+    else if(el.id==='libXlsxFile'){const f=el.files&&el.files[0];el.value='';if(f)importXlsxFile(f)}
     else if(el.id==='libBulkDup'||el.id==='libBulkUpper')renderBulkPreview();
   });
   document.addEventListener('input',e=>{
