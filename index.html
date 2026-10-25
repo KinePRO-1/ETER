@@ -833,6 +833,9 @@ input[type=range]{width:100%;accent-color:var(--blue);height:6px}
 .patient-card{contain-intrinsic-size:auto 110px}
 .patient-card[open]{contain-intrinsic-size:auto 620px}
 .view:not(.active){content-visibility:hidden}
+/* El menú de acciones (Eliminar, etc.) se recortaba por la contención de pintado de content-visibility */
+#view-rutinas .routine-card,#view-rutinas .routine-patient-group,#view-rutinas .routine-grid{content-visibility:visible;contain:none;overflow:visible}
+#view-rutinas .routine-card:has(.routine-context[open]){position:relative;z-index:120}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
